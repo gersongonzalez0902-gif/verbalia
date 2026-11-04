@@ -1,0 +1,35 @@
+{
+  "name": "VERBALIA · La aventura del lenguaje",
+  "short_name": "VERBALIA",
+  "description": "Videojuego educativo para entrenar vocabulario, gramática, ortografía y lectura en el Archipiélago de las Palabras.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "es",
+  "dir": "ltr",
+  "background_color": "#f6f4ec",
+  "theme_color": "#f6f4ec",
+  "categories": ["education", "games", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

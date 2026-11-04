@@ -1,0 +1,96 @@
+"use client";
+
+/**
+ * Registro central de iconos Lucide por nombre de cadena.
+ * Permite que los datos (misiones, logros, regiones) referencien
+ * iconos sin acoplar los ficheros de datos a React.
+ */
+
+import {
+  Anchor,
+  AudioLines,
+  Blocks,
+  BookHeart,
+  BookOpenText,
+  Brain,
+  Building2,
+  CalendarCheck,
+  Castle,
+  Crown,
+  Ear,
+  Feather,
+  Flame,
+  Flower2,
+  Footprints,
+  Gauge,
+  GitBranch,
+  Layers,
+  Library,
+  ListOrdered,
+  Map as MapIcon,
+  MapPin,
+  PenLine,
+  Play,
+  Scale,
+  ScrollText,
+  Search,
+  Shapes,
+  Sparkles,
+  Sprout,
+  Swords,
+  Target,
+  TextSelect,
+  TowerControl,
+  TreePine,
+  TrendingUp,
+  Trophy,
+  Undo2,
+  Zap,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+export const ICONS: Record<string, LucideIcon> = {
+  Anchor,
+  AudioLines,
+  Blocks,
+  BookHeart,
+  BookOpenText,
+  Brain,
+  Building2,
+  CalendarCheck,
+  Castle,
+  Crown,
+  Ear,
+  Feather,
+  Flame,
+  Flower2,
+  Footprints,
+  Gauge,
+  GitBranch,
+  Layers,
+  Library,
+  ListOrdered,
+  Map: MapIcon,
+  MapPin,
+  PenLine,
+  Play,
+  Scale,
+  ScrollText,
+  Search,
+  Shapes,
+  Sparkles,
+  Sprout,
+  Swords,
+  Target,
+  TextSelect,
+  TowerControl,
+  TreePine,
+  TrendingUp,
+  Trophy,
+  Undo2,
+  Zap,
+};
+
+export function getIcon(name: string, fallback: LucideIcon = Sparkles): LucideIcon {
+  return ICONS[name] ?? fallback;
+}

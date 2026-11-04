@@ -1,0 +1,160 @@
+"use client";
+
+/**
+ * Colección de palabras · Todas las palabras del jardín con su estado
+ * SRS, próxima revisión y buscador/filtros.
+ */
+
+import { useMemo, useState } from "react";
+import { useGameStore } from "@/store/game-store";
+import { useUiStore } from "@/store/ui-store";
+import { ScreenHeader } from "@/components/game/app-shell";
+import { EmptyState, StatusChip, ProgressRing } from "@/components/game/widgets";
+import { SRS_WORDS } from "@/data/words-srs";
+import { cardStatus } from "@/engine/srs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { BookMarked, Search, Sprout } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type Filter = "todas" | "nueva" | "aprendiendo" | "aprendida" | "dominada";
+
+const FILTERS: Filter[] = ["todas", "nueva", "aprendiendo", "aprendida", "dominada"];
+
+export function CollectionScreen() {
+  const srs = useGameStore((s) => s.srs);
+  const navigate = useUiStore((s) => s.navigate);
+  const [filter, setFilter] = useState<Filter>("todas");
+  const [query, setQuery] = useState("");
+
+  const stats = useMemo(() => {
+    const counts = { nueva: 0, aprendiendo: 0, aprendida: 0, dominada: 0 };
+    for (const w of SRS_WORDS) counts[cardStatus(srs[w.id])]++;
+    return counts;
+  }, [srs]);
+
+  const words = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return SRS_WORDS.filter((w) => {
+      const status = cardStatus(srs[w.id]);
+      if (filter !== "todas" && status !== filter) return false;
+      if (q && !w.word.toLowerCase().includes(q) && !w.definition.toLowerCase().includes(q)) return false;
+      return true;
+    }).sort((a, b) => a.difficulty - b.difficulty || a.word.localeCompare(b.word, "es"));
+  }, [srs, filter, query]);
+
+  const learned = stats.aprendida + stats.dominada;
+
+  return (
+    <div>
+      <ScreenHeader title="Colección de palabras" subtitle={`${learned} de ${SRS_WORDS.length} aprendidas`} backTo={{ name: "home" }} />
+
+      <main className="mx-auto w-full max-w-2xl px-4 pb-10">
+        {/* Progreso global */}
+        <section className="mt-4 flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm">
+          <ProgressRing value={learned / SRS_WORDS.length} size={84} stroke={9}>
+            <span className="numeric font-display text-lg font-bold">{Math.round((learned / SRS_WORDS.length) * 100)}%</span>
+          </ProgressRing>
+          <div className="text-sm">
+            <p className="font-bold">Tu jardín de vocabulario</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {stats.dominada} dominadas · {stats.aprendida} aprendidas · {stats.aprendiendo} en riego · {stats.nueva} por descubrir
+            </p>
+            <Button
+              size="sm"
+              className="mt-2 font-bold"
+              onClick={() => navigate({ name: "game", gameId: "srs", mode: "training" })}
+            >
+              <Sprout className="mr-1.5 h-4 w-4" aria-hidden />
+              Regar el jardín
+            </Button>
+          </div>
+        </section>
+
+        {/* Búsqueda y filtros */}
+        <div className="mt-4 space-y-2.5">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar palabra o significado…"
+              aria-label="Buscar en la colección"
+              className="h-11 rounded-2xl pl-9"
+            />
+          </div>
+          <div className="scroll-soft flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filtrar por estado">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={cn(
+                  "tap-target shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold capitalize transition",
+                  filter === f ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/50",
+                )}
+              >
+                {f} {f !== "todas" && `(${stats[f as keyof typeof stats]})`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tarjetas de palabras */}
+        {words.length === 0 ? (
+          <div className="mt-6">
+            <EmptyState
+              icon={<BookMarked />}
+              title="Nada por aquí"
+              description="Ninguna palabra coincide con la búsqueda. Prueba con otro término o filtro."
+            />
+          </div>
+        ) : (
+          <ul className="mt-4 grid gap-2.5 sm:grid-cols-2" aria-label="Palabras de la colección">
+            {words.map((w) => {
+              const card = srs[w.id];
+              const status = cardStatus(card);
+              const nextReview = card
+                ? card.dueAt <= Date.now()
+                  ? "lista para repasar"
+                  : `próxima revisión: ${formatDue(card.dueAt)}`
+                : "sin descubrir";
+              return (
+                <li key={w.id} className="rounded-2xl border bg-card p-4 shadow-sm transition hover:shadow-md">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-display text-lg font-bold leading-tight">{w.word}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {w.pos} · {w.cefr}
+                      </p>
+                    </div>
+                    <StatusChip status={status} />
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{w.definition}</p>
+                  <details className="group mt-1.5">
+                    <summary className="cursor-pointer text-xs font-bold text-primary">Ver ejemplo</summary>
+                    <p className="mt-1 rounded-xl bg-secondary px-3 py-2 text-xs italic leading-relaxed text-secondary-foreground">
+                      «{w.example}»
+                    </p>
+                  </details>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    {nextReview}
+                    {card && ` · vista ${card.reps + card.lapses} veces`}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function formatDue(ts: number): string {
+  const days = Math.ceil((ts - Date.now()) / 86_400_000);
+  if (days <= 0) return "hoy";
+  if (days === 1) return "mañana";
+  if (days < 7) return `en ${days} días`;
+  return `en ${Math.ceil(days / 7)} semanas`;
+}
