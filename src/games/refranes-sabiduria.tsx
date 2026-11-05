@@ -8,6 +8,7 @@
 import { useState } from "react";
 import type { RefranesExercise } from "@/types";
 import { checkOptionIndex } from "@/engine/validation";
+import { sfx } from "@/services/audio";
 import { Globe2 } from "lucide-react";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
@@ -18,6 +19,7 @@ export function SabiduriaPopular(props: useGameProps<RefranesExercise>) {
 
   const handle = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.tap();
     const v = checkOptionIndex(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

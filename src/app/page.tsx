@@ -25,6 +25,7 @@ import { MissionsScreen } from "@/screens/missions";
 import { SettingsScreen } from "@/screens/settings";
 import { LibraryScreen } from "@/screens/library";
 import { PwaRegistration } from "@/components/game/pwa";
+import { useSceneSystem } from "@/hooks/use-scene";
 import { Loader2 } from "lucide-react";
 import { TintaOwl } from "@/components/game/tinta";
 
@@ -38,6 +39,9 @@ export default function Page() {
     void hydrate();
     initRouter();
   }, [hydrate]);
+
+  // Escena sensorial: paleta + banda sonora de la pantalla activa.
+  useSceneSystem();
 
   // Mientras carga el estado local: pantalla de carga con Tinta.
   if (!hydrated) {
@@ -110,7 +114,10 @@ export default function Page() {
   return (
     <AppShell showChrome={!isGameplay}>
       <PwaRegistration />
-      {screenNode}
+      {/* Transición suave al cambiar de pantalla: el mapa cobra vida. */}
+      <div key={screen.name} className={isGameplay ? undefined : "anim-screen flex min-h-0 flex-1 flex-col"}>
+        {screenNode}
+      </div>
     </AppShell>
   );
 }

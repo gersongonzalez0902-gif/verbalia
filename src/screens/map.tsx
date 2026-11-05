@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { createElement } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
+import { sfx } from "@/services/audio";
 import { REGIONS, REGION_BY_ID } from "@/data/regions";
 import { GAMES } from "@/data/games";
 import { levelProgress } from "@/engine/xp";
@@ -64,7 +65,7 @@ export function MapScreen() {
           <IslandScene />
 
           {/* Botones-isla superpuestos (accesibles y táctiles) */}
-          {REGIONS.map((r) => {
+          {REGIONS.map((r, index) => {
             const shipped = r.games.length > 0;
             const unlocked = shipped && level >= r.unlockLevel;
             const prog = regionProgress(r.id);
@@ -72,7 +73,7 @@ export function MapScreen() {
             return (
               <button
                 key={r.id}
-                onClick={() => unlocked && setOpenRegion(r.id)}
+                onClick={() => { if (unlocked) { sfx.buoy(); setOpenRegion(r.id); } }}
                 disabled={!unlocked}
                 aria-label={`${r.name}. ${unlocked ? `${prog.played} sesiones jugadas. Tocar para abrir la región.` : shipped ? `Se desbloquea al alcanzar el nivel ${r.unlockLevel}.` : `Región en desarrollo: llegará en la Etapa ${r.stage}.`}`}
                 className={cn(
@@ -81,12 +82,26 @@ export function MapScreen() {
                 )}
                 style={{ left: `${r.map.x}%`, top: `${r.map.y}%` }}
               >
+                {/* Halo regional tras la isla desbloqueada */}
+                {unlocked && (
+                  <span
+                    aria-hidden
+                    className="anim-glow absolute left-1/2 top-1/2 -z-10 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{ background: `color-mix(in oklch, var(${r.colorVar}) 32%, transparent)`, filter: "blur(18px)" }}
+                  />
+                )}
                 <span
                   className={cn(
-                    "relative flex h-14 w-14 items-center justify-center rounded-full border-4 text-white shadow-lg transition-shadow sm:h-16 sm:w-16",
-                    unlocked ? "border-white/90 shadow-primary/40 group-hover:shadow-xl" : "border-white/60 grayscale",
+                    "gloss anim-bob relative flex h-14 w-14 items-center justify-center rounded-full border-4 text-white sm:h-16 sm:w-16",
+                    unlocked ? "border-white/90" : "border-white/60 grayscale",
                   )}
-                  style={{ background: `var(${r.colorVar})` }}
+                  style={{
+                    background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) 74%, white 18%), var(${r.colorVar}) 55%, color-mix(in oklch, var(${r.colorVar}) 80%, #000 18%))`,
+                    boxShadow: unlocked
+                      ? `0 4px 0 0 color-mix(in oklch, var(${r.colorVar}) 50%, #000 30%), 0 8px 16px -8px color-mix(in oklch, var(${r.colorVar}) 55%, transparent)`
+                      : undefined,
+                    animationDelay: `${index * 0.7}s`,
+                  }}
                 >
                   <Icon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden />
                   {!unlocked && (
@@ -136,16 +151,19 @@ export function MapScreen() {
               return (
                 <li key={r.id}>
                   <button
-                    onClick={() => unlocked && setOpenRegion(r.id)}
+                    onClick={() => { sfx.buoy(); setOpenRegion(r.id); }}
                     disabled={!unlocked}
                     className={cn(
-                      "flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left shadow-sm transition-all duration-150",
-                      unlocked ? "hover:-translate-y-0.5 hover:shadow-md" : "cursor-default opacity-60",
+                      "tap-3d flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left",
+                      unlocked ? "hover:border-primary/40" : "cursor-default opacity-60",
                     )}
                   >
                     <span
-                      className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white", !unlocked && "grayscale")}
-                      style={{ background: `var(${r.colorVar})` }}
+                      className={cn("gloss flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white", !unlocked && "grayscale")}
+                      style={{
+                        background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) 76%, white 18%), var(${r.colorVar}) 58%, color-mix(in oklch, var(${r.colorVar}) 82%, #000 16%))`,
+                        boxShadow: `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) 52%, #000 30%)`,
+                      }}
                       aria-hidden
                     >
                       <Icon className="h-5 w-5" />
@@ -225,8 +243,11 @@ function RegionSheet({
         <SheetHeader className="pb-0 text-left">
           <div className="flex items-center gap-3.5">
             <span
-              className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl p-3 text-white shadow-md"
-              style={{ background: `var(${region.colorVar})` }}
+              className="gloss flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl p-3 text-white"
+              style={{
+                background: `linear-gradient(150deg, color-mix(in oklch, var(${region.colorVar}) 76%, white 18%), var(${region.colorVar}) 58%, color-mix(in oklch, var(${region.colorVar}) 82%, #000 16%))`,
+                boxShadow: `0 3px 0 0 color-mix(in oklch, var(${region.colorVar}) 52%, #000 30%)`,
+              }}
               aria-hidden
             >
               {createElement(getIcon(region.icon), { className: "h-6 w-6" })}
@@ -259,9 +280,13 @@ function RegionSheet({
 
           <Button
             size="lg"
-            className="w-full font-display text-base font-bold shadow-lg"
-            style={{ background: `var(${region.colorVar})`, color: "white" }}
-            onClick={() => onPlayMissions(region.id)}
+            className="w-full text-base"
+            style={{
+              background: `var(${region.colorVar})`,
+              color: "white",
+              ["--btn-edge" as string]: `color-mix(in oklch, var(${region.colorVar}) 50%, #000 32%)`,
+            }}
+            onClick={() => { sfx.whoosh(); onPlayMissions(region.id); }}
           >
             <Play className="mr-2 h-5 w-5" aria-hidden />
             Misión de la región (3-5 min)
@@ -280,10 +305,10 @@ function RegionSheet({
                 return (
                   <button
                     key={gid}
-                    onClick={() => onTrainGame(gid)}
-                    className="flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    onClick={() => { sfx.whoosh(); onTrainGame(gid); }}
+                    className="tap-3d flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                    <span className="chip-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -390,9 +415,11 @@ function IslandScene() {
         </g>
       </g>
 
-      {/* Ruta de navegación (línea de puntos) */}
+      {/* Ruta de navegación (línea de puntos que fluye) */}
       <path
+        id="route-path"
         d="M150 170 C 220 90, 300 80, 360 110 C 430 145, 520 130, 600 165 C 640 185, 610 230, 540 300 C 480 355, 400 330, 330 370 C 280 400, 300 430, 350 470 C 480 545, 620 520, 690 450"
+        className="route-flow"
         stroke="var(--foreground)"
         strokeOpacity="0.28"
         strokeWidth="3"
@@ -400,6 +427,34 @@ function IslandScene() {
         strokeLinecap="round"
         fill="none"
       />
+
+      {/* Barco de vela que recorre la ruta del Archipiélago */}
+      <g opacity="0.9">
+        <path
+          d="M-7 4 Q0 7 7 4 L5 4 L-5 4 Z M0 4 L0 -6 L6 1 L0 1"
+          fill="var(--foreground)"
+          fillOpacity="0.55"
+          stroke="var(--foreground)"
+          strokeOpacity="0.55"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+        >
+          <animateMotion dur="26s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#route-path" />
+          </animateMotion>
+        </path>
+      </g>
+
+      {/* Gaviotas perezosas */}
+      <g stroke="var(--foreground)" strokeOpacity="0.3" strokeWidth="2.2" fill="none" strokeLinecap="round">
+        <path className="anim-float" style={{ animationDuration: "7s" }} d="M620 70 q7 -7 14 0 q7 -7 14 0" />
+        <path className="anim-float" style={{ animationDuration: "9s", animationDelay: "-3s" }} d="M100 260 q6 -6 12 0 q6 -6 12 0" />
+        <path className="anim-float" style={{ animationDuration: "8s", animationDelay: "-5s" }} d="M480 520 q5 -5 10 0 q5 -5 10 0" />
+      </g>
+
+      {/* Sol de tarde con halo suave */}
+      <circle cx="706" cy="64" r="26" fill="var(--xp)" opacity="0.16" className="anim-glow" />
+      <circle cx="706" cy="64" r="15" fill="var(--xp)" opacity="0.38" />
     </svg>
   );
 }

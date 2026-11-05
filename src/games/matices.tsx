@@ -9,7 +9,7 @@
 import { useState } from "react";
 import type { MaticesExercise } from "@/types";
 import { checkOptionIndex } from "@/engine/validation";
-import { speak, ttsAvailable } from "@/services/audio";
+import { speak, ttsAvailable, sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,12 +27,14 @@ export function EcosPuerto(props: useGameProps<MaticesExercise>) {
 
   const play = () => {
     if (disabled || plays >= MAX_PLAYS || chosen !== null) return;
+    sfx.pop();
     setPlays((p) => p + 1);
     if (ttsOk) speak(item.sentence);
   };
 
   const handle = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.tap();
     const v = checkOptionIndex(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });
@@ -82,7 +84,7 @@ export function EcosPuerto(props: useGameProps<MaticesExercise>) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setTextShown(true)}
+              onClick={() => { sfx.page(); setTextShown(true); }}
               disabled={disabled}
               className="text-muted-foreground"
             >

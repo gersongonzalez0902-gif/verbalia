@@ -18,13 +18,12 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trophy, Sparkles, Flame, Shield, Zap, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSoundEffects } from "@/components/game/game-shell";
+import { sfx } from "@/services/audio";
 
 export function ResultsScreen() {
   const result = useGameStore((s) => s.lastResult);
   const core = useGameStore((s) => s.core);
   const navigate = useUiStore((s) => s.navigate);
-  const sounds = useSoundEffects();
   const celebratedRef = useRef(false);
 
   const { level, into, needed } = levelProgress(core.xp);
@@ -35,11 +34,17 @@ export function ResultsScreen() {
   // sin estado intermedio.
   useEffect(() => {
     if (!result) return;
-    if ((result.leveledUp || result.newAchievements.length > 0) && !celebratedRef.current) {
-      celebratedRef.current = true;
-      sounds.levelUp();
+    if (celebratedRef.current) return;
+    celebratedRef.current = true;
+    // Fanfarria de cierre: cálida si dominaste la sesión, amable si no.
+    const acc = result.accuracy;
+    if (acc === null || acc >= 0.7) sfx.sessionWin();
+    else sfx.sessionEnd();
+    if (result.leveledUp || result.newAchievements.length > 0) {
+      // Un destello extra tras la fanfarria.
+      setTimeout(() => sfx.levelUp(), 700);
     }
-  }, [result, sounds]);
+  }, [result]);
 
   if (!result) {
     return (
@@ -90,7 +95,7 @@ export function ResultsScreen() {
           </ProgressRing>
         )}
 
-        <div className="anim-pop flex items-center gap-2 rounded-2xl bg-[var(--xp)]/15 px-5 py-2.5">
+        <div className="anim-pop gloss flex items-center gap-2 rounded-2xl px-5 py-2.5" style={{ background: "color-mix(in oklch, var(--xp) 16%, transparent)" }}>
           <Sparkles className="h-5 w-5 text-[var(--xp)]" aria-hidden />
           <span className="numeric font-display text-2xl font-bold text-[var(--xp)]">+{result.xpTotal} XP</span>
         </div>
@@ -109,18 +114,18 @@ export function ResultsScreen() {
 
       {/* Subida de nivel */}
       {result.leveledUp && (
-        <div className="anim-slide-up mt-6 flex items-center gap-4 rounded-3xl border-2 border-[var(--xp)]/60 bg-[var(--xp)]/10 p-4 shadow-md">
+        <div className="card-aurora anim-slide-up mt-6 flex items-center gap-4 rounded-3xl border-2 border-[var(--xp)]/60 bg-card p-4">
           <LevelBadge level={level} size="lg" />
           <div className="min-w-0 flex-1">
             <p className="font-display text-lg font-bold">¡Subiste al nivel {level}!</p>
             <p className="text-sm text-muted-foreground">Rango: {rank.name}</p>
           </div>
-          <Award className="h-8 w-8 shrink-0 text-[var(--xp)]" aria-hidden />
+          <Award className="anim-twinkle h-8 w-8 shrink-0 text-[var(--xp)]" aria-hidden />
         </div>
       )}
 
       {/* Nivel actual y barra */}
-      <div className="mt-5 flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm">
+      <div className="card-aurora mt-5 flex items-center gap-3 rounded-2xl border bg-card p-4">
         <LevelBadge level={level} />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between">
@@ -159,13 +164,13 @@ export function ResultsScreen() {
       {(result.missionsCompleted.length > 0 || result.shieldUsed) && (
         <div className="mt-4 space-y-2">
           {result.missionsCompleted.map((id) => (
-            <p key={id} className="flex items-center gap-2 rounded-2xl bg-card px-4 py-2.5 text-sm font-semibold shadow-sm">
+            <p key={id} className="card-aurora flex items-center gap-2 rounded-2xl border bg-card px-4 py-2.5 text-sm font-semibold">
               <Zap className="h-4 w-4 shrink-0 text-primary" aria-hidden />
               Misión diaria completada: recompensa reclamada
             </p>
           ))}
           {result.shieldUsed && (
-            <p className="flex items-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-semibold">
+            <p className="card-aurora flex items-center gap-2 rounded-2xl border border-primary/40 bg-card px-4 py-2.5 text-sm font-semibold">
               <Shield className="h-4 w-4 shrink-0 text-primary" aria-hidden />
               Un Escudo de Racha protegió tu racha de hoy
             </p>
@@ -186,7 +191,7 @@ export function ResultsScreen() {
 
       {/* Repaso de explicaciones */}
       {result.answers.length > 0 && (
-        <Accordion type="single" collapsible className="mt-5 rounded-2xl border bg-card px-4 shadow-sm">
+        <Accordion type="single" collapsible className="card-aurora mt-5 rounded-2xl border bg-card px-4">
           <AccordionItem value="review" className="border-0">
             <AccordionTrigger className="py-3 text-sm font-bold">
               Repasar las explicaciones ({result.answers.length})
@@ -227,15 +232,15 @@ export function ResultsScreen() {
       {/* Acciones */}
       <div className="mt-6 flex flex-col gap-2.5 pb-4">
         {isNewPlayer ? (
-          <Button size="lg" className="font-display text-base font-bold shadow-lg" onClick={() => navigate({ name: "home" })}>
+          <Button size="xl" onClick={() => { sfx.whoosh(); navigate({ name: "home" }); }}>
             Explorar mi archipiélago
           </Button>
         ) : (
           <>
-            <Button size="lg" className="font-display text-base font-bold shadow-lg" onClick={() => navigate({ name: "home" })}>
+            <Button size="xl" onClick={() => { sfx.whoosh(); navigate({ name: "home" }); }}>
               Volver al inicio
             </Button>
-            <Button variant="outline" size="lg" className="font-bold" onClick={() => navigate({ name: "map" })}>
+            <Button variant="outline" size="lg" onClick={() => { sfx.click(); navigate({ name: "map" }); }}>
               Elegir otra región
             </Button>
           </>

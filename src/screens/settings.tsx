@@ -7,6 +7,7 @@
 
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
+import { sfx } from "@/services/audio";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ export function SettingsScreen() {
 
       <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-10 pt-4">
         {/* ===== Apariencia ===== */}
-        <section className="rounded-3xl border bg-card p-5 shadow-sm" aria-labelledby="apariencia">
+        <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="apariencia">
           <h2 id="apariencia" className="font-display text-lg font-bold">Apariencia</h2>
 
           <div className="mt-4 space-y-5">
@@ -50,7 +51,7 @@ export function SettingsScreen() {
                 ].map((opt) => (
                   <button
                     key={opt.id}
-                    onClick={() => setTheme(opt.id)}
+                    onClick={() => { sfx.click(); setTheme(opt.id); }}
                     aria-pressed={theme === opt.id}
                     className={cn(
                       "tap-target flex flex-col items-center gap-1 rounded-2xl border-2 p-3 text-xs font-bold transition",
@@ -71,7 +72,7 @@ export function SettingsScreen() {
               <p className="text-xs text-muted-foreground">Escala toda la interfaz para leer cómodamente.</p>
               <Tabs
                 value={settings.textSize}
-                onValueChange={(v) => updateSettings({ textSize: v as typeof settings.textSize })}
+                onValueChange={(v) => { sfx.tap(); updateSettings({ textSize: v as typeof settings.textSize }); }}
                 className="mt-2"
               >
                 <TabsList className="grid w-full grid-cols-3">
@@ -94,7 +95,7 @@ export function SettingsScreen() {
               <Switch
                 id="night-mode"
                 checked={settings.nightMode}
-                onCheckedChange={(v) => updateSettings({ nightMode: v })}
+                onCheckedChange={(v) => { sfx.toggle(); updateSettings({ nightMode: v }); }}
                 aria-label="Modo lectura nocturna"
               />
             </div>
@@ -109,7 +110,7 @@ export function SettingsScreen() {
               <Switch
                 id="reduce-motion"
                 checked={settings.reduceMotion}
-                onCheckedChange={(v) => updateSettings({ reduceMotion: v })}
+                onCheckedChange={(v) => { if (v) sfx.toggle(); updateSettings({ reduceMotion: v }); }}
                 aria-label="Reducir movimiento"
               />
             </div>
@@ -117,22 +118,70 @@ export function SettingsScreen() {
         </section>
 
         {/* ===== Juego ===== */}
-        <section className="rounded-3xl border bg-card p-5 shadow-sm" aria-labelledby="juego">
+        <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="juego">
           <h2 id="juego" className="font-display text-lg font-bold">Juego</h2>
 
           <div className="mt-4 space-y-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <Label htmlFor="sound" className="text-sm font-bold">Sonidos</Label>
-                <p className="text-xs text-muted-foreground">Efectos sintetizados: acierto, fallo, nivel… Sin descargas.</p>
+                <Label htmlFor="sound" className="text-sm font-bold">Sonido maestro</Label>
+                <p className="text-xs text-muted-foreground">
+                  Todo el audio del juego: música ambiental generativa, efectos y el reloj. Sin descargas.
+                </p>
               </div>
               <Switch
                 id="sound"
                 checked={settings.sound}
-                onCheckedChange={(v) => updateSettings({ sound: v })}
-                aria-label="Sonidos del juego"
+                onCheckedChange={(v) => {
+                  updateSettings({ sound: v });
+                  if (v) setTimeout(() => sfx.chime(), 80);
+                }}
+                aria-label="Sonido maestro"
               />
             </div>
+
+            {settings.sound && (
+              <>
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <Label className="text-sm font-bold">Música ambiental</Label>
+                    <span className="numeric text-sm font-bold text-primary">{Math.round(settings.musicVolume * 100)}%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Banda sonora generativa: cada región del Archipiélago compone su propia música en vivo.
+                  </p>
+                  <Slider
+                    className="mt-3"
+                    value={[settings.musicVolume]}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    onValueChange={([v]) => updateSettings({ musicVolume: v })}
+                    aria-label="Volumen de la música ambiental"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <Label className="text-sm font-bold">Efectos y reloj</Label>
+                    <span className="numeric text-sm font-bold text-primary">{Math.round(settings.sfxVolume * 100)}%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Aciertos, fallos, combos, naipes… y el tic-tac en contratiempo de los retos cronometrados.
+                  </p>
+                  <Slider
+                    className="mt-3"
+                    value={[settings.sfxVolume]}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    onValueChange={([v]) => updateSettings({ sfxVolume: v })}
+                    onValueCommit={() => sfx.tap()}
+                    aria-label="Volumen de efectos"
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <div className="flex items-baseline justify-between">
@@ -173,7 +222,7 @@ export function SettingsScreen() {
         </section>
 
         {/* ===== Sin conexión ===== */}
-        <section className="rounded-3xl border bg-card p-5 shadow-sm" aria-labelledby="offline">
+        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="offline">
           <div className="flex items-center justify-between gap-4">
             <div>
               <h2 id="offline" className="font-display text-lg font-bold">Modo sin conexión</h2>
@@ -183,14 +232,14 @@ export function SettingsScreen() {
                   : "Tu navegador no soporta instalación PWA; el juego seguirá funcionando con conexión normal."}
               </p>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-xl" aria-hidden>
+            <span className="anim-bob flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-xl" aria-hidden>
               📴
             </span>
           </div>
         </section>
 
         {/* ===== Privacidad ===== */}
-        <section className="rounded-3xl border bg-card p-5 shadow-sm" aria-labelledby="privacidad">
+        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="privacidad">
           <h2 id="privacidad" className="font-display text-lg font-bold">Privacidad</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin cuentas, sin correo, sin datos personales pedidos.</li>
@@ -204,7 +253,7 @@ export function SettingsScreen() {
         </section>
 
         {/* ===== Acerca de ===== */}
-        <section className="rounded-3xl border bg-card p-5 shadow-sm" aria-labelledby="acerca">
+        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="acerca">
           <h2 id="acerca" className="font-display text-lg font-bold">Acerca de VerbalIA</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Etapa 1 (MVP jugable). Videojuego educativo de lenguaje en español con progresión adaptativa.
@@ -215,7 +264,7 @@ export function SettingsScreen() {
             <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v1.0.0-etapa1</span>
             <button
               className="font-bold text-primary hover:underline"
-              onClick={() => navigate({ name: "library" })}
+              onClick={() => { sfx.page(); navigate({ name: "library" }); }}
             >
               Ver la hoja de ruta completa →
             </button>

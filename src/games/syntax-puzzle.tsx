@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import type { PuzzleExercise } from "@/types";
 import { checkPuzzle } from "@/engine/validation";
 import { createRng, shuffle } from "@/engine/rng";
+import { sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
@@ -32,16 +33,19 @@ export function SyntaxPuzzle(props: useGameProps<PuzzleExercise>) {
 
   const place = (oi: number) => {
     if (disabled || placed.includes(oi)) return;
+    sfx.place();
     setPlaced((p) => [...p, oi]);
   };
 
   const remove = (oi: number) => {
     if (disabled) return;
+    sfx.pop();
     setPlaced((p) => p.filter((x) => x !== oi));
   };
 
   const confirm = () => {
     if (placed.length !== item.chunks.length) return;
+    sfx.snap();
     const v = checkPuzzle(item, placed);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });
   };
@@ -94,7 +98,7 @@ export function SyntaxPuzzle(props: useGameProps<PuzzleExercise>) {
 
       <Button
         size="lg"
-        className={cn("w-full max-w-lg font-bold shadow-md", placed.length === item.chunks.length && "anim-glow")}
+        className={cn("w-full max-w-lg font-bold shadow-md", placed.length === item.chunks.length && "anim-attention")}
         disabled={disabled || placed.length !== item.chunks.length}
         onClick={confirm}
       >

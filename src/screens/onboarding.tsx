@@ -13,6 +13,7 @@ import { useUiStore } from "@/store/ui-store";
 import { useGameStore } from "@/store/game-store";
 import { TintaBubble } from "@/components/game/tinta";
 import { TINTA_ONBOARDING } from "@/data/companion";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Briefcase, GraduationCap, Map as MapIcon, PenLine, Plane, BookOpen } from "lucide-react";
 import type { PlayerProfile } from "@/types";
@@ -73,10 +74,16 @@ export function OnboardingScreen() {
           <div
             key={i}
             className={cn(
-              "h-1.5 flex-1 rounded-full transition-colors",
-              i <= step ? "bg-primary" : "bg-muted",
+              "groove h-2 flex-1 overflow-hidden rounded-full",
             )}
-          />
+          >
+            <div
+              className={cn(
+                "h-full rounded-full bg-primary transition-[width] duration-500",
+                i <= step ? "w-full" : "w-0",
+              )}
+            />
+          </div>
         ))}
       </div>
 
@@ -120,17 +127,15 @@ export function OnboardingScreen() {
                 <button
                   key={a.id}
                   type="button"
-                  onClick={() => setAvatar(a.id)}
+                  onClick={() => { sfx.pop(); setAvatar(a.id); }}
                   aria-pressed={avatar === a.id}
                   aria-label={`Avatar ${a.label}`}
                   className={cn(
-                    "tap-target flex flex-col items-center gap-1 rounded-2xl border-2 bg-card p-3 transition-all duration-150",
-                    avatar === a.id
-                      ? "-translate-y-0.5 border-primary shadow-md"
-                      : "border-border hover:border-primary/50 hover:shadow-sm",
+                    "tap-3d tap-target flex flex-col items-center gap-1 rounded-2xl border-2 bg-card p-3",
+                    avatar === a.id ? "border-primary" : "border-border",
                   )}
                 >
-                  <span className="text-3xl" aria-hidden>{a.emoji}</span>
+                  <span className={cn("text-3xl", avatar === a.id && "anim-bob")} aria-hidden>{a.emoji}</span>
                   <span className="text-xs font-bold">{a.label}</span>
                 </button>
               ))}
@@ -149,16 +154,14 @@ export function OnboardingScreen() {
                   <button
                     key={g.id}
                     type="button"
-                    onClick={() => setGoal(g.id)}
+                    onClick={() => { sfx.tap(); setGoal(g.id); }}
                     aria-pressed={goal === g.id}
                     className={cn(
-                      "tap-target flex items-center gap-3 rounded-2xl border-2 bg-card p-4 text-left transition-all duration-150",
-                      goal === g.id
-                        ? "-translate-y-0.5 border-primary shadow-md"
-                        : "border-border hover:border-primary/50 hover:shadow-sm",
+                      "tap-3d tap-target flex items-center gap-3 rounded-2xl border-2 bg-card p-4 text-left",
+                      goal === g.id ? "border-primary" : "border-border",
                     )}
                   >
-                    <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl", goal === g.id ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
+                    <span className={cn("gloss flex h-10 w-10 items-center justify-center rounded-xl", goal === g.id ? "chip-icon" : "bg-secondary text-secondary-foreground")}>
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <span>
@@ -183,13 +186,11 @@ export function OnboardingScreen() {
                 <button
                   key={e.id}
                   type="button"
-                  onClick={() => setExperience(e.id)}
+                  onClick={() => { sfx.tap(); setExperience(e.id); }}
                   aria-pressed={experience === e.id}
                   className={cn(
-                    "tap-target flex w-full items-center justify-between gap-3 rounded-2xl border-2 bg-card p-4 text-left transition-all duration-150",
-                    experience === e.id
-                      ? "-translate-y-0.5 border-primary shadow-md"
-                      : "border-border hover:border-primary/50 hover:shadow-sm",
+                    "tap-3d tap-target flex w-full items-center justify-between gap-3 rounded-2xl border-2 bg-card p-4 text-left",
+                    experience === e.id ? "border-primary" : "border-border",
                   )}
                 >
                   <span>
@@ -213,16 +214,16 @@ export function OnboardingScreen() {
       {/* Navegación */}
       <div className="mt-6 flex gap-2.5">
         {step > 0 && (
-          <Button variant="outline" size="lg" className="px-6 font-bold" onClick={() => setStep((s) => s - 1)}>
+          <Button variant="outline" size="lg" className="px-6" onClick={() => { sfx.back(); setStep((s) => s - 1); }}>
             Atrás
           </Button>
         )}
         {step < TOTAL_STEPS - 1 ? (
-          <Button size="lg" className="flex-1 font-bold" disabled={!canContinue} onClick={() => setStep((s) => s + 1)}>
+          <Button size="lg" className="flex-1" disabled={!canContinue} onClick={() => { sfx.go(); setStep((s) => s + 1); }}>
             Continuar
           </Button>
         ) : (
-          <Button size="lg" className="flex-1 font-bold" onClick={finish}>
+          <Button size="lg" className="flex-1" onClick={finish}>
             <MapIcon className="mr-2 h-4 w-4" aria-hidden />
             Ir a la evaluación
           </Button>

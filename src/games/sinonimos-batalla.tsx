@@ -8,6 +8,7 @@
 import { useState } from "react";
 import type { SinonimosExercise } from "@/types";
 import { checkOptionIndex } from "@/engine/validation";
+import { sfx } from "@/services/audio";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
 
@@ -17,6 +18,7 @@ export function BatallaSinonimos(props: useGameProps<SinonimosExercise>) {
 
   const handle = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.snap();
     const v = checkOptionIndex(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

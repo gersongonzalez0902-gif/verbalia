@@ -2,7 +2,7 @@
 
 **VerbalIA** es un videojuego educativo de entrenamiento lingüístico en español. El jugador explora el **Archipiélago de las Palabras**: seis regiones (una por habilidad) llenas de minijuegos, misiones y progresión adaptativa, en sesiones de 3 a 5 minutos.
 
-> Estado actual: **Etapa 2 — Experiencia avanzada, completa y verificada** (incluye la Etapa 1 al completo). Todo lo que se ve en la interfaz funciona de verdad; lo que está previsto para etapas futuras se muestra bloqueado y etiquetado con honestidad (nunca simulado).
+> Estado actual: **v3 · Gran renovación estética** — botones 3D, tarjetas aurora, muelle flotante, música generativa y reloj en contratiempo (incluye la Etapa 1 al completo). Todo lo que se ve en la interfaz funciona de verdad; lo que está previsto para etapas futuras se muestra bloqueado y etiquetado con honestidad (nunca simulado).
 
 ---
 
@@ -23,7 +23,7 @@
 | **PWA** | Manifest, service worker *network-first* conservador (cache v2), página offline, iconos (incl. maskable), aviso de nueva versión; **sin registro de SW en desarrollo** (evita caches obsoletas) |
 | **Compañero** | **Tinta, la lechuza bibliotecaria**: interviene solo en momentos clave, con consejos de las mecánicas nuevas |
 | **Accesibilidad** | Navegación por teclado, etiquetas ARIA, contrastes AA en todas las paletas (claro, oscuro, nocturno), tamaño de texto configurable, alternativa a todo arrastre, estados no solo por color |
-| **Pruebas** | **95 pruebas unitarias del motor** (`bun test`) + auditoría automática de integridad de datos (grafos de historias, índices, duplicados) + verificación E2E con navegador real |
+| **Pruebas** | **172 pruebas unitarias del motor** (`bun test`) + auditoría automática de integridad de datos (grafos de historias, índices, duplicados) + verificación E2E con navegador real |
 
 ### Correcciones sobre la Etapa 1 (auditoría propia)
 
@@ -87,7 +87,7 @@ src/
 1. **Next.js 16 + React 19 + TypeScript** (en lugar de Vite): el entorno de despliegue de este proyecto está construido alrededor de Next.js, y su App Router deja preparadas rutas de API para la IA de la Etapa 3. El juego en sí es una SPA cliente 100 % React + TS, exactamente la propuesta técnica original.
 2. **Ruta única con enrutador propio por hash**: la interfaz completa vive bajo `/` (requisito del entorno), pero el botón atrás del navegador funciona porque el router sincroniza `location.hash` (`#/home`, `#/juego/trivia/training`…). Al recargar, se restaura la pantalla.
 3. **Separación estricta contenido / lógica / interfaz**: `data/` no importa React; `engine/` es puro (sin DOM) y por eso se puede probar con `bun test` sin navegador; `games/` y `screens/` solo orquestan.
-4. **Reductor de sesión puro** (`engine/core.ts`): `reduceSessionComplete(core, input) → { core, result }` aplica XP, habilidades, racha, misiones, logros y errores en una sola función inmutable — más de la mitad de las 95 pruebas cubren este flujo y las mecánicas de la Etapa 2.
+4. **Reductor de sesión puro** (`engine/core.ts`): `reduceSessionComplete(core, input) → { core, result }` aplica XP, habilidades, racha, misiones, logros y errores en una sola función inmutable — más de la mitad de las 172 pruebas cubren este flujo y las mecánicas de la Etapa 2.
 5. **Zustand + persistencia propia**: guardado diferido (700 ms) para ráfagas de tarjetas y volcado inmediato al terminar sesión o ocultar la pestaña (`pagehide` + `visibilitychange`), de modo que nunca se pierde progreso.
 6. **Anti-farmeo honesto**: repetir un ejercicio visto hace <3 días rinde 25 % de XP; superado el tope diario (600 XP) el XP extra rinde al 50 % — con aviso transparente en resultados. El SRS no decae: repasar es legítimo.
 7. **Service worker conservador**: red primero para navegación (nunca sirve contenido viejo), SWR solo para estáticos con hash, `/api` y no-GET nunca se interceptan. Registro solo en https/localhost y con ajuste para desactivarlo.
@@ -106,7 +106,7 @@ npm install        # o: bun install
 # 2) Desarrollo (http://localhost:3000)
 npm run dev        # o: bun run dev
 
-# 3) Pruebas unitarias del motor (95 pruebas)
+# 3) Pruebas unitarias del motor (172 pruebas)
 npm test           # o: bun test tests/engine.test.ts
 
 # 4) Lint

@@ -1,0 +1,211 @@
+     1→import type { SrsWord } from "@/types";
+     2→
+     3→/**
+     4→ * Paquete SRS · Vocabulario progresivo A1-C2.
+     5→ * Incluye registro formal, coloquial y regionalismos del mundo hispanohablante.
+     6→ * 160 palabras (49 originales + 24 de Etapa 2 + 87 nuevas en la
+     7→ * ampliación del banco): dificultad progresiva A1-C2 con registro
+     8→ * formal, coloquial y regionalismos.
+     9→ */
+    10→export const SRS_WORDS: SrsWord[] = [
+    11→  // ---------- A1 ----------
+    12→  { id: "w-casa", word: "casa", pos: "sustantivo", definition: "Edificio donde vive una persona o una familia.", example: "Volví a casa antes del anochecer.", difficulty: 1, cefr: "A1", tags: ["básico", "hogar"] },
+    13→  { id: "w-perro", word: "perro", pos: "sustantivo", definition: "Animal doméstico de la familia de los cánidos; fiel compañero de las personas.", example: "El perro ladra cuando llegan visitas.", difficulty: 1, cefr: "A1", tags: ["básico", "animales"] },
+    14→  { id: "w-comer", word: "comer", pos: "verbo", definition: "Masticar y tragar un alimento.", example: "Vamos a comer paella el domingo.", difficulty: 1, cefr: "A1", tags: ["básico", "comida"] },
+    15→  { id: "w-libro", word: "libro", pos: "sustantivo", definition: "Conjunto de hojas impresas y encuadernadas para leer.", example: "Guardo cada libro como un tesoro.", difficulty: 1, cefr: "A1", tags: ["básico", "lectura"] },
+    16→  { id: "w-agua", word: "agua", pos: "sustantivo", definition: "Líquido transparente e incoloro que forma mares, ríos y lluvias.", example: "Bebe dos litros de agua al día.", difficulty: 1, cefr: "A1", tags: ["básico", "naturaleza"] },
+    17→  { id: "w-correr", word: "correr", pos: "verbo", definition: "Ir a más velocidad que andando.", example: "Salgo a correr por el parque cada mañana.", difficulty: 1, cefr: "A1", tags: ["básico", "deporte"] },
+    18→  { id: "w-grande", word: "grande", pos: "adjetivo", definition: "Que tiene mucho tamaño.", example: "Vive en una casa grande con jardín.", difficulty: 1, cefr: "A1", tags: ["básico", "descripción"] },
+    19→  { id: "w-dia", word: "día", pos: "sustantivo", definition: "Periodo de veinticuatro horas; también, el tiempo en que hay luz.", example: "Hoy es mi día libre.", difficulty: 1, cefr: "A1", tags: ["básico", "tiempo"] },
+    20→  { id: "w-ciudad", word: "ciudad", pos: "sustantivo", definition: "Conjunto de calles y edificios con muchos habitantes.", example: "La ciudad brilla de noche.", difficulty: 1, cefr: "A1", tags: ["básico", "urbanismo"] },
+    21→  { id: "w-feliz", word: "feliz", pos: "adjetivo", definition: "Que siente alegría o contento.", example: "Ser feliz también se entrena.", difficulty: 1, cefr: "A1", tags: ["básico", "emociones"] },
+    22→
+    23→  // ---------- A2 ----------
+    24→  { id: "w-viaje", word: "viaje", pos: "sustantivo", definition: "Traslado de un lugar a otro, sobre todo por ocio.", example: "Este viaje me cambió la mirada.", difficulty: 2, cefr: "A2", tags: ["viajes"] },
+    25→  { id: "w-herramienta", word: "herramienta", pos: "sustantivo", definition: "Instrumento que sirve para realizar un trabajo.", example: "La paciencia también es una herramienta.", difficulty: 2, cefr: "A2", tags: ["trabajo"] },
+    26→  { id: "w-crecer", word: "crecer", pos: "verbo", definition: "Aumentar de tamaño o desarrollarse.", example: "Las plantas crecen con calma.", difficulty: 2, cefr: "A2", tags: ["naturaleza"] },
+    27→  { id: "w-olvidar", word: "olvidar", pos: "verbo", definition: "Perder la memoria de algo o de alguien.", example: "No olvides cerrar la puerta con llave.", difficulty: 2, cefr: "A2", tags: ["memoria"] },
+    28→  { id: "w-ahorro", word: "ahorro", pos: "sustantivo", definition: "Dinero que se guarda en previsión de gastos futuros.", example: "El ahorro me acerca al viaje soñado.", difficulty: 2, cefr: "A2", tags: ["dinero"] },
+    29→  { id: "w-vecino", word: "vecino", pos: "sustantivo", definition: "Persona que vive cerca de otra o en la misma zona.", example: "Mi vecina me prestó azúcar para el bizcocho.", difficulty: 2, cefr: "A2", tags: ["comunidad"] },
+    30→  { id: "w-suave", word: "suave", pos: "adjetivo", definition: "De textura agradable y delicada; también, poco intenso.", example: "La manta es tan suave que da gusto tocarla.", difficulty: 2, cefr: "A2", tags: ["descripción"] },
+    31→  { id: "w-mercado", word: "mercado", pos: "sustantivo", definition: "Lugar público donde se compran y venden alimentos y otros productos.", example: "El mercado huele a fruta fresca.", difficulty: 2, cefr: "A2", tags: ["comida", "compras"] },
+    32→  { id: "w-dibujar", word: "dibujar", pos: "verbo", definition: "Trazar figuras o imágenes con lápiz u otro instrumento.", example: "Me gusta dibujar mapas de islas imaginarias.", difficulty: 2, cefr: "A2", tags: ["arte"] },
+    33→  { id: "w-fuerte", word: "fuerte", pos: "adjetivo", definition: "Que tiene fuerza; también se aplica a sabores y sonidos intensos.", example: "El café está muy fuerte para mi gusto.", difficulty: 2, cefr: "A2", tags: ["descripción"] },
+    34→
+    35→  // ---------- B1 ----------
+    36→  { id: "w-desafio", word: "desafío", pos: "sustantivo", definition: "Prueba o reto que exige esfuerzo y habilidad.", example: "Aceptó el desafío de escribir una novela en un año.", difficulty: 3, cefr: "B1", tags: ["retos"] },
+    37→  { id: "w-logro", word: "logro", pos: "sustantivo", definition: "Resultado positivo que se consigue con esfuerzo.", example: "Terminar la carrera fue su mayor logro.", difficulty: 3, cefr: "B1", tags: ["trabajo"] },
+    38→  { id: "w-esquivo", word: "esquivo", pos: "adjetivo", definition: "Que evita el trato o resulta difícil de atrapar.", example: "El gato era esquivo con los desconocidos.", difficulty: 3, cefr: "B1", tags: ["carácter"] },
+    39→  { id: "w-heredar", word: "heredar", pos: "verbo", definition: "Recibir algo de otra persona, en especial al morir esta.", example: "Heredó de su abuelo el don de contar historias.", difficulty: 3, cefr: "B1", tags: ["familia"] },
+    40→  { id: "w-indole", word: "índole", pos: "sustantivo", definition: "Naturaleza o carácter propio de algo.", example: "Es un problema de otra índole: no tiene que ver con el dinero.", difficulty: 3, cefr: "B1", tags: ["formal"] },
+    41→  { id: "w-meticuloso", word: "meticuloso", pos: "adjetivo", definition: "Que cuida los detalles con mucho esmero.", example: "Es una traductora meticulosa: revisa cada coma.", difficulty: 3, cefr: "B1", tags: ["carácter", "trabajo"] },
+    42→  { id: "w-madrugada", word: "madrugada", pos: "sustantivo", definition: "Tiempo transcurrido entre la medianoche y el amanecer.", example: "Terminé el libro de madrugada, sin poder soltarlo.", difficulty: 3, cefr: "B1", tags: ["tiempo"] },
+    43→  { id: "w-atasco", word: "atasco", pos: "sustantivo", definition: "Obstrucción que impide avanzar, en especial de tráfico.", example: "Hubo un atasco de diez kilómetros a la entrada de la ciudad.", difficulty: 3, cefr: "B1", tags: ["urbanismo"] },
+    44→  { id: "w-proverbio", word: "proverbio", pos: "sustantivo", definition: "Frase breve que expresa una enseñanza o sabiduría popular.", example: "Cada proverbio guarda un pueblo entero.", difficulty: 3, cefr: "B1", tags: ["cultura", "lectura"] },
+    45→  { id: "w-desastre", word: "desastre", pos: "sustantivo", definition: "Suceso que causa grandes daños o sale muy mal.", example: "La fiesta fue un desastre: se fue la luz y se quemó la tarta.", difficulty: 3, cefr: "B1", tags: ["emociones"] },
+    46→
+    47→  // ---------- B2 / C1 ----------
+    48→  { id: "w-efimero", word: "efímero", pos: "adjetivo", definition: "Que dura muy poco tiempo.", example: "La gloria es a veces efímera; la costumbre de escribir, no.", difficulty: 4, cefr: "B2", tags: ["literario"] },
+    49→  { id: "w-elocuente", word: "elocuente", pos: "adjetivo", definition: "Que se expresa con belleza y convicción; muy expresivo.", example: "Su silencio fue más elocuente que cualquier discurso.", difficulty: 4, cefr: "B2", tags: ["comunicación"] },
+    50→  { id: "w-sesgo", word: "sesgo", pos: "sustantivo", definition: "Inclinación o perspectiva parcial que condiciona un juicio.", example: "Hay que leer la noticia sin sesgo y con contexto.", difficulty: 4, cefr: "B2", tags: ["pensamiento crítico"] },
+    51→  { id: "w-ardid", word: "ardid", pos: "sustantivo", definition: "Astucia o artimaña para engañar o conseguir algo.", example: "Escapó del examen con un ardid ingenioso pero visible.", difficulty: 4, cefr: "C1", tags: ["literario"] },
+    52→  { id: "w-prolijo", word: "prolijo", pos: "adjetivo", definition: "Demasiado largo y detallado al explicar algo.", example: "El informe era tan prolijo que nadie llegó al final.", difficulty: 4, cefr: "C1", tags: ["formal"] },
+    53→  { id: "w-morrinha", word: "morriña", pos: "sustantivo", definition: "Añoranza melancólica de la tierra propia (término gallego).", example: "La morriña le llegó al oír la gaita en la distancia.", difficulty: 4, cefr: "B2", tags: ["regionalismo", "Galicia", "emociones"] },
+    54→  { id: "w-guagua", word: "guagua", pos: "sustantivo", definition: "Autobús (uso en Canarias, Antillas y partes de América).", example: "Cogí la guagua de las ocho para bajar a la playa.", difficulty: 4, cefr: "B1", tags: ["regionalismo", "Canarias", "Caribe", "viajes"] },
+    55→  { id: "w-chapulin", word: "chapulín", pos: "sustantivo", definition: "Saltamontes (México); por extensión, persona inconstante que cambia de bando.", example: "Los chapulines cantan en el maizal al atardecer.", difficulty: 4, cefr: "B2", tags: ["regionalismo", "México", "naturaleza"] },
+    56→  { id: "w-ordago", word: "órdago", pos: "sustantivo", definition: "Reto o noticia impactante que cambia la situación (del eusquera, uso general).", example: "Soltó el órdago en la reunión: se va a vivir a Patagonia.", difficulty: 4, cefr: "C1", tags: ["regionalismo", "cultura", "coloquial"] },
+    57→  { id: "w-impetu", word: "ímpetu", pos: "sustantivo", definition: "Fuerza o energía con la que se inicia o impulsa algo.", example: "Defendió su idea con un ímpetu que convenció a todos.", difficulty: 4, cefr: "B2", tags: ["emociones"] },
+    58→  { id: "w-parco", word: "parco", pos: "adjetivo", definition: "Moderado y breve, especialmente al hablar o gastar.", example: "Fue parco en promesas y generoso en hechos.", difficulty: 4, cefr: "C1", tags: ["carácter", "formal"] },
+    59→  { id: "w-declinar", word: "declinar", pos: "verbo", definition: "Rechazar algo con cortesía; también, debilitarse o ir a menos.", example: "Declinó la invitación con elegancia.", difficulty: 4, cefr: "C1", tags: ["formal"] },
+    60→
+    61→  // ---------- C2 ----------
+    62→  { id: "w-zaherir", word: "zaherir", pos: "verbo", definition: "Reprender o herir a alguien con palabras ásperas.", example: "Nunca zahería a sus alumnos: corregía con paciencia.", difficulty: 5, cefr: "C2", tags: ["literario"] },
+    63→  { id: "w-divagar", word: "divagar", pos: "verbo", definition: "Apartarse el pensamiento del asunto principal.", example: "Divagó tanto que olvidó la pregunta que intentaba responder.", difficulty: 5, cefr: "C2", tags: ["literario"] },
+    64→  { id: "w-garbo", word: "garbo", pos: "sustantivo", definition: "Elegancia y desenfreso en el porte o en la manera de hacer algo.", example: "Bailó con un garbo imposible de imitar.", difficulty: 5, cefr: "C2", tags: ["cultura"] },
+    65→  { id: "w-cacumen", word: "cacumen", pos: "sustantivo", definition: "Entendimiento agudo y penetrante (coloquial y culto a la vez).", example: "Sacó su cacumen cuando el mapa se quedó sin norte.", difficulty: 5, cefr: "C2", tags: ["coloquial"] },
+    66→  { id: "w-perenne", word: "perenne", pos: "adjetivo", definition: "Que dura siempre o muchísimo tiempo.", example: "Su ironía perenne sobrevive en cada una de sus cartas.", difficulty: 5, cefr: "C2", tags: ["literario"] },
+    67→  { id: "w-estampa", word: "estampa", pos: "sustantivo", definition: "Imagen o escena que destaca por su gracia o carácter.", example: "Aquellos pescadores remendando redes al alba fueron una estampa inolvidable.", difficulty: 5, cefr: "C2", tags: ["literario"] },
+    68→
+    69→/* ==================== Ampliación Etapa 2 (+24) ==================== */
+    70→  // ---------- A1 ----------
+    71→  { id: "w-ventana", word: "ventana", pos: "sustantivo", definition: "Abertura en la pared que deja pasar la luz y el aire.", example: "Abre la ventana: el mar se oye desde aquí.", difficulty: 1, cefr: "A1", tags: ["básico", "hogar"] },
+    72→  { id: "w-buscar", word: "buscar", pos: "verbo", definition: "Intentar encontrar algo o a alguien.", example: "Busco las llaves por toda la casa.", difficulty: 1, cefr: "A1", tags: ["básico"] },
+    73→
+    74→  // ---------- A2 ----------
+    75→  { id: "w-harina", word: "harina", pos: "sustantivo", definition: "Polvo fino que se obtiene de moler el trigo u otros cereales.", example: "Con harina y agua se hace el pan de siempre.", difficulty: 2, cefr: "A2", tags: ["comida", "hache"] },
+    76→  { id: "w-recado", word: "recado", pos: "sustantivo", definition: "Mensaje que una persona encarga transmitir a otra.", example: "Déjale un recado a tu hermano: vuelvo a las seis.", difficulty: 2, cefr: "A2", tags: ["comunicación"] },
+    77→  { id: "w-marea", word: "marea", pos: "sustantivo", definition: "Subida y bajada periódica del nivel del mar.", example: "Con la marea baja aparecen las pozas de cangrejos.", difficulty: 2, cefr: "A2", tags: ["mar"] },
+    78→  { id: "w-jamás", word: "jamás", pos: "adverbio", definition: "Nunca, en ningún momento.", example: "Jamás había visto un atardecer así.", difficulty: 2, cefr: "A2", tags: ["tiempo", "agudas"] },
+    79→
+    80→  // ---------- B1 ----------
+    81→  { id: "w-vendaval", word: "vendaval", pos: "sustantivo", definition: "Viento fuerte, impetuoso y de larga duración.", example: "El vendaval tumbó los sombrillos del chiringo.", difficulty: 3, cefr: "B1", tags: ["clima", "mar"] },
+    82→  { id: "w-pesar", word: "pesar", pos: "sustantivo", definition: "Sentimiento de tristeza o arrepentimiento por algo.", example: "Con gran pesar, vendió la barca de su padre.", difficulty: 3, cefr: "B1", tags: ["emociones", "formal"] },
+    83→  { id: "w-esmero", word: "esmero", pos: "sustantivo", definition: "Cuidado y dedicación con que se hace algo.", example: "Coció la cena con esmero, como quien firma un cuadro.", difficulty: 3, cefr: "B1", tags: ["trabajo"] },
+    84→  { id: "w-candor", word: "candor", pos: "sustantivo", definition: "Sinceridad e inocencia propias de quien no sospecha el mal.", example: "Contó su plan con la candor de un niño.", difficulty: 3, cefr: "B1", tags: ["carácter", "literario"] },
+    85→  { id: "w-atardecer", word: "atardecer", pos: "sustantivo / verbo", definition: "Caída de la tarde; último tramo de luz del día.", example: "El atardecer pinta de cobre las ventanas.", difficulty: 3, cefr: "B1", tags: ["tiempo", "descripción"] },
+    86→  { id: "w-holgado", word: "holgado", pos: "adjetivo", definition: "Que tiene de sobra (dinero, tiempo); también, ancho de ropa.", example: "Con lo que ganó vive holgado, sin lujos ni apuros.", difficulty: 3, cefr: "B1", tags: ["dinero", "registro"] },
+    87→  { id: "w-quimera", word: "quimera", pos: "sustantivo", definition: "Ilusión o proyecto sin posibilidad real; monstruo de la mitología griega.", example: "Cazar esa fortuna era una quimera de juventud.", difficulty: 3, cefr: "B1", tags: ["abstracto", "mitología"] },
+    88→
+    89→  // ---------- B2 ----------
+    90→  { id: "w-sosiego", word: "sosiego", pos: "sustantivo", definition: "Tranquilidad y calma del ánimo.", example: "Bucear le devuelve el sosiego que la ciudad le quita.", difficulty: 4, cefr: "B2", tags: ["emociones", "formal"] },
+    91→  { id: "w-honda", word: "honda", pos: "adjetivo", definition: "Profunda (en sentido literal y en sentido moral).", example: "Sintió una honda tristeza al ver el puerto vacío.", difficulty: 4, cefr: "B2", tags: ["hache", "literario"] },
+    92→  { id: "w-azuceo", word: "azuceo", pos: "sustantivo", definition: "Impulso o apuro repentino para llegar a tiempo (uso andaluz y americano).", example: "Con un azuceo último, alcanzó el ferry por un segundo.", difficulty: 4, cefr: "B2", tags: ["regionalismo", "Andalucía"] },
+    93→  { id: "w-atrapar", word: "atrapar", pos: "verbo", definition: "Coger o alcanzar a algo o alguien que se mueve.", example: "Atrapó la pelota al vuelo, sin mirarla.", difficulty: 4, cefr: "B2", tags: ["verbos"] },
+    94→  { id: "w-cavilar", word: "cavilar", pos: "verbo", definition: "Pensar largo y hondamente en algo, dando vueltas.", example: "Caviló toda la noche sobre la carta sin firma.", difficulty: 4, cefr: "B2", tags: ["verbos", "literario"] },
+    95→  { id: "w-ahínco", word: "ahínco", pos: "sustantivo", definition: "Esfuerzo vehemente y constante con que se persigue algo.", example: "Estudió sonidos de ballenas con enorme ahínco.", difficulty: 4, cefr: "B2", tags: ["formal", "esdrújulas"] },
+    96→
+    97→  // ---------- C1 ----------
+    98→  { id: "w-melancolía", word: "melancolía", pos: "sustantivo", definition: "Tristeza suave y sin causa precisa, parecida a la nostalgia.", example: "La melancolía le entraba con el olor a sal.", difficulty: 5, cefr: "C1", tags: ["emociones", "hiatos"] },
+    99→  { id: "w-inquebrantable", word: "inquebrantable", pos: "adjetivo", definition: "Que no se puede romper ni doblegar.", example: "Guardó una fe inquebrantable en el regreso de las ballenas.", difficulty: 5, cefr: "C1", tags: ["carácter"] },
+   100→  { id: "w-bregar", word: "bregar", pos: "verbo", definition: "Luchar o trabajar con esfuerzo contra algo difícil.", example: "Bregó quince años para que el puerto tuviera luz.", difficulty: 5, cefr: "C1", tags: ["verbos", "literario"] },
+   101→  { id: "w-desazón", word: "desazón", pos: "sustantivo", definition: "Inquietud y disgusto interior que no se sabe nombrar.", example: "Le dejó una desazón rara aquella despedida sin abrazo.", difficulty: 5, cefr: "C1", tags: ["emociones", "literario"] },
+   102→  { id: "w-sereno", word: "sereno", pos: "sustantivo / adjetivo", definition: "Rocío de la noche; y también, quien mantiene la calma.", example: "El sereno de la madrugada mojaba las redes.", difficulty: 5, cefr: "C1", tags: ["polisemia", "mar"] },
+   103→  { id: "w-zozobrar", word: "zozobrar", pos: "verbo", definition: "Hundirse o tambalearse un barco; perder el ánimo la calma.", example: "Zozobró la barca en la roca y, con ella, su paciencia.", difficulty: 5, cefr: "C1", tags: ["náutica", "metafórico"] },
+   104→
+   105→/* ==================== Ampliación del banco (+87) ==================== */
+   106→  // ---------- A1 ----------
+   107→  { id: "w-playa", word: "playa", pos: "sustantivo", definition: "Franja de arena o de piedras junto a la orilla del mar.", example: "La playa queda vacía cuando cae la tarde.", difficulty: 1, cefr: "A1", tags: ["básico", "mar"] },
+   108→  { id: "w-gato", word: "gato", pos: "sustantivo", definition: "Animal doméstico de la familia de los félidos; cazador sigiloso.", example: "El gato del faro duerme sobre las cartas náuticas.", difficulty: 1, cefr: "A1", tags: ["básico", "animales"] },
+   109→  { id: "w-amigo", word: "amigo", pos: "sustantivo", definition: "Persona a la que se quiere y en la que se puede confiar.", example: "Un amigo verdadero comparte el pan y los mapas.", difficulty: 1, cefr: "A1", tags: ["básico", "amistad"] },
+   110→  { id: "w-arbol", word: "árbol", pos: "sustantivo", definition: "Planta de tronco leñoso y copa elevada que vive muchos años.", example: "El árbol del patio da sombra en agosto.", difficulty: 1, cefr: "A1", tags: ["básico", "naturaleza"] },
+   111→  { id: "w-pan", word: "pan", pos: "sustantivo", definition: "Alimento hecho con harina y agua, cocido al horno.", example: "El pan del puerto sale del horno a las siete.", difficulty: 1, cefr: "A1", tags: ["básico", "comida"] },
+   112→  { id: "w-sol", word: "sol", pos: "sustantivo", definition: "Astro que da luz y calor a la Tierra.", example: "Mañana saldrá el sol antes que nosotros.", difficulty: 1, cefr: "A1", tags: ["básico", "clima"] },
+   113→  { id: "w-mano", word: "mano", pos: "sustantivo", definition: "Parte del brazo que sirve para agarrar, tocar y escribir.", example: "Firmó el diario de bitácora con mano firme.", difficulty: 1, cefr: "A1", tags: ["básico", "cuerpo"] },
+   114→  { id: "w-calle", word: "calle", pos: "sustantivo", definition: "Vía urbana situada entre edificios o casas.", example: "La calle del muelle huele a sal y a café.", difficulty: 1, cefr: "A1", tags: ["básico", "ciudad"] },
+   115→  { id: "w-caminar", word: "caminar", pos: "verbo", definition: "Ir a pie de un lugar a otro.", example: "Caminamos hasta el faro para ver las estrellas.", difficulty: 1, cefr: "A1", tags: ["básico", "movimiento"] },
+   116→  { id: "w-hablar", word: "hablar", pos: "verbo", definition: "Expresar ideas o sentimientos con palabras.", example: "Hablamos en voz baja durante toda la travesía.", difficulty: 1, cefr: "A1", tags: ["básico", "comunicación"] },
+   117→  { id: "w-barco", word: "barco", pos: "sustantivo", definition: "Embarcación de cualquier tamaño que navega por el agua.", example: "El barco regresa con las redes llenas.", difficulty: 1, cefr: "A1", tags: ["básico", "mar"] },
+   118→  { id: "w-cancion", word: "canción", pos: "sustantivo", definition: "Composición musical pensada para ser cantada.", example: "La misma canción suena en el puerto cada viernes.", difficulty: 1, cefr: "A1", tags: ["básico", "música", "agudas"] },
+   119→  { id: "w-cielo", word: "cielo", pos: "sustantivo", definition: "Espacio visible donde se mueven el sol, la luna y las nubes.", example: "El cielo se despejó sobre la bahía.", difficulty: 1, cefr: "A1", tags: ["básico", "naturaleza"] },
+   120→  { id: "w-montana", word: "montaña", pos: "sustantivo", definition: "Elevación natural de tierra, mucho más alta que una colina.", example: "Desde la montaña se divisa todo el archipiélago.", difficulty: 1, cefr: "A1", tags: ["básico", "naturaleza"] },
+   121→
+   122→  // ---------- A2 ----------
+   123→  { id: "w-bosque", word: "bosque", pos: "sustantivo", definition: "Terreno extenso cubierto de árboles.", example: "El bosque guarda un silencio distinto al amanecer.", difficulty: 2, cefr: "A2", tags: ["naturaleza"] },
+   124→  { id: "w-receta", word: "receta", pos: "sustantivo", definition: "Instrucciones para preparar un plato; también, remedio o consejo.", example: "La receta de la abuela lleva canela y paciencia.", difficulty: 2, cefr: "A2", tags: ["comida"] },
+   125→  { id: "w-miedo", word: "miedo", pos: "sustantivo", definition: "Inquietud ante algo que parece peligroso o amenazante.", example: "El miedo se hace pequeño cuando se nombra.", difficulty: 2, cefr: "A2", tags: ["emociones"] },
+   126→  { id: "w-aeropuerto", word: "aeropuerto", pos: "sustantivo", definition: "Instalación donde despegan y aterrizan aviones.", example: "Llegamos al aeropuerto con la maleta a medio cerrar.", difficulty: 2, cefr: "A2", tags: ["viajes"] },
+   127→  { id: "w-guitarra", word: "guitarra", pos: "sustantivo", definition: "Instrumento de cuerdas que se toca con los dedos.", example: "Alguien afina una guitarra en la cubierta del ferry.", difficulty: 2, cefr: "A2", tags: ["música"] },
+   128→  { id: "w-pintor", word: "pintor", pos: "sustantivo", definition: "Persona que pinta cuadros o fachadas.", example: "El pintor retrató el puerto en plena nevada.", difficulty: 2, cefr: "A2", tags: ["arte", "oficios"] },
+   129→  { id: "w-resfriado", word: "resfriado", pos: "sustantivo", definition: "Enfermedad leve con congestión y estornudos.", example: "Un resfriado no me quita el paseo del domingo.", difficulty: 2, cefr: "A2", tags: ["salud"] },
+   130→  { id: "w-llovizna", word: "llovizna", pos: "sustantivo", definition: "Lluvia muy fina y menuda.", example: "La llovizna no estropeó la subida al mirador.", difficulty: 2, cefr: "A2", tags: ["clima"] },
+   131→  { id: "w-pescador", word: "pescador", pos: "sustantivo", definition: "Persona que pesca como oficio o como afición.", example: "El pescador conoce cada piedra del estrecho.", difficulty: 2, cefr: "A2", tags: ["oficios", "mar"] },
+   132→  { id: "w-almuerzo", word: "almuerzo", pos: "sustantivo", definition: "Comida que se toma hacia el mediodía.", example: "El almuerzo era pan, queso y aceite nuevo.", difficulty: 2, cefr: "A2", tags: ["comida"] },
+   133→  { id: "w-cunado", word: "cuñado", pos: "sustantivo", definition: "Hermano del cónyuge o esposo de la hermana (o del hermano).", example: "Mi cuñado arregló el motor del bote en una tarde.", difficulty: 2, cefr: "A2", tags: ["familia"] },
+   134→  { id: "w-bicicleta", word: "bicicleta", pos: "sustantivo", definition: "Vehículo de dos ruedas que se mueve con pedales.", example: "La bicicleta es mi caballo de acero.", difficulty: 2, cefr: "A2", tags: ["deporte", "ciudad"] },
+   135→  { id: "w-sendero", word: "sendero", pos: "sustantivo", definition: "Camino estrecho, a menudo de tierra.", example: "El sendero baja entre brezos hasta la cala.", difficulty: 2, cefr: "A2", tags: ["naturaleza", "viajes"] },
+   136→  { id: "w-apagar", word: "apagar", pos: "verbo", definition: "Hacer que un fuego, una luz o un aparato deje de funcionar.", example: "Apaga el farol cuando termines el capítulo.", difficulty: 2, cefr: "A2", tags: ["tecnología", "hogar"] },
+   137→
+   138→  // ---------- B1 ----------
+   139→  { id: "w-cicatriz", word: "cicatriz", pos: "sustantivo", definition: "Marca que queda en la piel tras una herida curada.", example: "Cada cicatriz del patrón cuenta una tormenta distinta.", difficulty: 3, cefr: "B1", tags: ["salud"] },
+   140→  { id: "w-carpintero", word: "carpintero", pos: "sustantivo", definition: "Oficial que trabaja y moldea la madera.", example: "El carpintero talló una gaviota en la puerta del bar.", difficulty: 3, cefr: "B1", tags: ["oficios"] },
+   141→  { id: "w-partitura", word: "partitura", pos: "sustantivo", definition: "Papel pautado donde está escrita una obra musical.", example: "El viento se llevó la partitura del atril.", difficulty: 3, cefr: "B1", tags: ["música"] },
+   142→  { id: "w-oleaje", word: "oleaje", pos: "sustantivo", definition: "Movimiento de las olas, en especial del mar abierto.", example: "El oleaje meció el barco hasta la siesta.", difficulty: 3, cefr: "B1", tags: ["mar", "naturaleza"] },
+   143→  { id: "w-feria", word: "feria", pos: "sustantivo", definition: "Fiesta con atracciones y puestos al aire libre; también, mercado.", example: "La feria del pueblo trae la misma música cada septiembre.", difficulty: 3, cefr: "B1", tags: ["ciudad", "cultura"] },
+   144→  { id: "w-itinerario", word: "itinerario", pos: "sustantivo", definition: "Ruta prevista de un viaje, con sus etapas y horarios.", example: "El itinerario incluía dos islas y una sorpresa.", difficulty: 3, cefr: "B1", tags: ["viajes"] },
+   145→  { id: "w-musa", word: "musa", pos: "sustantivo", definition: "Inspiración artística, a menudo personificada en una figura.", example: "Dicen que el mar fue su última musa.", difficulty: 3, cefr: "B1", tags: ["arte"] },
+   146→  { id: "w-constancia", word: "constancia", pos: "sustantivo", definition: "Firmeza y perseverancia en lo que se hace o se persigue.", example: "La constancia del farero venció a la niebla.", difficulty: 3, cefr: "B1", tags: ["carácter", "valores"] },
+   147→  { id: "w-amanecer", word: "amanecer", pos: "sustantivo / verbo", definition: "Primera luz del día; empezar a hacerse de día.", example: "El amanecer sorprendió a los dos en el muelle.", difficulty: 3, cefr: "B1", tags: ["tiempo"] },
+   148→  { id: "w-musgo", word: "musgo", pos: "sustantivo", definition: "Planta pequeña y verde que tapa piedras y troncos húmedos.", example: "El musgo amortigua los pasos en el bosque norte.", difficulty: 3, cefr: "B1", tags: ["naturaleza"] },
+   149→  { id: "w-borrasca", word: "borrasca", pos: "sustantivo", definition: "Temporal de viento y mar; región de bajas presiones.", example: "La borrasca obligó a cerrar el puerto dos días.", difficulty: 3, cefr: "B1", tags: ["clima", "mar"] },
+   150→  { id: "w-hermandad", word: "hermandad", pos: "sustantivo", definition: "Vínculo de afecto y lealtad entre personas; también, cofradía.", example: "Entre remeros nació una hermandad silenciosa.", difficulty: 3, cefr: "B1", tags: ["familia", "valores"] },
+   151→  { id: "w-maraton", word: "maratón", pos: "sustantivo", definition: "Carrera de fondo de 42,195 kilómetros; por extensión, tarea muy larga.", example: "Empaquetar la mudanza fue una maratón.", difficulty: 3, cefr: "B1", tags: ["deporte"] },
+   152→  { id: "w-convalecencia", word: "convalecencia", pos: "sustantivo", definition: "Periodo de recuperación tras una enfermedad o un golpe.", example: "Durante la convalecencia leía novelas de piratas.", difficulty: 3, cefr: "B1", tags: ["salud"] },
+   153→  { id: "w-sastre", word: "sastre", pos: "sustantivo", definition: "Persona que confecciona ropa a medida.", example: "El sastre del puerto remendó la vela como si fuera un traje.", difficulty: 3, cefr: "B1", tags: ["oficios"] },
+   154→  { id: "w-travesia", word: "travesía", pos: "sustantivo", definition: "Viaje largo, en especial por mar; también, cruce de un terreno.", example: "La travesía duró once días y una promesa.", difficulty: 3, cefr: "B1", tags: ["viajes", "mar", "hiatos"] },
+   155→  { id: "w-racion", word: "ración", pos: "sustantivo", definition: "Porción de comida que se sirve a cada persona.", example: "Pidió una ración de calamares para compartir.", difficulty: 3, cefr: "B1", tags: ["comida"] },
+   156→  { id: "w-murmullo", word: "murmullo", pos: "sustantivo", definition: "Sonido suave y continuo, como de voces o de agua.", example: "Solo se oía el murmullo del agua entre las rocas.", difficulty: 3, cefr: "B1", tags: ["sonido", "naturaleza"] },
+   157→  { id: "w-motin", word: "motín", pos: "sustantivo", definition: "Rebelión conjunta, en especial de la tripulación o de la tropa.", example: "El motín empezó por el rancho quemado.", difficulty: 3, cefr: "B1", tags: ["aventura", "historia"] },
+   158→  { id: "w-sobremesa", word: "sobremesa", pos: "sustantivo", definition: "Tiempo que se pasa a la mesa después de haber comido.", example: "Las historias del abuelo salen siempre en la sobremesa.", difficulty: 3, cefr: "B1", tags: ["comida", "cultura"] },
+   159→  { id: "w-aldea", word: "aldea", pos: "sustantivo", definition: "Población pequeña, menor que un pueblo.", example: "La aldea tiene doce casas y un único farol.", difficulty: 3, cefr: "B1", tags: ["lugares"] },
+   160→  { id: "w-vocacion", word: "vocación", pos: "sustantivo", definition: "Inclinación fuerte hacia un oficio o un modo de vida.", example: "Descubrió su vocación al oler la tinta fresca de la imprenta.", difficulty: 3, cefr: "B1", tags: ["trabajo"] },
+   161→  { id: "w-afable", word: "afable", pos: "adjetivo", definition: "Que es dulce y agradable en el trato.", example: "La afable tendera del puerto guarda mi pan de siempre.", difficulty: 3, cefr: "B1", tags: ["carácter"] },
+   162→  { id: "w-remar", word: "remar", pos: "verbo", definition: "Mover un bote con remos.", example: "Remaron dos horas hasta ver las luces del puerto.", difficulty: 3, cefr: "B1", tags: ["deporte", "mar"] },
+   163→  { id: "w-pericia", word: "pericia", pos: "sustantivo", definition: "Destreza y habilidad práctica que da la experiencia.", example: "Gobernaba el timón con pericia de viejo lobo de mar.", difficulty: 3, cefr: "B1", tags: ["trabajo", "carácter"] },
+   164→  { id: "w-brujula", word: "brújula", pos: "sustantivo", definition: "Instrumento con aguja imantada que señala el norte.", example: "Sin brújula, hubo que guiarse por las estrellas.", difficulty: 3, cefr: "B1", tags: ["viajes", "aventura"] },
+   165→  { id: "w-escalofrio", word: "escalofrío", pos: "sustantivo", definition: "Sacudida de frío o de temblor, a menudo por miedo o fiebre.", example: "Un escalofrío le recorrió al entrar en la gruta.", difficulty: 3, cefr: "B1", tags: ["salud", "emociones", "hiatos"] },
+   166→  { id: "w-remanso", word: "remanso", pos: "sustantivo", definition: "Zona de agua quieta en un río o junto a la orilla.", example: "El remanso guardaba los reflejos como un espejo.", difficulty: 3, cefr: "B1", tags: ["naturaleza"] },
+   167→  { id: "w-destello", word: "destello", pos: "sustantivo", definition: "Rayo de luz breve y brillante.", example: "El destello del faro llegó hasta la boya.", difficulty: 3, cefr: "B1", tags: ["luz", "mar"] },
+   168→  { id: "w-zigzag", word: "zigzag", pos: "sustantivo", definition: "Línea que forma ángulos entrantes y salientes alternos.", example: "La gaviota bajó en zigzag hasta el muelle.", difficulty: 3, cefr: "B1", tags: ["descripción"] },
+   169→  { id: "w-guionista", word: "guionista", pos: "sustantivo", definition: "Persona que escribe guiones para cine, radio o televisión.", example: "El guionista anota ideas en las servilletas del bar del puerto.", difficulty: 3, cefr: "B1", tags: ["oficios", "arte"] },
+   170→  { id: "w-equilibrio", word: "equilibrio", pos: "sustantivo", definition: "Estado de compensación entre fuerzas o elementos que se contrapesan.", example: "Caminar por el bordillo del muelle es puro equilibrio.", difficulty: 3, cefr: "B1", tags: ["abstracto"] },
+   171→
+   172→  // ---------- B2 ----------
+   173→  { id: "w-insolito", word: "insólito", pos: "adjetivo", definition: "Que resulta raro o fuera de lo común.", example: "Nevó sobre el faro: un suceso insólito en la isla.", difficulty: 4, cefr: "B2", tags: ["descripción"] },
+   174→  { id: "w-vaiven", word: "vaivén", pos: "sustantivo", definition: "Movimiento alternativo, de un lado a otro.", example: "El vaivén de la hamaca lo durmió en cubierta.", difficulty: 4, cefr: "B2", tags: ["mar", "abstracto"] },
+   175→  { id: "w-palabreria", word: "palabrería", pos: "sustantivo", definition: "Abundancia de palabras vacías o innecesarias.", example: "Detrás de tanta palabrería no había ningún plan.", difficulty: 4, cefr: "B2", tags: ["comunicación", "registro", "hiatos"] },
+   176→  { id: "w-pristino", word: "prístino", pos: "adjetivo", definition: "Puro, sin alteración; también, original o antiguo.", example: "El agua prístina de la cala invitaba a nadar.", difficulty: 4, cefr: "B2", tags: ["literario"] },
+   177→  { id: "w-faena", word: "faena", pos: "sustantivo", definition: "Trabajo, especialmente el rudo o el del campo y el mar.", example: "Terminada la faena, el silencio sabe distinto.", difficulty: 4, cefr: "B2", tags: ["trabajo", "mar"] },
+   178→  { id: "w-zafio", word: "zafio", pos: "adjetivo", definition: "Grosero y tosco en el trato o en los modos.", example: "Fue zafio con el camarero y salimos avergonzados.", difficulty: 4, cefr: "B2", tags: ["carácter", "registro"] },
+   179→  { id: "w-linaje", word: "linaje", pos: "sustantivo", definition: "Ascendencia o estirpe de una familia.", example: "Pertenecía a un linaje de constructores de faros.", difficulty: 4, cefr: "B2", tags: ["familia", "formal"] },
+   180→  { id: "w-regusto", word: "regusto", pos: "sustantivo", definition: "Sabor o sensación que queda después de comer o de vivir algo.", example: "Dejó un regusto a sal y a despedida.", difficulty: 4, cefr: "B2", tags: ["emociones", "comida"] },
+   181→  { id: "w-adalid", word: "adalid", pos: "sustantivo", definition: "Persona que guía o defiende con energía una causa.", example: "Fue adalid de la biblioteca del barrio.", difficulty: 4, cefr: "B2", tags: ["formal", "valores"] },
+   182→  { id: "w-badajo", word: "badajo", pos: "sustantivo", definition: "Pieza metálica que pende dentro de la campana y la golpea al sonar.", example: "El badajo marcó las once y el barco zarpó.", difficulty: 4, cefr: "B2", tags: ["objetos", "cultura"] },
+   183→  { id: "w-otear", word: "otear", pos: "verbo", definition: "Mirar a lo lejos, en especial desde un lugar alto.", example: "Oteó el horizonte buscando la silueta del islote.", difficulty: 4, cefr: "B2", tags: ["verbos", "mar"] },
+   184→  { id: "w-chirriar", word: "chirriar", pos: "verbo", definition: "Producir un sonido agudo y desapacible por rozamiento.", example: "La puerta chirría: pide aceite y paciencia.", difficulty: 4, cefr: "B2", tags: ["verbos", "sonido"] },
+   185→  { id: "w-desden", word: "desdén", pos: "sustantivo", definition: "Indiferencia que denota menosprecio.", example: "Escuchó las críticas con desdén de viejo capitán.", difficulty: 4, cefr: "B2", tags: ["emociones", "formal"] },
+   186→  { id: "w-arrecife", word: "arrecife", pos: "sustantivo", definition: "Cadena o banco de rocas (a veces de coral) cerca de la superficie.", example: "El arrecife protege la bahía del mar abierto.", difficulty: 4, cefr: "B2", tags: ["mar", "naturaleza"] },
+   187→  { id: "w-solaz", word: "solaz", pos: "sustantivo", definition: "Consuelo, alivio o descanso del ánimo.", example: "Buscaba solaz en las cartas del farero.", difficulty: 4, cefr: "B2", tags: ["literario", "emociones"] },
+   188→  { id: "w-funambulo", word: "funámbulo", pos: "sustantivo", definition: "Acróbata que camina sobre una cuerda floja o un cable.", example: "El funámbulo cruzó del campanario al faro.", difficulty: 4, cefr: "B2", tags: ["espectáculo", "esdrújulas"] },
+   189→  { id: "w-bucolico", word: "bucólico", pos: "adjetivo", definition: "Relativo a la vida del campo, idealizada como tranquila y bella.", example: "El valle bucólico dormía entre ovejas y colmenas.", difficulty: 4, cefr: "B2", tags: ["literario"] },
+   190→
+   191→  // ---------- C1 ----------
+   192→  { id: "w-algarabia", word: "algarabía", pos: "sustantivo", definition: "Bullicio alegre y confuso de mucha gente.", example: "La algarabía del mercado llegó hasta el faro.", difficulty: 5, cefr: "C1", tags: ["ciudad", "emociones", "hiatos"] },
+   193→  { id: "w-hidalguia", word: "hidalguía", pos: "sustantivo", definition: "Nobleza y generosidad en el carácter.", example: "Perder con hidalguía también se aprende en casa.", difficulty: 5, cefr: "C1", tags: ["valores", "formal", "hiatos"] },
+   194→  { id: "w-aciago", word: "aciago", pos: "adjetivo", definition: "Que trae desgracia; funesto.", example: "Aquella fue una jornada aciaga: tormenta y ancla perdida.", difficulty: 5, cefr: "C1", tags: ["literario"] },
+   195→  { id: "w-matiz", word: "matiz", pos: "sustantivo", definition: "Detalle fino que diferencia colores, significados o tonos.", example: "Cada dialecto añade un matiz nuevo a la palabra.", difficulty: 5, cefr: "C1", tags: ["abstracto", "comunicación"] },
+   196→  { id: "w-cribar", word: "cribar", pos: "verbo", definition: "Tamizar; seleccionar con rigor lo mejor de algo.", example: "Cribó sus ideas hasta quedarse con tres.", difficulty: 5, cefr: "C1", tags: ["verbos", "formal"] },
+   197→  { id: "w-mohin", word: "mohín", pos: "sustantivo", definition: "Gestillo breve que manifiesta disgusto o enfado.", example: "Hizo un mohín al probar la sopa sin sal.", difficulty: 5, cefr: "C1", tags: ["emociones", "culto"] },
+   198→  { id: "w-presteza", word: "presteza", pos: "sustantivo", definition: "Prontitud y rapidez en ejecutar algo.", example: "Respondió con presteza de quien llevaba años esperando la pregunta.", difficulty: 5, cefr: "C1", tags: ["formal"] },
+   199→  { id: "w-coyuntura", word: "coyuntura", pos: "sustantivo", definition: "Momento u ocasión, en especial oportuna o delicada.", example: "Aprovechó la coyuntura para abrir su librería.", difficulty: 5, cefr: "C1", tags: ["formal", "abstracto"] },
+   200→  { id: "w-socavar", word: "socavar", pos: "verbo", definition: "Minar o debilitar algo por debajo, de forma gradual.", example: "La marea socavó los cimientos del viejo muelle.", difficulty: 5, cefr: "C1", tags: ["verbos", "metafórico"] },
+   201→  { id: "w-vergel", word: "vergel", pos: "sustantivo", definition: "Jardín o huerto muy frondoso, bello y cuidado.", example: "Convirtió el patio del faro en un vergel de limoneros.", difficulty: 5, cefr: "C1", tags: ["naturaleza", "literario"] },
+   202→];
+   203→
+   204→export const SRS_WORDS_BY_ID: Record<string, SrsWord> = SRS_WORDS.reduce(
+   205→  (acc, w) => {
+   206→    acc[w.id] = w;
+   207→    return acc;
+   208→  },
+   209→  {} as Record<string, SrsWord>,
+   210→);
+   211→

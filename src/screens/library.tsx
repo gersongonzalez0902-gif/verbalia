@@ -17,6 +17,7 @@ import { getIcon } from "@/components/game/icons";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Library, Map, Play } from "lucide-react";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import type { Stage } from "@/types";
 
@@ -42,7 +43,7 @@ export function LibraryScreen() {
       <ScreenHeader title="Biblioteca de contenidos" subtitle="Qué hay hoy y qué está de camino" backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-3xl px-4 pb-10">
-        <Tabs defaultValue="contenido" className="mt-4">
+        <Tabs defaultValue="contenido" onValueChange={() => sfx.tap()} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="contenido" className="font-bold">
               <Library className="mr-1.5 h-4 w-4" aria-hidden /> Contenido
@@ -63,9 +64,9 @@ export function LibraryScreen() {
               {packs.map(({ gid, g, stats, played }) => {
                 const Icon = getIcon(g.icon);
                 return (
-                  <li key={gid} className="flex flex-col rounded-3xl border bg-card p-5 shadow-sm">
+                  <li key={gid} className="card-aurora flex flex-col rounded-3xl border bg-card p-5">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary">
+                      <span className="chip-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
                         <Icon className="h-5 w-5" aria-hidden />
                       </span>
                       <div className="min-w-0">
@@ -99,7 +100,7 @@ export function LibraryScreen() {
                       <span className="text-xs text-muted-foreground">
                         {gid === "srs" ? "48 palabras vivas" : `${stats.total} ejercicios`} · {played} partidas
                       </span>
-                      <Button size="sm" className="font-bold" onClick={() => navigate({ name: "game", gameId: gid, mode: "training" })}>
+                      <Button size="sm" onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: gid, mode: "training" }); }}>
                         <Play className="mr-1 h-3.5 w-3.5" aria-hidden />
                         Jugar
                       </Button>
@@ -129,14 +130,14 @@ export function LibraryScreen() {
               const innovMods = INNOVATIVE_MODULES.filter((m) => m.stage === stage);
               const isCurrent = stage === 1;
               return (
-                <section key={stage} aria-labelledby={`stage-${stage}`} className={cn("rounded-3xl border p-5", isCurrent ? "border-primary/50 bg-primary/5" : "bg-card shadow-sm")}>
+                <section key={stage} aria-labelledby={`stage-${stage}`} className={cn("card-aurora rounded-3xl border p-5", isCurrent ? "border-primary/50 bg-primary/5" : "bg-card")}>
                   <div className="flex items-center justify-between gap-3">
                     <h2 id={`stage-${stage}`} className="font-display text-lg font-bold">
                       {STAGE_LABELS[stage]}
                     </h2>
                     <span
                       className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        "gloss rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
                         isCurrent ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
                       )}
                     >

@@ -21,7 +21,7 @@ import type {
 import { createCore, reduceSessionComplete, computePlacement } from "@/engine/core";
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
-import { setSoundEnabled } from "@/services/audio";
+import { setSoundEnabled, setMusicVolume, setSfxVolume } from "@/services/audio";
 
 const SAVE_DEBOUNCE_MS = 700;
 
@@ -29,6 +29,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   reduceMotion: false,
   textSize: "md",
   sound: true,
+  musicVolume: 0.55,
+  sfxVolume: 0.9,
   dailyGoalXp: 120,
   newCardsPerDay: 8,
   offlineMode: true,
@@ -77,6 +79,8 @@ function applySettingsSideEffects(settings: GameSettings) {
   document.documentElement.classList.toggle("reduce-motion", settings.reduceMotion);
   document.documentElement.classList.toggle("night", settings.nightMode);
   setSoundEnabled(settings.sound);
+  setMusicVolume(settings.musicVolume);
+  setSfxVolume(settings.sfxVolume);
 }
 
 export const useGameStore = create<GameStore>((set, get) => {

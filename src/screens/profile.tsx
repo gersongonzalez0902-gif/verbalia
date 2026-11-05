@@ -30,6 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Circle, Download, PenLine, Trash2, Upload } from "lucide-react";
 
@@ -54,6 +55,7 @@ export function ProfileScreen() {
   const saveName = () => {
     updateProfile({ name: nameDraft.trim() || profile.name });
     setEditing(false);
+    sfx.pop();
     toast({ title: "Perfil actualizado", description: "Tu bitácora ya luce tu nuevo nombre." });
   };
 
@@ -93,10 +95,11 @@ export function ProfileScreen() {
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-10">
         {/* ===== Identidad ===== */}
-        <section className="mt-4 flex items-center gap-4 rounded-3xl border bg-card p-5 shadow-sm">
-          <Avatar className="h-16 w-16 border-2 border-primary/30">
+        <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-5">
+          <span aria-hidden className="anim-twinkle absolute -right-2 -top-2 text-4xl opacity-20 select-none">✨</span>
+          <Avatar className="gloss h-16 w-16 border-2 border-primary/30">
             <AvatarFallback className="bg-secondary text-3xl">
-              {AVATAR_EMOJI[profile.avatar] ?? "🦉"}
+              <span className="anim-bob">{AVATAR_EMOJI[profile.avatar] ?? "🦉"}</span>
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
@@ -115,11 +118,11 @@ export function ProfileScreen() {
               </div>
             ) : (
               <button
-                onClick={() => { setNameDraft(profile.name); setEditing(true); }}
+                onClick={() => { sfx.tap(); setNameDraft(profile.name); setEditing(true); }}
                 className="group flex items-center gap-2 text-left"
                 aria-label="Editar nombre"
               >
-                <h2 className="font-display truncate text-2xl font-bold">{profile.name}</h2>
+                <h2 className="font-display title-sheen truncate text-2xl font-bold">{profile.name}</h2>
                 <PenLine className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" aria-hidden />
               </button>
             )}
@@ -137,7 +140,7 @@ export function ProfileScreen() {
           <StatCard value={`${core.stats.totalSessions}`} label="Sesiones" />
         </section>
 
-        <section className="mt-4 rounded-3xl border bg-card p-4 shadow-sm">
+        <section className="card-aurora mt-4 rounded-3xl border bg-card p-4">
           <div className="mb-2 flex items-baseline justify-between">
             <p className="text-sm font-bold">Nivel {level} · {rank.name}</p>
             <p className="numeric text-xs text-muted-foreground">{into}/{needed} XP</p>
@@ -158,8 +161,8 @@ export function ProfileScreen() {
               const lvl = core.skills[skill];
               const cefr = cefrFromSkill(lvl);
               return (
-                <div key={skill} className="flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-sm">
-                  <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: SKILL_COLORS[skill] }} aria-hidden />
+                <div key={skill} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3.5">
+                  <span className="gloss h-3.5 w-3.5 shrink-0 rounded-full" style={{ background: SKILL_COLORS[skill], boxShadow: `0 0 8px color-mix(in oklch, ${SKILL_COLORS[skill]} 60%, transparent)` }} aria-hidden />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between">
                       <p className="text-sm font-bold">{SKILL_LABELS[skill]}</p>
@@ -167,7 +170,7 @@ export function ProfileScreen() {
                         {skillMasteryLabel(lvl)} · <span className="text-foreground">{cefr}</span>
                       </p>
                     </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
                       <div
                         className="h-full rounded-full transition-[width] duration-500"
                         style={{ width: `${(lvl / 10) * 100}%`, background: SKILL_COLORS[skill] }}
@@ -193,19 +196,19 @@ export function ProfileScreen() {
 
         {/* ===== Colección + logros ===== */}
         <section className="mt-6 grid gap-3 sm:grid-cols-[1fr_1.2fr]">
-          <div className="flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm">
+          <div className="card-aurora flex items-center gap-4 rounded-3xl border bg-card p-4">
             <ProgressRing value={wordsLearned / Math.max(1, wordsLearned + Math.max(0, 48 - wordsLearned))} size={80} stroke={8}>
               <span className="numeric font-display text-base font-bold">{wordsLearned}</span>
             </ProgressRing>
             <div>
               <p className="text-sm font-bold">Palabras aprendidas</p>
               <p className="text-xs text-muted-foreground">{wordsMastered} dominadas</p>
-              <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => navigate({ name: "collection" })}>
+              <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "collection" }); }}>
                 Ver la colección →
               </Button>
             </div>
           </div>
-          <div className="rounded-3xl border bg-card p-4 shadow-sm">
+          <div className="card-aurora rounded-3xl border bg-card p-4">
             <p className="text-sm font-bold">Logros: {unlockedCount} / {ACHIEVEMENTS.length}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {ACHIEVEMENTS.slice(0, 10).map((a) => {
@@ -226,7 +229,7 @@ export function ProfileScreen() {
               })}
               <span className="self-center text-xs text-muted-foreground">…</span>
             </div>
-            <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => navigate({ name: "missions" })}>
+            <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "missions" }); }}>
               Ver todos los logros →
             </Button>
           </div>
@@ -239,10 +242,10 @@ export function ProfileScreen() {
             Todo vive en este dispositivo (IndexedDB). Sin cuentas, sin servidores, sin rastreadores.
           </p>
           <div className="mt-3 flex flex-wrap gap-2.5">
-            <Button variant="outline" className="font-bold" onClick={doExport}>
+            <Button variant="outline" onClick={() => { sfx.page(); doExport(); }}>
               <Download className="mr-2 h-4 w-4" aria-hidden /> Exportar copia
             </Button>
-            <Button variant="outline" className="font-bold" onClick={() => fileRef.current?.click()}>
+            <Button variant="outline" onClick={() => { sfx.page(); fileRef.current?.click(); }}>
               <Upload className="mr-2 h-4 w-4" aria-hidden /> Importar copia
             </Button>
             <input
@@ -276,6 +279,7 @@ export function ProfileScreen() {
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => {
+                      sfx.error();
                       void resetAll();
                       navigate({ name: "welcome" });
                     }}
@@ -294,8 +298,8 @@ export function ProfileScreen() {
 
 function StatCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl border bg-card p-3 text-center shadow-sm">
-      <p className="numeric font-display text-xl font-bold text-primary">{value}</p>
+    <div className="gloss card-aurora rounded-2xl border bg-card p-3 text-center">
+      <p className="numeric font-display title-sheen text-xl font-bold">{value}</p>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );

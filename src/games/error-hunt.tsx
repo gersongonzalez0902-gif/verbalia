@@ -8,6 +8,7 @@
 import { useState } from "react";
 import type { ErrorHuntExercise } from "@/types";
 import { checkErrorHunt } from "@/engine/validation";
+import { sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
@@ -30,12 +31,14 @@ export function ErrorHunt(props: useGameProps<ErrorHuntExercise>) {
 
   const chooseToken = (i: number) => {
     if (disabled || step !== "find") return;
+    sfx.tap();
     setToken(i);
     setStep("fix");
   };
 
   const declareClean = () => {
     if (disabled || step !== "find") return;
+    sfx.click();
     setDeclared("none");
     finish("none", null);
   };
@@ -108,7 +111,7 @@ export function ErrorHunt(props: useGameProps<ErrorHuntExercise>) {
               />
             ))}
           </div>
-          <Button variant="ghost" size="sm" className="w-full" disabled={disabled} onClick={() => { setStep("find"); setToken(null); }}>
+          <Button variant="ghost" size="sm" className="w-full" disabled={disabled} onClick={() => { sfx.back(); setStep("find"); setToken(null); }}>
             Elegir otra palabra
           </Button>
         </div>

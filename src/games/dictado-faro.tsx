@@ -12,7 +12,7 @@
 import { useMemo, useRef, useState } from "react";
 import type { DictadoExercise } from "@/types";
 import { checkDictado, dictadoDiff } from "@/engine/validation";
-import { speak, ttsAvailable } from "@/services/audio";
+import { speak, ttsAvailable, sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Volume2, VolumeX, RotateCcw, Lightbulb } from "lucide-react";
@@ -33,6 +33,7 @@ export function DictadoFaro(props: useGameProps<DictadoExercise>) {
 
   const play = () => {
     if (disabled || plays >= MAX_PLAYS) return;
+    sfx.pop();
     setPlays((p) => p + 1);
     if (ttsOk) {
       speak(item.sentence);
@@ -44,6 +45,7 @@ export function DictadoFaro(props: useGameProps<DictadoExercise>) {
 
   const confirm = () => {
     if (disabled || revealed) return;
+    sfx.snap();
     const v = checkDictado(item, typed);
     setDiff(dictadoDiff(typed, item.sentence));
     setRevealed(true);

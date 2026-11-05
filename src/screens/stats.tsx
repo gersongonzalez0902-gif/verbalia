@@ -17,6 +17,7 @@ import { getIcon } from "@/components/game/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartColumn, History, Play } from "lucide-react";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 
 const DAY_MS = 86_400_000;
@@ -86,7 +87,7 @@ export function StatsScreen() {
               <SummaryCard value={avgAccuracy !== null ? `${avgAccuracy}%` : "—"} label="Exactitud global" />
             </div>
 
-            <Tabs value={tab} onValueChange={setTab} className="mt-5">
+            <Tabs value={tab} onValueChange={(v) => { sfx.tap(); setTab(v); }} className="mt-5">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="resumen" className="font-bold">Resumen</TabsTrigger>
                 <TabsTrigger value="historial" className="font-bold">Historial</TabsTrigger>
@@ -98,7 +99,7 @@ export function StatsScreen() {
                   <h3 id="xp-chart-title" className="font-display mb-2 text-base font-bold">
                     XP de los últimos 14 días
                   </h3>
-                  <div className="rounded-3xl border bg-card p-4 shadow-sm" style={{ height: 200 }}>
+                  <div className="card-aurora rounded-3xl border bg-card p-4" style={{ height: 200 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={xpData} margin={{ top: 4, right: 4, bottom: 0, left: -22 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -125,7 +126,7 @@ export function StatsScreen() {
                   <h3 id="radar-title" className="font-display mb-2 text-base font-bold">
                     Nivel por habilidad (de 10) · estimación orientativa
                   </h3>
-                  <div className="rounded-3xl border bg-card p-4 shadow-sm" style={{ height: 230 }}>
+                  <div className="card-aurora rounded-3xl border bg-card p-4" style={{ height: 230 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={radarData} outerRadius="72%">
                         <PolarGrid stroke="var(--border)" />
@@ -155,8 +156,8 @@ export function StatsScreen() {
                       const maxPlays = Math.max(1, ...gameData.map((x) => x.plays));
                       const Icon = getIcon(GAMES[g.id].icon);
                       return (
-                        <div key={g.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm">
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                        <div key={g.id} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
+                          <span className="chip-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
                             <Icon className="h-4.5 w-4.5" aria-hidden />
                           </span>
                           <div className="min-w-0 flex-1">
@@ -166,7 +167,7 @@ export function StatsScreen() {
                                 {g.plays} partidas · {g.answers > 0 ? `${Math.round((g.correct / g.answers) * 100)}% acierto` : "sin datos"}
                               </p>
                             </div>
-                            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                            <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
                               <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${(g.plays / maxPlays) * 100}%` }} />
                             </div>
                           </div>
@@ -185,9 +186,9 @@ export function StatsScreen() {
                   {core.sessions.length === 0 ? (
                     <EmptyState icon={<Play />} title="Sin sesiones todavía" description="Tu historial aparecerá aquí tras tu primera partida." />
                   ) : (
-                    <ol className="space-y-2">
+                    <ol className="stagger space-y-2">
                       {core.sessions.slice(0, 30).map((s) => (
-                        <li key={s.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-sm">
+                        <li key={s.id} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
                           <div
                             className={cn(
                               "numeric flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl text-[10px] font-black leading-none",
@@ -229,8 +230,8 @@ export function StatsScreen() {
 
 function SummaryCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl border bg-card p-3 text-center shadow-sm">
-      <p className="numeric font-display text-xl font-bold text-primary">{value}</p>
+    <div className="gloss card-aurora rounded-2xl border bg-card p-3 text-center">
+      <p className="numeric font-display title-sheen text-xl font-bold">{value}</p>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );

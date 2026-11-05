@@ -7,6 +7,7 @@
 import { useState } from "react";
 import type { ClozeExercise } from "@/types";
 import { checkCloze } from "@/engine/validation";
+import { sfx } from "@/services/audio";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
 
@@ -16,6 +17,7 @@ export function ClozeTest(props: useGameProps<ClozeExercise>) {
 
   const handle = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.tap();
     const v = checkCloze(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

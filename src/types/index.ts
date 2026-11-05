@@ -412,6 +412,10 @@ export interface GameSettings {
   reduceMotion: boolean;
   textSize: "md" | "lg" | "xl";
   sound: boolean;
+  /** Volumen de la música ambiental generativa (0-1). */
+  musicVolume: number;
+  /** Volumen de los efectos de interacción (0-1). */
+  sfxVolume: number;
   dailyGoalXp: number;
   newCardsPerDay: number;
   offlineMode: boolean;

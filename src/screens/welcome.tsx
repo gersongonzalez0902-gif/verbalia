@@ -4,6 +4,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
+import { sfx } from "@/services/audio";
 import { ShieldCheck, Sparkles, WifiOff } from "lucide-react";
 import { TintaOwl } from "@/components/game/tinta";
 
@@ -59,9 +60,9 @@ export function WelcomeScreen() {
         </div>
 
         <Button
-          size="lg"
-          className="anim-glow h-14 w-full max-w-xs rounded-2xl font-display text-lg font-bold shadow-xl"
-          onClick={() => navigate({ name: "onboarding" })}
+          size="xl"
+          className="w-full max-w-xs text-lg"
+          onClick={() => { sfx.chime(); navigate({ name: "onboarding" }); }}
         >
           <Sparkles className="mr-2 h-5 w-5" aria-hidden />
           Comenzar la aventura

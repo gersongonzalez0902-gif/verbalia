@@ -325,6 +325,75 @@ html[data-text-size="xl"] {
   50% { transform: scaleY(1); }
 }
 
+/* ============ Ambientación del Archipiélago ============ */
+@keyframes blob-breathe {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4%, -5%) scale(1.07); }
+  66% { transform: translate(-4%, 4%) scale(0.95); }
+}
+@keyframes dust-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  12% { opacity: 0.85; }
+  85% { opacity: 0.5; }
+  100% { transform: translateY(-88vh) translateX(var(--drift, 0px)); opacity: 0; }
+}
+@keyframes tide-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-240px); }
+}
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dash-drift {
+  to { stroke-dashoffset: -140; }
+}
+@keyframes xp-shimmer {
+  0% { background-position: -60% 0; }
+  100% { background-position: 160% 0; }
+}
+
+.ambient-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  animation: blob-breathe 18s ease-in-out infinite;
+  will-change: transform;
+}
+.ambient-dust {
+  position: absolute;
+  bottom: -12px;
+  border-radius: 9999px;
+  opacity: 0;
+  animation: dust-rise 18s linear infinite;
+  will-change: transform, opacity;
+}
+.ambient-tide {
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: calc(100% + 240px);
+  height: 120px;
+  animation: tide-drift 26s linear infinite;
+}
+.anim-screen {
+  animation: screen-in 0.3s ease-out both;
+}
+.route-flow {
+  animation: dash-drift 6s linear infinite;
+}
+.xp-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklch, white 45%, transparent) 50%,
+    transparent 80%
+  );
+  background-size: 60% 100%;
+  background-repeat: no-repeat;
+  animation: xp-shimmer 2.4s ease-in-out infinite;
+}
+
 .anim-float { animation: float-soft 5s ease-in-out infinite; }
 .anim-bob { animation: bob 3.2s ease-in-out infinite; }
 .anim-pop { animation: pop-in 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
@@ -350,6 +419,210 @@ html[data-text-size="xl"] {
 /* Línea de ondas del mapa */
 .wave-line {
   animation: wave-drift 7s ease-in-out infinite;
+}
+
+/* ================== Repertorio ampliado de dinamismo ================== */
+@keyframes sway {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50% { transform: rotate(4deg) translateY(-4px); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2.5deg); }
+  30% { transform: rotate(3deg); }
+  65% { transform: rotate(-1.5deg); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent); }
+  70% { box-shadow: 0 0 0 16px color-mix(in oklch, var(--primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent); }
+}
+@keyframes shimmer-slide {
+  0% { background-position: -80% 0; }
+  100% { background-position: 180% 0; }
+}
+@keyframes rise-in {
+  from { transform: translateY(18px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes hue-drift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(14deg); }
+}
+@keyframes nudge {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(2.5px); }
+  40% { transform: translateX(-2px); }
+  60% { transform: translateX(1.5px); }
+}
+@keyframes flame-flicker {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  45% { opacity: 1; transform: scale(1.12); }
+  70% { opacity: 0.85; transform: scale(0.94); }
+}
+@keyframes float-diag {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(10px, -14px) rotate(8deg); }
+  66% { transform: translate(-8px, 8px) rotate(-6deg); }
+}
+@keyframes bubble-rise {
+  0% { transform: translateY(10vh) scale(0.8); opacity: 0; }
+  15% { opacity: 0.7; }
+  100% { transform: translateY(-95vh) scale(1.15); opacity: 0; }
+}
+@keyframes gear-turn {
+  to { transform: rotate(360deg); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+@keyframes note-drift {
+  0% { transform: translate(0, 0) rotate(-8deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { transform: translate(60px, -70px) rotate(14deg); opacity: 0; }
+}
+@keyframes tilt-card {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(1.6deg) translateY(-3px); }
+}
+
+/* Entrada escalonada: listas y rejillas que cobran vida por filas */
+.stagger > * {
+  animation: rise-in 0.44s cubic-bezier(0.22, 0.9, 0.34, 1.12) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.17s; }
+.stagger > *:nth-child(5) { animation-delay: 0.22s; }
+.stagger > *:nth-child(6) { animation-delay: 0.27s; }
+.stagger > *:nth-child(7) { animation-delay: 0.32s; }
+.stagger > *:nth-child(8) { animation-delay: 0.37s; }
+.stagger > *:nth-child(n+9) { animation-delay: 0.42s; }
+
+/* Brillo que recorre botones protagonistas */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in oklch, white 38%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-position: -80% 0;
+  animation: shimmer-slide 3.4s ease-in-out infinite;
+}
+
+/* Barra de progreso con alma: destello continuo */
+.bar-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.bar-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 25%,
+    color-mix(in oklch, white 55%, transparent) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-slide 2.1s linear infinite;
+}
+
+.anim-sway { animation: sway 4.5s ease-in-out infinite; }
+.anim-wiggle { animation: wiggle 3.6s ease-in-out infinite; }
+.anim-spin-slow { animation: spin-slow 22s linear infinite; }
+.anim-pulse-ring { animation: pulse-ring 2.2s ease-out infinite; }
+.anim-nudge { animation: nudge 0.5s ease-in-out; }
+.anim-flicker { animation: flame-flicker 1.4s ease-in-out infinite; }
+.anim-hue { animation: hue-drift 9s ease-in-out infinite; }
+.anim-float-diag { animation: float-diag 12s ease-in-out infinite; }
+.anim-tilt-card { animation: tilt-card 6s ease-in-out infinite; }
+.anim-twinkle { animation: twinkle 3.2s ease-in-out infinite; }
+.anim-rise { animation: rise-in 0.4s cubic-bezier(0.22, 0.9, 0.34, 1.12) both; }
+
+/* Efecto de onda al tocar (microinteracción táctil) */
+.tap-ripple {
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+.tap-ripple::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklch, var(--primary) 30%, transparent) 0%,
+    transparent 65%
+  );
+  transition: opacity 0.35s ease;
+}
+.tap-ripple:active::before {
+  opacity: 1;
+  transition: none;
+}
+
+/* ================== Ornamentos de escena (por data-scene) ================== */
+.ornament {
+  position: absolute;
+  pointer-events: none;
+  color: color-mix(in oklch, var(--primary) 55%, transparent);
+  will-change: transform, opacity;
+}
+.ornament-gear { animation: gear-turn 26s linear infinite; }
+.ornament-gear-rev { animation: gear-turn 34s linear infinite reverse; }
+.ornament-leaf { animation: sway 7s ease-in-out infinite; transform-origin: bottom center; }
+.ornament-spark { animation: twinkle 2.8s ease-in-out infinite; }
+.ornament-star { animation: twinkle 3.6s ease-in-out infinite; }
+.ornament-bubble {
+  animation: bubble-rise 14s linear infinite;
+  opacity: 0;
+}
+.ornament-ember {
+  animation: dust-rise 9s linear infinite;
+  opacity: 0;
+  filter: blur(0.5px);
+}
+.ornament-confetti { animation: float-diag 8s ease-in-out infinite; }
+.ornament-note { animation: note-drift 7s ease-in-out infinite; opacity: 0; }
+.ornament-page { animation: sway 8s ease-in-out infinite; }
+
+/* Encabezados de escena con gradiente vivo de dos colores */
+.scene-header-tint {
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--primary) 14%, transparent),
+    color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 10%, transparent) 55%,
+    transparent
+  );
+}
+/* Borde superior bicolor por región (tarjetas y secciones) */
+.region-edge {
+  position: relative;
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(
+    90deg,
+    var(--primary),
+    color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 75%, transparent)
+  ) 1;
 }
 
 /* Respeto total a la preferencia y al ajuste del usuario */
@@ -415,3 +688,213 @@ html.reduce-motion *::after {
   stroke-dashoffset: var(--ring-offset, 999);
   transition: stroke-dashoffset 0.9s cubic-bezier(0.3, 0.9, 0.4, 1);
 }
+
+/* ============================================================
+   v3 · RENOVACIÓN DEL ARCHIPIÉLAGO · lenguaje unificado
+   ------------------------------------------------------------
+   Botones de juguete con canto sólido que se hunde al pulsar,
+   tarjetas aurora con brillo de escena, barras en surco,
+   iconos en relief y muelle flotante para la navegación.
+   Todo comparte la misma voz visual en las 6 regiones.
+   ============================================================ */
+
+/* ---------- Botón de juguete: canto inferior 3D ---------- */
+.btn-3d {
+  --btn-edge: color-mix(in oklch, var(--primary) 55%, #000 30%);
+  position: relative;
+  transform: translateY(0);
+  box-shadow:
+    0 4px 0 0 var(--btn-edge),
+    0 10px 18px -10px color-mix(in oklch, var(--btn-edge) 60%, transparent);
+  transition:
+    transform 0.13s cubic-bezier(0.3, 0.9, 0.4, 1),
+    box-shadow 0.13s ease,
+    filter 0.18s ease;
+}
+.btn-3d:hover:not(:disabled) { filter: brightness(1.06) saturate(1.04); }
+.btn-3d:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 0 var(--btn-edge),
+    0 4px 8px -6px color-mix(in oklch, var(--btn-edge) 70%, transparent);
+}
+.btn-3d:disabled {
+  box-shadow: 0 2px 0 0 color-mix(in oklch, var(--foreground) 12%, transparent);
+  transform: none;
+  filter: saturate(0.55);
+}
+.btn-3d-sm { --btn-edge-gap: 3px; }
+.btn-3d-secondary { --btn-edge: color-mix(in oklch, var(--secondary-foreground) 18%, var(--secondary) 70%); }
+.btn-3d-destructive { --btn-edge: color-mix(in oklch, var(--destructive) 50%, #000 32%); }
+.btn-3d-xp { --btn-edge: color-mix(in oklch, var(--xp) 52%, #000 30%); }
+.btn-3d-outline { --btn-edge: color-mix(in oklch, var(--border) 55%, #000 20%); }
+/* Brillo de porcelana en la cara superior del botón
+   (solo el 30 % superior: nunca toca el texto) */
+.btn-3d::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px 1.5px 70% 1.5px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, oklch(1 0 0 / 30%), oklch(1 0 0 / 0%));
+  pointer-events: none;
+  opacity: 0.9;
+}
+html.dark .btn-3d::after { opacity: 0.4; }
+
+/* ---------- Tarjeta aurora: tinte de escena + halo ----------
+   (solo background-image: respeta cualquier bg-* que herede) */
+.card-aurora {
+  position: relative;
+  background-image:
+    radial-gradient(130% 100% at 12% 0%, color-mix(in oklch, var(--primary) 8%, transparent) 0%, transparent 52%),
+    radial-gradient(120% 100% at 90% 0%, color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 6%, transparent) 0%, transparent 56%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklch, var(--primary) 16%, transparent),
+    0 10px 26px -16px color-mix(in oklch, var(--primary) 45%, transparent);
+}
+
+/* ---------- Tarjeta pulsable (opciones de juego, regiones) ---------- */
+.tap-3d {
+  box-shadow:
+    0 3px 0 0 color-mix(in oklch, var(--border) 62%, #000 14%),
+    0 8px 16px -12px color-mix(in oklch, var(--primary) 40%, transparent);
+  transition: transform 0.13s cubic-bezier(0.3, 0.9, 0.4, 1), box-shadow 0.13s ease, filter 0.18s ease, border-color 0.15s ease;
+}
+.tap-3d:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.02);
+  border-color: color-mix(in oklch, var(--primary) 42%, transparent);
+  box-shadow:
+    0 5px 0 0 color-mix(in oklch, var(--border) 62%, #000 14%),
+    0 12px 20px -12px color-mix(in oklch, var(--primary) 48%, transparent);
+}
+.tap-3d:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 color-mix(in oklch, var(--border) 62%, #000 14%);
+}
+
+/* ---------- Barra en surco (pistas de progreso) ---------- */
+.groove {
+  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+  box-shadow:
+    inset 0 2px 3px color-mix(in oklch, #000 20%, transparent),
+    inset 0 -1px 0 color-mix(in oklch, white 10%, transparent);
+}
+
+/* ---------- Banda héroe de pantalla ---------- */
+.hero-band {
+  background-image:
+    radial-gradient(100% 150% at 10% 0%, color-mix(in oklch, var(--primary) 17%, transparent) 0%, transparent 58%),
+    radial-gradient(80% 130% at 92% 0%, color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 13%, transparent) 0%, transparent 55%);
+}
+
+/* ---------- Icono en relief (chips de sección) ---------- */
+.chip-icon {
+  color: var(--primary-foreground);
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklch, var(--primary) 82%, white 16%),
+    var(--primary) 62%,
+    color-mix(in oklch, var(--primary) 88%, #000 10%)
+  );
+  box-shadow:
+    0 3px 0 0 color-mix(in oklch, var(--primary) 55%, #000 28%),
+    inset 0 1px 0 oklch(1 0 0 / 30%);
+  transition: transform 0.13s cubic-bezier(0.3, 0.9, 0.4, 1), box-shadow 0.13s ease;
+}
+.chip-icon:active { transform: translateY(2px); box-shadow: 0 1px 0 0 color-mix(in oklch, var(--primary) 55%, #000 28%); }
+
+/* ---------- Brillo de porcelana para insignias ---------- */
+.gloss { position: relative; overflow: hidden; }
+.gloss::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, oklch(1 0 0 / 32%), oklch(1 0 0 / 4%) 42%, oklch(1 0 0 / 0%) 60%);
+  pointer-events: none;
+}
+html.dark .gloss::before { background: linear-gradient(180deg, oklch(1 0 0 / 14%), oklch(1 0 0 / 0%) 55%); }
+
+/* ---------- Muelle flotante de navegación (móvil) ---------- */
+.dock {
+  border-radius: 1.65rem;
+  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+  background: var(--surface-glass);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow:
+    0 12px 32px -14px color-mix(in oklch, #000 45%, transparent),
+    inset 0 1px 0 oklch(1 0 0 / 22%);
+}
+.dock-item {
+  position: relative;
+  transition: transform 0.16s cubic-bezier(0.34, 1.4, 0.64, 1), color 0.2s ease;
+}
+.dock-item:active { transform: scale(0.88); }
+.dock-pill {
+  background: color-mix(in oklch, var(--primary) 14%, transparent);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 25%),
+    0 2px 8px -2px color-mix(in oklch, var(--primary) 40%, transparent);
+}
+
+/* ---------- Dinámica nueva: brillos y entradas ---------- */
+@keyframes hero-sheen {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  55%, 100% { transform: translateX(240%) skewX(-18deg); }
+}
+@keyframes dock-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes pop-3d {
+  0% { transform: scale(0.92) translateY(4px); opacity: 0; }
+  60% { transform: scale(1.03) translateY(-1px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes slide-chip {
+  0% { transform: translateX(-14px) scale(0.9); opacity: 0; }
+  100% { transform: translateX(0) scale(1); opacity: 1; }
+}
+.anim-pop-3d { animation: pop-3d 0.34s cubic-bezier(0.3, 1.2, 0.5, 1) both; }
+.anim-slide-chip { animation: slide-chip 0.32s cubic-bezier(0.25, 1.1, 0.4, 1) both; }
+
+/* Pulso de atención que no pisa el canto 3D (solo transform/filter) */
+@keyframes attention-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.04); filter: brightness(1.14); }
+}
+.anim-attention { animation: attention-pulse 1.35s ease-in-out infinite; }
+.hero-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 14%) 50%, transparent);
+  animation: hero-sheen 7s ease-in-out infinite;
+}
+html.dark .hero-sheen { background: linear-gradient(100deg, transparent, oklch(1 0 0 / 7%) 50%, transparent); }
+
+/* ---------- Título de sección con degradado vivo ---------- */
+.title-sheen {
+  background: linear-gradient(
+    92deg,
+    var(--foreground) 0%,
+    color-mix(in oklch, var(--primary) 65%, var(--foreground)) 45%,
+    var(--foreground) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-slide 8s ease-in-out infinite;
+}
+
+/* ---------- Fila de ajuste unificada (listas de pantallas) ---------- */
+.row-soft {
+  transition: transform 0.13s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.row-soft:hover { transform: translateX(3px); }
+.row-soft:active { transform: translateX(1px) scale(0.99); }

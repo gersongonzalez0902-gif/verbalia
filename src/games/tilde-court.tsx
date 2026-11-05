@@ -8,6 +8,7 @@
 import { useState } from "react";
 import type { TildeExercise } from "@/types";
 import { checkTildes } from "@/engine/validation";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
@@ -18,6 +19,7 @@ export function TildeCourt(props: useGameProps<TildeExercise>) {
 
   const handle = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.snap();
     const v = checkTildes(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

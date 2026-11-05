@@ -9,7 +9,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { SrsWord } from "@/types";
-import { speak, ttsAvailable } from "@/services/audio";
+import { speak, ttsAvailable, sfx } from "@/services/audio";
 import { useGameStore } from "@/store/game-store";
 import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,10 @@ export function FlashcardsSrs(props: useGameProps<SrsWord>) {
   );
 
   const handleGrade = (grade: Grade) => {
+    // La voz del recuerdo: cada juicio suena distinto.
+    if (grade === "again") sfx.wrong(true);
+    else if (grade === "easy") sfx.coin();
+    else sfx.tap();
     rateCard(word.id, grade);
     onAnswer({
       correct: grade === "again" ? false : null,

@@ -38,6 +38,7 @@ export function LecturaInmersiva(props: useGameProps<LecturaExercise>) {
 
   const readFrom = (start: number) => {
     if (!ttsOk) {
+      sfx.page();
       setLine(start);
       setReading(true);
       return;
@@ -52,6 +53,7 @@ export function LecturaInmersiva(props: useGameProps<LecturaExercise>) {
         setReading(false);
         return;
       }
+      sfx.page();
       setLine(i);
       const ok = speak(item.lines[i]);
       if (!ok) {
@@ -69,6 +71,7 @@ export function LecturaInmersiva(props: useGameProps<LecturaExercise>) {
   };
 
   const stop = () => {
+    sfx.click();
     cancelled.current = true;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -84,6 +87,7 @@ export function LecturaInmersiva(props: useGameProps<LecturaExercise>) {
 
   const handle = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.tap();
     const v = checkOptionIndex(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

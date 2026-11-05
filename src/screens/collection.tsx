@@ -15,6 +15,7 @@ import { cardStatus } from "@/engine/srs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookMarked, Search, Sprout } from "lucide-react";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 
 type Filter = "todas" | "nueva" | "aprendiendo" | "aprendida" | "dominada";
@@ -51,19 +52,21 @@ export function CollectionScreen() {
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-10">
         {/* Progreso global */}
-        <section className="mt-4 flex items-center gap-4 rounded-3xl border bg-card p-4 shadow-sm">
+        <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4">
+          <span aria-hidden className="anim-float absolute -right-2 -top-3 text-5xl opacity-25 select-none">🌿</span>
+          <span aria-hidden className="anim-float absolute -bottom-3 right-14 text-3xl opacity-20 select-none" style={{ animationDelay: "-2.5s" }}>🌱</span>
           <ProgressRing value={learned / SRS_WORDS.length} size={84} stroke={9}>
             <span className="numeric font-display text-lg font-bold">{Math.round((learned / SRS_WORDS.length) * 100)}%</span>
           </ProgressRing>
-          <div className="text-sm">
+          <div className="relative text-sm">
             <p className="font-bold">Tu jardín de vocabulario</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {stats.dominada} dominadas · {stats.aprendida} aprendidas · {stats.aprendiendo} en riego · {stats.nueva} por descubrir
             </p>
             <Button
               size="sm"
-              className="mt-2 font-bold"
-              onClick={() => navigate({ name: "game", gameId: "srs", mode: "training" })}
+              className="mt-2"
+              onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "srs", mode: "training" }); }}
             >
               <Sprout className="mr-1.5 h-4 w-4" aria-hidden />
               Regar el jardín
@@ -87,11 +90,13 @@ export function CollectionScreen() {
             {FILTERS.map((f) => (
               <button
                 key={f}
-                onClick={() => setFilter(f)}
+                onClick={() => { sfx.tap(); setFilter(f); }}
                 aria-pressed={filter === f}
                 className={cn(
-                  "tap-target shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold capitalize transition",
-                  filter === f ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/50",
+                  "tap-target shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-bold capitalize transition active:translate-y-0.5",
+                  filter === f
+                    ? "gloss border-primary bg-primary text-primary-foreground shadow-[0_3px_0_0_color-mix(in_oklch,var(--primary)_52%,#000_30%)]"
+                    : "tap-3d border-border bg-card text-muted-foreground",
                 )}
               >
                 {f} {f !== "todas" && `(${stats[f as keyof typeof stats]})`}
@@ -110,7 +115,7 @@ export function CollectionScreen() {
             />
           </div>
         ) : (
-          <ul className="mt-4 grid gap-2.5 sm:grid-cols-2" aria-label="Palabras de la colección">
+          <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2" aria-label="Palabras de la colección">
             {words.map((w) => {
               const card = srs[w.id];
               const status = cardStatus(card);
@@ -120,7 +125,7 @@ export function CollectionScreen() {
                   : `próxima revisión: ${formatDue(card.dueAt)}`
                 : "sin descubrir";
               return (
-                <li key={w.id} className="rounded-2xl border bg-card p-4 shadow-sm transition hover:shadow-md">
+                <li key={w.id} className="card-aurora rounded-2xl border bg-card p-4 transition hover:border-primary/40">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="font-display text-lg font-bold leading-tight">{w.word}</p>
@@ -131,7 +136,7 @@ export function CollectionScreen() {
                     <StatusChip status={status} />
                   </div>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{w.definition}</p>
-                  <details className="group mt-1.5">
+                  <details className="group mt-1.5" onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) sfx.page(); }}>
                     <summary className="cursor-pointer text-xs font-bold text-primary">Ver ejemplo</summary>
                     <p className="mt-1 rounded-xl bg-secondary px-3 py-2 text-xs italic leading-relaxed text-secondary-foreground">
                       «{w.example}»

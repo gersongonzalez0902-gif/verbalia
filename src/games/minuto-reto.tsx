@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MinutoExercise } from "@/types";
 import { checkMinuto } from "@/engine/validation";
+import { sfx, setClockActive, setTension } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +33,7 @@ export function RetoMinuto(props: useGameProps<MinutoExercise>) {
   const finishWriting = () => {
     if (doneRef.current) return;
     doneRef.current = true;
+    sfx.chime();
     setPhase("revisando");
   };
 
@@ -43,12 +45,34 @@ export function RetoMinuto(props: useGameProps<MinutoExercise>) {
       const t = setTimeout(() => finishWriting(), 0);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
+    const t = setTimeout(() => {
+      // Reloj en contratiempo: arranca sutil y aprieta en el último tramo.
+      setTension(0.08 + 0.92 * (1 - (timeLeft - 1) / TOTAL_S));
+      if (timeLeft <= 10) sfx.tick(timeLeft <= 3);
+      else if (timeLeft % 5 === 0) sfx.tock();
+      setTimeLeft((s) => s - 1);
+    }, 1000);
     return () => clearTimeout(t);
   }, [phase, timeLeft]);
 
+  // El reloj solo respira mientras se escribe.
+  useEffect(() => {
+    if (phase === "escribiendo") {
+      setClockActive(true);
+      setTension(0.08);
+    } else {
+      setClockActive(false);
+      setTension(0);
+    }
+    return () => {
+      setClockActive(false);
+      setTension(0);
+    };
+  }, [phase]);
+
   const start = () => {
     if (disabled) return;
+    sfx.go();
     setPhase("escribiendo");
     setTimeLeft(TOTAL_S);
     setTimeout(() => areaRef.current?.focus(), 50);
@@ -148,7 +172,10 @@ export function RetoMinuto(props: useGameProps<MinutoExercise>) {
                   <label className="flex cursor-pointer items-start gap-3 text-sm leading-snug sm:text-base">
                     <Checkbox
                       checked={checked[i]}
-                      onCheckedChange={(v) => setChecked((arr) => arr.map((x, j) => (j === i ? v === true : x)))}
+                      onCheckedChange={(v) => {
+                        sfx.toggle();
+                        setChecked((arr) => arr.map((x, j) => (j === i ? v === true : x)));
+                      }}
                       disabled={disabled}
                       aria-label={c}
                     />

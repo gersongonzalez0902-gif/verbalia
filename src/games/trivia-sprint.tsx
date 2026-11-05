@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import type { TriviaExercise } from "@/types";
 import { checkTrivia } from "@/engine/validation";
 import { GRAMMAR_CLASSES } from "@/data/games";
+import { sfx, setClockActive, setTension } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
@@ -31,6 +32,17 @@ export function TriviaSprint(props: useGameProps<TriviaExercise>) {
     onAnswerRef.current = onAnswer;
   }, [onAnswer]);
 
+  // El Gran Reloj en contratiempo: se enciende con el ítem y aprieta
+  // la tensión conforme la arena se agota.
+  useEffect(() => {
+    setClockActive(true);
+    setTension(0.12);
+    return () => {
+      setClockActive(false);
+      setTension(0);
+    };
+  }, []);
+
   const parts = item.sentence.split(/(\*[^*]+\*)/g).filter(Boolean);
 
   // Cuenta atrás: solo actualiza estado desde el callback del temporizador.
@@ -48,6 +60,10 @@ export function TriviaSprint(props: useGameProps<TriviaExercise>) {
           correctAnswer: item.answer,
         });
       } else {
+        // El reloj en contratiempo aprieta: cada segundo la tensión sube.
+        setTension(0.12 + 0.88 * (1 - (timeLeft - 1) / TIME_LIMIT_S));
+        if (timeLeft <= 4) sfx.tick(timeLeft <= 2);
+        else sfx.tock();
         setTimeLeft(timeLeft - 1);
       }
     }, 1000);
@@ -57,6 +73,7 @@ export function TriviaSprint(props: useGameProps<TriviaExercise>) {
   const handle = (id: string) => {
     if (disabled || answeredRef.current) return;
     answeredRef.current = true;
+    sfx.tap();
     const v = checkTrivia(item, id);
     setChosen(id);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

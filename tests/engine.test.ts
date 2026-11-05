@@ -348,13 +348,24 @@ describe("misiones diarias y semanales", () => {
   test("progreso diario refleja hecho y reclamado", () => {
     const core = createCore();
     const day = dateKey(new Date());
+    // La selección diaria es determinista pero depende de la fecha
+    // (semilla `daily-<fecha>`), así que no podemos asumir qué métricas
+    // saldrán hoy: saturamos todas y exigimos hecho + no reclamado.
     core.stats.correctByDay[day] = 999;
+    core.stats.sessionsByDay[day] = 999;
+    core.stats.xpByDay[day] = 999;
+    core.stats.gamesByDay[day] = ["trivia", "puzzle", "cloze", "dictado", "refran"];
+    core.stats.regionsByDay[day] = ["bosque", "ciudad", "fortaleza"];
+    core.stats.comboByDay[day] = 999;
+    core.stats.srsReviewsByDay[day] = 999;
     core.missions.daily = { dateKey: day, claimed: [] };
     const progress = dailyProgress(core, day);
     expect(progress.length).toBe(3);
-    const aciertos = progress.find((p) => p.mission.metric === "correct");
-    expect(aciertos?.done).toBe(true);
-    expect(aciertos?.claimed).toBe(false);
+    for (const p of progress) {
+      expect(p.done).toBe(true);
+      expect(p.claimed).toBe(false);
+      expect(p.current).toBe(p.target);
+    }
   });
 
   test("clave de semana estable en lunes y domingo", () => {
@@ -749,8 +760,8 @@ describe("paquetes de la Etapa 2: cobertura de dificultad", () => {
     expect(firstRatio(SPRINT_PACK)).toBeLessThan(0.5);
     expect(firstRatio(MATICES_PACK)).toBeLessThan(0.5);
   });
-  test("el jardín se amplió de 49 a 73 palabras", () => {
-    expect(SRS_WORDS.length).toBe(73);
+  test("el jardín se amplió a 640 palabras", () => {
+    expect(SRS_WORDS.length).toBe(640);
   });
 });
 

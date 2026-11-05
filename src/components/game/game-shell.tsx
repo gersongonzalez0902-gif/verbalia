@@ -37,12 +37,13 @@ export function GameHud({
 }) {
   const pct = total > 0 ? (current / total) * 100 : 0;
   return (
-    <header className="safe-top sticky top-0 z-30 border-b bg-[var(--surface-glass)] backdrop-blur-lg">
-      <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5">
+    <header className="hero-band safe-top sticky top-0 z-30 overflow-hidden border-b bg-[var(--surface-glass)] backdrop-blur-lg">
+      <span className="hero-sheen" aria-hidden />
+      <div className="relative mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5">
         <button
           onClick={onExit}
           aria-label="Abandonar sesión"
-          className="tap-target flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          className="tap-3d tap-target flex h-9 w-9 items-center justify-center rounded-xl border bg-card text-muted-foreground transition hover:text-foreground"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
             <path d="M18 6 6 18M6 6l12 12" />
@@ -56,20 +57,27 @@ export function GameHud({
             </p>
           </div>
           <div
-            className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted"
+            className="groove bar-shimmer mt-1.5 h-2.5 w-full overflow-hidden rounded-full"
             role="progressbar"
             aria-valuenow={Math.round(pct)}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label="Progreso de la sesión"
           >
-            <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct}%` }} />
+            <div
+              className="h-full rounded-full transition-[width] duration-500"
+              style={{
+                width: `${pct}%`,
+                background: "linear-gradient(180deg, color-mix(in oklch, var(--primary) 76%, white 18%), var(--primary) 55%, color-mix(in oklch, var(--primary) 82%, #000 16%))",
+              }}
+            />
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {combo >= 2 && (
             <span
-              className="anim-pop flex items-center gap-1 rounded-full bg-[var(--xp)]/20 px-2 py-1 text-xs font-black text-[var(--xp)]"
+              className="anim-pop gloss flex items-center gap-1 rounded-full px-2 py-1 text-xs font-black"
+              style={{ background: "color-mix(in oklch, var(--xp) 22%, transparent)", color: "var(--xp)" }}
               aria-label={`Combo de ${combo}`}
             >
               <Zap className="h-3.5 w-3.5" aria-hidden />
@@ -77,7 +85,8 @@ export function GameHud({
             </span>
           )}
           <span
-            className="numeric rounded-full bg-secondary px-2.5 py-1 text-xs font-black text-secondary-foreground"
+            className="gloss numeric rounded-full px-2.5 py-1 text-xs font-black"
+            style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}
             aria-label={`${sessionXp} XP en esta sesión`}
           >
             {sessionXp} XP
@@ -123,16 +132,17 @@ export function FeedbackOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/25 p-3 backdrop-blur-[3px] sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 p-3 backdrop-blur-[3px] sm:items-center"
       role="alertdialog"
       aria-modal="true"
       aria-label={isCorrect ? "Respuesta correcta" : "Respuesta incorrecta"}
     >
       <div
         className={cn(
-          "anim-slide-up w-full max-w-lg overflow-hidden rounded-3xl border-2 bg-card shadow-2xl",
+          "card-aurora anim-pop-3d w-full max-w-lg overflow-hidden rounded-3xl border-2 bg-card",
           isCorrect ? "border-success" : "border-destructive/70",
         )}
+        style={{ boxShadow: "0 18px 40px -18px color-mix(in oklch, #000 55%, transparent)" }}
       >
         <div
           className={cn(
@@ -238,5 +248,11 @@ export function useSoundEffects() {
     levelUp: () => canPlay && sound && sfx.levelUp(),
     achievement: () => canPlay && sound && sfx.achievement(),
     combo: (n: number) => canPlay && sound && sfx.combo(n),
+    navigate: () => canPlay && sound && sfx.navigate(),
+    unlock: () => canPlay && sound && sfx.unlock(),
+    sessionEnd: () => canPlay && sound && sfx.sessionEnd(),
+    tick: () => canPlay && sound && sfx.tick(),
+    flip: () => canPlay && sound && sfx.flip(),
+    streak: () => canPlay && sound && sfx.streak(),
   };
 }

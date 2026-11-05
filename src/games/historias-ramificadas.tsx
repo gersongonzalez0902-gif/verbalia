@@ -9,6 +9,7 @@
 import { useState } from "react";
 import type { HistoriasExercise } from "@/types";
 import { checkOptionIndex } from "@/engine/validation";
+import { sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { GitBranch, MapPin } from "lucide-react";
 import { useGameProps } from "./props";
@@ -32,6 +33,8 @@ export function HistoriasRamificadas(props: useGameProps<HistoriasExercise>) {
 
   const choose = (choiceIdx: number) => {
     if (disabled || phase !== "historia") return;
+    // Cada decisión pasa una página de la historia.
+    sfx.page();
     const choice = node.choices[choiceIdx];
     setTrail((t) => [
       ...t,
@@ -47,6 +50,7 @@ export function HistoriasRamificadas(props: useGameProps<HistoriasExercise>) {
 
   const answer = (i: number) => {
     if (disabled || chosen !== null) return;
+    sfx.tap();
     const v = checkOptionIndex(item, i);
     setChosen(i);
     const route = trail

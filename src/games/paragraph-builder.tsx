@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import type { ParagraphExercise } from "@/types";
 import { checkParagraph } from "@/engine/validation";
 import { createRng, shuffle } from "@/engine/rng";
+import { sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
@@ -28,16 +29,19 @@ export function ParagraphBuilder(props: useGameProps<ParagraphExercise>) {
 
   const place = (i: number) => {
     if (disabled || placed.includes(i)) return;
+    sfx.deal();
     setPlaced((p) => [...p, i]);
   };
 
   const remove = (i: number) => {
     if (disabled) return;
+    sfx.pop();
     setPlaced((p) => p.filter((x) => x !== i));
   };
 
   const confirm = () => {
     if (placed.length !== item.sentences.length) return;
+    sfx.snap();
     const v = checkParagraph(item, placed);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });
   };
@@ -97,7 +101,7 @@ export function ParagraphBuilder(props: useGameProps<ParagraphExercise>) {
 
       <Button
         size="lg"
-        className={cn("w-full font-bold shadow-md", placed.length === item.sentences.length && "anim-glow")}
+        className={cn("w-full font-bold shadow-md", placed.length === item.sentences.length && "anim-attention")}
         disabled={disabled || placed.length !== item.sentences.length}
         onClick={confirm}
       >

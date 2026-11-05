@@ -14,6 +14,7 @@ import { TintaBubble } from "@/components/game/tinta";
 import { TINTA_ONBOARDING } from "@/data/companion";
 import { PLACEMENT_ITEMS, EXERCISES_BY_ID } from "@/data/content";
 import { GAMES } from "@/data/games";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Clock, SkipForward } from "lucide-react";
 
@@ -54,8 +55,8 @@ export function PlacementScreen() {
         <div className="space-y-2.5">
           <Button
             size="lg"
-            className="h-13 w-full rounded-2xl font-display text-base font-bold shadow-lg"
-            onClick={() => navigate({ name: "game", gameId: "trivia", mode: "placement" })}
+            className="h-13 w-full text-base"
+            onClick={() => { sfx.go(); navigate({ name: "game", gameId: "trivia", mode: "placement" }); }}
           >
             Empezar la evaluación
           </Button>
@@ -63,6 +64,7 @@ export function PlacementScreen() {
             variant="ghost"
             className="w-full font-semibold text-muted-foreground"
             onClick={() => {
+              sfx.back();
               skipPlacement();
               navigate({ name: "home" });
             }}
@@ -73,7 +75,7 @@ export function PlacementScreen() {
       </div>
 
       {/* Detalle honesto del contenido de la prueba (transparencia) */}
-      <details className="mt-8 rounded-2xl border bg-card px-4 py-3 text-sm">
+      <details className="card-aurora mt-8 rounded-2xl border bg-card px-4 py-3 text-sm" onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) sfx.page(); }}>
         <summary className="cursor-pointer font-semibold">¿Qué incluye la evaluación?</summary>
         <ul className="mt-3 space-y-2">
           {PLACEMENT_ITEMS.map((p) => {

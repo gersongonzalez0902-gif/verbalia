@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SprintExercise } from "@/types";
 import { checkOptionIndex } from "@/engine/validation";
+import { sfx, setClockActive, setTension } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
@@ -27,6 +28,16 @@ export function SprintVocab(props: useGameProps<SprintExercise>) {
     onAnswerRef.current = onAnswer;
   }, [onAnswer]);
 
+  // Reloj en contratiempo: la presión crece con la cuenta atrás.
+  useEffect(() => {
+    setClockActive(true);
+    setTension(0.1);
+    return () => {
+      setClockActive(false);
+      setTension(0);
+    };
+  }, []);
+
   useEffect(() => {
     if (disabled || answeredRef.current || timeLeft <= 0) return;
     const t = setTimeout(() => {
@@ -40,6 +51,9 @@ export function SprintVocab(props: useGameProps<SprintExercise>) {
           correctAnswer: item.options[item.answerIndex],
         });
       } else {
+        setTension(0.1 + 0.9 * (1 - (timeLeft - 1) / TIME_LIMIT_S));
+        if (timeLeft <= 4) sfx.tick(timeLeft <= 2);
+        else sfx.tock();
         setTimeLeft(timeLeft - 1);
       }
     }, 1000);
@@ -49,6 +63,7 @@ export function SprintVocab(props: useGameProps<SprintExercise>) {
   const handle = (i: number) => {
     if (disabled || answeredRef.current) return;
     answeredRef.current = true;
+    sfx.tap();
     const v = checkOptionIndex(item, i);
     setChosen(i);
     onAnswer({ correct: v.correct, userAnswer: v.userAnswer, correctAnswer: v.correctAnswer });

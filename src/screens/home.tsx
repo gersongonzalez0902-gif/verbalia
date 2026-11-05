@@ -8,6 +8,7 @@
 import { useMemo } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
+import { sfx } from "@/services/audio";
 import { levelProgress, rankForLevel } from "@/engine/xp";
 import { dailyProgress, dateKey } from "@/engine/missions";
 import { REGIONS } from "@/data/regions";
@@ -74,14 +75,14 @@ export function HomeScreen() {
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             {rank.name}
           </p>
-          <h1 className="font-display truncate text-2xl font-bold leading-tight">
+          <h1 className="font-display truncate text-2xl font-bold leading-tight title-sheen">
             ¡Hola, {profile.name}!
           </h1>
         </div>
         <StreakBadge current={core.streak.current} shields={core.streak.shields} />
         <LevelBadge level={level} size="md" />
         <button
-          onClick={() => navigate({ name: "settings" })}
+          onClick={() => { sfx.click(); navigate({ name: "settings" }); }}
           aria-label="Ajustes"
           className="tap-target flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
@@ -90,8 +91,8 @@ export function HomeScreen() {
       </header>
 
       {/* Barra de nivel */}
-      <div className="mt-3 flex items-center gap-3 rounded-2xl bg-card p-3.5 shadow-sm">
-        <span className="numeric rounded-lg bg-primary/10 px-2 py-1 text-xs font-black text-primary">NV {level}</span>
+      <div className="card-aurora mt-3 flex items-center gap-3 rounded-2xl border bg-card p-3.5">
+        <span className="gloss numeric rounded-lg px-2 py-1 text-xs font-black" style={{ background: "color-mix(in oklch, var(--primary) 14%, transparent)", color: "var(--primary)" }}>NV {level}</span>
         <XpBar into={into} needed={needed} className="flex-1" />
         <span className="numeric shrink-0 text-xs font-bold text-muted-foreground">
           {into}/{needed}
@@ -102,7 +103,7 @@ export function HomeScreen() {
       <TintaBubble text={greeting.text({ name: profile.name, streak: core.streak.current, dueCards: due.length })} className="mt-4" />
 
       {/* ===== Objetivo diario + sesión recomendada ===== */}
-      <section className="mt-4 grid gap-4 sm:grid-cols-[auto_1fr]" aria-labelledby="goal-title">
+      <section className="card-aurora mt-4 grid gap-4 rounded-3xl border bg-card p-4 sm:grid-cols-[auto_1fr]" aria-labelledby="goal-title">
         <div className="flex items-center justify-center">
           <ProgressRing value={goalPct} size={124} stroke={11} label="Objetivo diario de XP">
             <span className="numeric font-display text-2xl font-bold">{xpToday}</span>
@@ -122,8 +123,8 @@ export function HomeScreen() {
           </p>
           <Button
             size="lg"
-            className="anim-glow h-13 rounded-2xl font-display text-base font-bold shadow-lg"
-            onClick={() => navigate({ name: "game", gameId: "srs", mode: "training" })}
+            className="h-13 text-base"
+            onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "srs", mode: "training" }); }}
           >
             <Play className="mr-2 h-5 w-5" aria-hidden />
             {due.length >= 5 ? "Regar el jardín" : "Sesión recomendada"}
@@ -138,13 +139,13 @@ export function HomeScreen() {
             Misiones de hoy
           </h2>
           <button
-            onClick={() => navigate({ name: "missions" })}
+            onClick={() => { sfx.click(); navigate({ name: "missions" }); }}
             className="flex items-center gap-0.5 text-sm font-bold text-primary transition hover:underline"
           >
             Ver todas <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <div className="grid gap-2.5 sm:grid-cols-3">
+        <div className="stagger grid gap-2.5 sm:grid-cols-3">
           {missions.map((m) => {
             const Icon = getIcon(m.mission.icon, Play);
             const pct = Math.min(1, m.current / m.target);
@@ -152,21 +153,29 @@ export function HomeScreen() {
               <div
                 key={m.mission.id}
                 className={cn(
-                  "rounded-2xl border bg-card p-3.5 shadow-sm",
+                  "card-aurora rounded-2xl border bg-card p-3.5",
                   m.done && m.claimed && "border-primary/50 bg-primary/5",
                 )}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className={cn("flex h-9 w-9 items-center justify-center rounded-xl", m.done ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
+                  <span className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+                    m.done ? "chip-icon" : "bg-secondary text-secondary-foreground",
+                  )}>
                     <Icon className="h-4.5 w-4.5" aria-hidden />
                   </span>
                   <p className="text-xs font-bold leading-snug">{m.mission.title}</p>
                 </div>
                 <div className="mt-2.5 flex items-center gap-2">
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                  <div className="groove h-2 flex-1 overflow-hidden rounded-full">
                     <div
-                      className={cn("h-full rounded-full transition-[width] duration-500", m.done ? "bg-primary" : "bg-[var(--xp)]")}
-                      style={{ width: `${pct * 100}%` }}
+                      className="h-full rounded-full transition-[width] duration-500"
+                      style={{
+                        width: `${pct * 100}%`,
+                        background: m.done
+                          ? "var(--primary)"
+                          : "linear-gradient(180deg, color-mix(in oklch, var(--xp) 78%, white 20%), var(--xp) 60%)",
+                      }}
                     />
                   </div>
                   <span className="numeric text-[11px] font-bold text-muted-foreground">
@@ -186,30 +195,33 @@ export function HomeScreen() {
             Explora el Archipiélago
           </h2>
           <button
-            onClick={() => navigate({ name: "map" })}
+            onClick={() => { sfx.click(); navigate({ name: "map" }); }}
             className="flex items-center gap-0.5 text-sm font-bold text-primary transition hover:underline"
           >
             Ver mapa <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="stagger grid grid-cols-1 gap-3 sm:grid-cols-2">
           {REGIONS.filter((r) => r.stage === 1).map((r) => {
             const Icon = getIcon(r.icon);
             const unlocked = level >= r.unlockLevel;
             return (
               <button
                 key={r.id}
-                onClick={() => unlocked && navigate({ name: "map" })}
+                onClick={() => { if (unlocked) { sfx.whoosh(); navigate({ name: "map" }); } else { sfx.error(); } }}
                 disabled={!unlocked}
                 aria-label={`${r.name}${unlocked ? "" : ` — se desbloquea al nivel ${r.unlockLevel}`}`}
                 className={cn(
-                  "group flex items-center gap-3.5 rounded-2xl border bg-card p-4 text-left shadow-sm transition-all duration-150",
-                  unlocked ? "hover:-translate-y-0.5 hover:shadow-md" : "cursor-not-allowed opacity-55",
+                  "tap-3d group flex items-center gap-3.5 rounded-2xl border bg-card p-4 text-left",
+                  unlocked ? "hover:border-primary/40" : "cursor-not-allowed opacity-55",
                 )}
               >
                 <span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-inner"
-                  style={{ background: `var(${r.colorVar})` }}
+                  className="gloss flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white"
+                  style={{
+                    background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) 76%, white 18%), var(${r.colorVar}) 58%, color-mix(in oklch, var(${r.colorVar}) 82%, #000 16%))`,
+                    boxShadow: `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) 52%, #000 30%), inset 0 1px 0 oklch(1 0 0 / 30%)`,
+                  }}
                   aria-hidden
                 >
                   <Icon className="h-6 w-6" />
@@ -236,34 +248,34 @@ export function HomeScreen() {
         <h2 id="training-title" className="font-display mb-2.5 text-lg font-bold">
           Entrenamiento rápido
         </h2>
-        <div className="scroll-soft -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1.5" role="list">
+        <ul className="scroll-soft -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1.5" aria-label="Entrenamientos rápidos">
           {GAME_IDS.map((gid) => {
             const g = GAMES[gid];
             const Icon = getIcon(g.icon, Play);
             return (
+              <li key={gid}>
               <button
-                key={gid}
-                role="listitem"
-                onClick={() => navigate({ name: "game", gameId: gid, mode: "training" })}
-                className="tap-target flex w-36 shrink-0 flex-col items-start gap-2 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
+                onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: gid, mode: "training" }); }}
+                className="tap-3d flex w-36 shrink-0 flex-col items-start gap-2 rounded-2xl border bg-card p-3.5 text-left"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
+                <span className="chip-icon flex h-9 w-9 items-center justify-center rounded-xl">
                   <Icon className="h-4.5 w-4.5" aria-hidden />
                 </span>
                 <span className="font-display text-sm font-bold leading-tight">{g.name}</span>
                 <span className="text-[11px] leading-snug text-muted-foreground">{g.tagline}</span>
               </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </section>
 
       {/* ===== Accesos secundarios ===== */}
       <section className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4" aria-label="Accesos rápidos">
-        <QuickLink icon={Sprout} label="Jardín" onClick={() => navigate({ name: "game", gameId: "srs", mode: "training" })} hint={`${due.length} vencidas`} />
-        <QuickLink icon={NotebookPen} label="Errores" onClick={() => navigate({ name: "errors" })} hint={`${core.errors.length} pendientes`} />
-        <QuickLink icon={BookOpen} label="Colección" onClick={() => navigate({ name: "collection" })} hint={`${Object.keys(srs).length}/${SRS_WORDS.length}`} />
-        <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => navigate({ name: "stats" })} hint={`${core.stats.totalSessions} sesiones`} />
+        <QuickLink icon={Sprout} label="Jardín" onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "srs", mode: "training" }); }} hint={`${due.length} vencidas`} />
+        <QuickLink icon={NotebookPen} label="Errores" onClick={() => { sfx.click(); navigate({ name: "errors" }); }} hint={`${core.errors.length} pendientes`} />
+        <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS.length}`} />
+        <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => { sfx.click(); navigate({ name: "stats" }); }} hint={`${core.stats.totalSessions} sesiones`} />
       </section>
 
       {/* Consejo diario */}
@@ -271,7 +283,7 @@ export function HomeScreen() {
 
       {/* Enlace a biblioteca (móvil no tiene en nav inferior) */}
       <button
-        onClick={() => navigate({ name: "library" })}
+        onClick={() => { sfx.page(); navigate({ name: "library" }); }}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold text-muted-foreground transition hover:bg-muted"
       >
         <Library className="h-4 w-4" aria-hidden />
@@ -295,9 +307,11 @@ function QuickLink({
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-start gap-1 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
+      className="tap-3d flex flex-col items-start gap-1 rounded-2xl border bg-card p-3.5 text-left"
     >
-      <Icon className="h-5 w-5 text-primary" aria-hidden />
+      <span className="chip-icon flex h-8 w-8 items-center justify-center rounded-lg">
+        <Icon className="h-4.5 w-4.5" aria-hidden />
+      </span>
       <span className="text-sm font-bold">{label}</span>
       <span className="text-[11px] text-muted-foreground">{hint}</span>
     </button>

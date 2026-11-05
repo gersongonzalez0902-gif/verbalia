@@ -14,6 +14,7 @@ import { getIcon } from "@/components/game/icons";
 import { useSoundEffects } from "@/components/game/game-shell";
 import { Confetti } from "@/components/game/widgets";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { sfx } from "@/services/audio";
 import { CalendarCheck, ListChecks, Shield, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +68,7 @@ export function MissionsScreen() {
       <ScreenHeader title="Misiones y logros" backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-10">
-        <Tabs value={tab} onValueChange={setTab} className="mt-4">
+        <Tabs value={tab} onValueChange={(v) => { sfx.tap(); setTab(v); }} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="misiones" className="font-bold">
               <ListChecks className="mr-1.5 h-4 w-4" aria-hidden /> Misiones
@@ -88,7 +89,7 @@ export function MissionsScreen() {
                   Se renuevan en {countdown}
                 </p>
               </div>
-              <div className="space-y-2.5">
+              <div className="stagger space-y-2.5">
                 {daily.map((m) => {
                   const Icon = getIcon(m.mission.icon);
                   return (
@@ -118,7 +119,7 @@ export function MissionsScreen() {
                   Lunes a domingo
                 </p>
               </div>
-              <div className="space-y-2.5">
+              <div className="stagger space-y-2.5">
                 {weekly.map((m) => {
                   const Icon = getIcon(m.mission.icon);
                   return (
@@ -137,8 +138,8 @@ export function MissionsScreen() {
                   );
                 })}
               </div>
-              <div className="mt-3 flex items-center gap-3 rounded-2xl bg-secondary px-4 py-3 text-xs leading-relaxed text-secondary-foreground">
-                <Shield className="h-5 w-5 shrink-0 text-primary" aria-hidden />
+              <div className="mt-3 flex items-center gap-3 rounded-2xl border border-primary/25 bg-primary/5 px-4 py-3 text-xs leading-relaxed text-foreground">
+                <Shield className="anim-bob h-5 w-5 shrink-0 text-primary" aria-hidden />
                 <p>
                   <strong>Escudos de racha:</strong> tienes <strong>{core.streak.shields}</strong> de 2. Si un día no
                   puedes jugar, un escudo mantiene tu racha viva. Se ganan con la misión semanal.
@@ -152,7 +153,7 @@ export function MissionsScreen() {
             <p className="mb-3 text-sm text-muted-foreground">
               {unlockedAchievements.length} de {ACHIEVEMENTS.length} desbloqueados
             </p>
-            <ul className="grid gap-2.5 sm:grid-cols-2" aria-label="Lista de logros">
+            <ul className="stagger grid gap-2.5 sm:grid-cols-2" aria-label="Lista de logros">
               {ACHIEVEMENTS.map((a) => {
                 const got = Boolean(core.achievements[a.id]);
                 const Icon = getIcon(a.icon);
@@ -161,15 +162,22 @@ export function MissionsScreen() {
                   <li
                     key={a.id}
                     className={cn(
-                      "flex items-start gap-3 rounded-2xl border p-3.5 shadow-sm transition",
+                      "card-aurora flex items-start gap-3 rounded-2xl border p-3.5",
                       got ? "border-[var(--xp)]/50 bg-[var(--xp)]/5" : "border-border bg-card",
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
-                        got ? "bg-[var(--xp)]/25 text-[var(--xp)]" : "bg-muted text-muted-foreground/60",
+                        "gloss flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                        got ? "anim-bob" : "bg-muted text-muted-foreground/60 grayscale",
                       )}
+                      style={got
+                        ? {
+                            background: "linear-gradient(150deg, color-mix(in oklch, var(--xp) 72%, white 22%), var(--xp) 58%, color-mix(in oklch, var(--xp) 78%, #000 18%))",
+                            color: "white",
+                            boxShadow: "0 3px 0 0 color-mix(in oklch, var(--xp) 52%, #000 30%), inset 0 1px 0 oklch(1 0 0 / 30%)",
+                          }
+                        : undefined}
                     >
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
@@ -179,8 +187,8 @@ export function MissionsScreen() {
                       </p>
                       <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{a.description}</p>
                       {!got && prog > 0 && (
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full rounded-full bg-primary/60" style={{ width: `${prog * 100}%` }} />
+                        <div className="groove mt-2 h-1.5 overflow-hidden rounded-full">
+                          <div className="h-full rounded-full bg-primary/70" style={{ width: `${prog * 100}%` }} />
                         </div>
                       )}
                       {got && (
@@ -225,7 +233,7 @@ function MissionRow({
   return (
     <div
       className={cn(
-        "rounded-2xl border bg-card p-4 shadow-sm",
+        "card-aurora rounded-2xl border bg-card p-4",
         done && claimed && "border-primary/60 bg-primary/5",
         highlight && !claimed && "border-primary/40",
       )}
@@ -233,8 +241,8 @@ function MissionRow({
       <div className="flex items-center gap-3">
         <span
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-            done ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground",
+            "gloss flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+            done ? "chip-icon" : "bg-secondary text-secondary-foreground",
           )}
         >
           {icon}
@@ -246,17 +254,22 @@ function MissionRow({
         <span
           className={cn(
             "numeric shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold",
-            claimed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+            claimed ? "gloss bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
           )}
         >
           {claimed ? "✓ reclamada" : reward}
         </span>
       </div>
       <div className="mt-3 flex items-center gap-2.5">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <div className="groove h-2 flex-1 overflow-hidden rounded-full">
           <div
-            className={cn("h-full rounded-full transition-[width] duration-500", done ? "bg-primary" : "bg-[var(--xp)]")}
-            style={{ width: `${pct * 100}%` }}
+            className="h-full rounded-full transition-[width] duration-500"
+            style={{
+              width: `${pct * 100}%`,
+              background: done
+                ? "var(--primary)"
+                : "linear-gradient(180deg, color-mix(in oklch, var(--xp) 78%, white 20%), var(--xp) 60%)",
+            }}
           />
         </div>
         <span className="numeric text-xs font-bold text-muted-foreground">

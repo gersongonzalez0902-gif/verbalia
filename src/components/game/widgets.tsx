@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * Componentes visuales compartidos: anillo de progreso, barra de XP,
- * insignia de nivel, racha con escudos y confeti de celebración.
+ * Componentes visuales compartidos v3: anillo de progreso con halo,
+ * barra de XP en surco con destello, insignia de nivel tipo gema,
+ * racha con brasa viva, confeti y estados vacíos amigables.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -49,6 +50,12 @@ export function ProgressRing({
       aria-valuemax={100}
       aria-label={label}
     >
+      {/* Halo suave detrás del anillo */}
+      <span
+        aria-hidden
+        className="absolute inset-2 rounded-full blur-xl"
+        style={{ background: `color-mix(in oklch, ${color} 24%, transparent)` }}
+      />
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
         <circle
@@ -76,11 +83,23 @@ export function ProgressRing({
 export function XpBar({ into, needed, className }: { into: number; needed: number; className?: string }) {
   const pct = needed > 0 ? Math.min(100, Math.round((into / needed) * 100)) : 100;
   return (
-    <div className={cn("h-2.5 w-full overflow-hidden rounded-full bg-muted", className)} role="progressbar" aria-valuenow={pct} aria-label="Progreso de nivel">
+    <div
+      className="groove h-3 w-full overflow-hidden rounded-full"
+      role="progressbar"
+      aria-valuenow={pct}
+      aria-label="Progreso de nivel"
+    >
       <div
-        className="h-full rounded-full bg-[var(--xp)] transition-[width] duration-700 ease-out"
-        style={{ width: `${pct}%` }}
-      />
+        className="relative h-full rounded-full transition-[width] duration-700 ease-out"
+        style={{
+          width: `${pct}%`,
+          background: "linear-gradient(180deg, color-mix(in oklch, var(--xp) 78%, white 20%), var(--xp) 55%, color-mix(in oklch, var(--xp) 82%, #000 16%))",
+          boxShadow: "inset 0 1px 0 oklch(1 0 0 / 40%), 0 1px 3px color-mix(in oklch, var(--xp) 45%, transparent)",
+        }}
+      >
+        {/* Destello viajero: la tinta líquida del nivel */}
+        <span className="xp-shimmer absolute inset-0 rounded-full" aria-hidden />
+      </div>
     </div>
   );
 }
@@ -92,13 +111,19 @@ export function LevelBadge({ level, size = "md" }: { level: number; size?: "sm" 
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-2xl bg-primary font-bold text-primary-foreground shadow-sm",
+        "gloss relative flex shrink-0 items-center justify-center rounded-2xl font-bold text-primary-foreground",
         dims,
       )}
+      style={{
+        background:
+          "linear-gradient(155deg, color-mix(in oklch, var(--primary) 76%, white 18%), var(--primary) 58%, color-mix(in oklch, var(--primary) 84%, #000 14%))",
+        boxShadow:
+          "0 3px 0 0 color-mix(in oklch, var(--primary) 52%, #000 30%), inset 0 1px 0 oklch(1 0 0 / 32%), 0 6px 14px -8px color-mix(in oklch, var(--primary) 55%, transparent)",
+      }}
       aria-label={`Nivel ${level}`}
     >
-      <span className="numeric">{level}</span>
-      <Star className="absolute -right-1 -top-1 h-4 w-4 fill-[var(--xp)] text-[var(--xp)]" />
+      <span className="numeric drop-shadow-sm">{level}</span>
+      <Star className="anim-twinkle absolute -right-1.5 -top-1.5 h-4.5 w-4.5 fill-[var(--xp)] text-[var(--xp)] drop-shadow" />
     </div>
   );
 }
@@ -106,10 +131,27 @@ export function LevelBadge({ level, size = "md" }: { level: number; size?: "sm" 
 /* ------------------------- Racha y escudos ------------------------- */
 
 export function StreakBadge({ current, shields }: { current: number; shields: number }) {
+  const hot = current > 0;
   return (
-    <div className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5" title="Racha de días jugando">
+    <div
+      className={cn(
+        "gloss flex items-center gap-1.5 rounded-full px-3 py-1.5",
+        hot ? "text-foreground" : "bg-secondary text-foreground",
+      )}
+      style={
+        hot
+          ? {
+              background:
+                "linear-gradient(150deg, oklch(0.96 0.05 75), oklch(0.9 0.07 62) 70%)",
+              boxShadow:
+                "0 2px 0 0 oklch(0.72 0.1 55), inset 0 1px 0 oklch(1 0 0 / 45%)",
+            }
+          : undefined
+      }
+      title="Racha de días jugando"
+    >
       <Flame
-        className={cn("h-4 w-4", current > 0 ? "anim-flame text-orange-500" : "text-muted-foreground")}
+        className={cn("h-4 w-4", hot ? "anim-flame text-orange-600" : "text-muted-foreground")}
         aria-hidden
       />
       <span className="numeric text-sm font-bold" aria-label={`Racha de ${current} días`}>
@@ -174,8 +216,8 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card/60 px-6 py-10 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground [&>svg]:h-7 [&>svg]:w-7">
+    <div className="card-aurora flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-card/70 px-6 py-10 text-center">
+      <div className="chip-icon anim-bob flex h-14 w-14 items-center justify-center rounded-2xl [&>svg]:h-7 [&>svg]:w-7">
         {icon}
       </div>
       <div>

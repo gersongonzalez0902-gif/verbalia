@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/game/widgets";
 import { GAMES } from "@/data/games";
 import { Button } from "@/components/ui/button";
 import { NotebookPen, Undo2 } from "lucide-react";
+import { sfx } from "@/services/audio";
 
 export function ErrorReviewScreen() {
   const core = useGameStore((s) => s.core);
@@ -43,8 +44,9 @@ export function ErrorReviewScreen() {
           </div>
         ) : (
           <>
-            <div className="mt-4 flex flex-col items-start gap-3 rounded-3xl border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center">
-              <div className="min-w-0 flex-1">
+            <div className="card-aurora relative mt-4 flex flex-col items-start gap-3 overflow-hidden rounded-3xl border border-primary/30 bg-card p-4 sm:flex-row sm:items-center">
+              <span aria-hidden className="anim-float-diag absolute -right-3 -top-4 text-5xl opacity-20 select-none">📝</span>
+              <div className="relative min-w-0 flex-1">
                 <p className="font-display text-lg font-bold">Repaso dirigido</p>
                 <p className="text-sm text-muted-foreground">
                   Reintenta tus errores más recientes. XP casi completo: aprender de ellos vale más que repetir lo fácil.
@@ -52,19 +54,18 @@ export function ErrorReviewScreen() {
               </div>
               <Button
                 size="lg"
-                className="font-bold shadow-md"
-                onClick={() => navigate({ name: "game", gameId: "trivia", mode: "review" })}
+                onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "trivia", mode: "review" }); }}
               >
                 <Undo2 className="mr-2 h-4 w-4" aria-hidden />
                 Practicar ({Math.min(10, errors.length)})
               </Button>
             </div>
 
-            <ul className="mt-4 space-y-2.5" aria-label="Lista de errores">
+            <ul className="stagger mt-4 space-y-2.5" aria-label="Lista de errores">
               {errors.map((e) => {
                 const game = GAMES[e.type];
                 return (
-                  <li key={`${e.exerciseId}-${e.at}`} className="rounded-2xl border bg-card p-4 shadow-sm">
+                  <li key={`${e.exerciseId}-${e.at}`} className="card-aurora rounded-2xl border bg-card p-4">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs font-bold uppercase tracking-wide text-primary">{game?.name ?? e.type}</p>
                       <p className="text-[11px] text-muted-foreground">
