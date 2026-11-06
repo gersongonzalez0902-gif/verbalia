@@ -13,7 +13,7 @@ import { ScreenHeader } from "@/components/game/app-shell";
 import { levelProgress, rankForLevel, rankName, cefrFromSkill, skillMasteryLabel } from "@/engine/xp";
 import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { ACHIEVEMENTS } from "@/data/achievements";
-import { FRAMES, frameCss, titleText } from "@/engine/shop";
+import { FRAMES, PREMIUM_BANNERS, premiumBannerCss, frameCss, titleText } from "@/engine/shop";
 import { LevelBadge, XpBar, ProgressRing } from "@/components/game/widgets";
 import { getIcon } from "@/components/game/icons";
 import { LexicoMascot } from "@/components/game/lexico";
@@ -148,10 +148,17 @@ export function ProfileScreen() {
     : "preset:aurora";
   const bannerCss = (() => {
     if (bannerId.startsWith("data:")) return undefined;
+    if (bannerId.startsWith("premium:")) {
+      return { background: premiumBannerCss(bannerId.replace("premium:", "")) || undefined };
+    }
     const preset = BANNER_PRESETS.find((b) => b.id === bannerId.replace("preset:", "")) ?? BANNER_PRESETS[0];
     return { background: preset.css };
   })();
   const isCustomBanner = bannerId.startsWith("data:");
+  // Banners premium comprados en el Bazar (se equipan aquí).
+  const ownedPremiumBanners = PREMIUM_BANNERS.filter(
+    (b) => core.wallet?.owned?.includes(b.id),
+  );
 
   const memberSince = new Date(profile.createdAt).toLocaleDateString("es-ES", {
     month: "long",
@@ -200,10 +207,10 @@ export function ProfileScreen() {
             {isCustomBanner && (
               <img src={bannerId} alt="" className="h-full w-full object-cover" />
             )}
-            <span className="anim-twinkle absolute right-3 top-3 text-xl opacity-70" aria-hidden>✦</span>
+            <span className="anim-twinkle absolute left-3 top-3 text-xl opacity-70" aria-hidden>✦</span>
             <button
               onClick={() => { sfx.tap(); setBannerPicker(!bannerPicker); }}
-              className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur transition hover:bg-black/55"
+              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur transition hover:bg-black/55"
               aria-label="Cambiar banner del perfil"
             >
               <ImageIcon className="h-3.5 w-3.5" aria-hidden />
@@ -230,6 +237,33 @@ export function ProfileScreen() {
                   />
                 ))}
               </div>
+
+              {/* Banners premium del Bazar */}
+              {ownedPremiumBanners.length > 0 && (
+                <>
+                  <p className="mb-1.5 mt-3 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                    ✦ Banners premium del Bazar
+                  </p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {ownedPremiumBanners.map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => { sfx.unlock(); updateProfile({ banner: `premium:${b.id}` }); setBannerPicker(false); }}
+                        aria-label={`Banner premium ${b.name}`}
+                        aria-pressed={bannerId === `premium:${b.id}`}
+                        className={cn(
+                          "relative h-10 overflow-hidden rounded-xl border-2 transition hover:scale-[1.03]",
+                          bannerId === `premium:${b.id}` ? "border-primary" : "border-[var(--xp)]/40",
+                        )}
+                        style={{ background: b.css }}
+                      >
+                        <span className="anim-twinkle absolute right-1 top-0.5 text-[9px] text-white/80" aria-hidden>✦</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
               <div className="mt-2.5 flex gap-2">
                 <Button
                   size="sm"
@@ -259,26 +293,41 @@ export function ProfileScreen() {
             </div>
           )}
 
-          {/* Identidad sobre el banner */}
+          {/* Identidad sobre el banner: avatar con doble anillo (tipo Discord) */}
           <div className="relative -mt-12 flex items-end gap-3 px-4 pb-4">
             <div className="relative shrink-0">
               <span
-                className={cn("block rounded-3xl shadow-lg", equipFrameCss ? "p-[3px]" : "")}
+                className={cn("block shadow-lg", equipFrameCss ? "p-[5px]" : "p-[3px]")}
                 style={
                   equipFrameCss
-                    ? { background: equipFrameCss }
-                    : { boxShadow: "inset 0 0 0 3px color-mix(in oklch, var(--primary) 35%, var(--card))" }
+                    ? {
+                        background: equipFrameCss,
+                        borderRadius: "38%",
+                        boxShadow: "0 6px 18px -6px color-mix(in oklch, var(--primary) 40%, transparent)",
+                      }
+                    : {
+                        background: "color-mix(in oklch, var(--primary) 30%, var(--card))",
+                        borderRadius: "38%",
+                      }
                 }
                 aria-hidden
               >
-                <span className="block h-[90px] w-[90px] overflow-hidden rounded-[calc(1.5rem-3px)] bg-card">
-                  {profile.photo ? (
-                    <img src={profile.photo} alt={`Foto de ${profile.name}`} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center">
-                      <LexicoMascot size={86} mood="happy" />
-                    </span>
-                  )}
+                <span
+                  className="block overflow-hidden bg-card"
+                  style={{ borderRadius: "35%", padding: 3, background: "color-mix(in oklch, var(--card) 94%, #000 6%)" }}
+                >
+                  <span
+                    className="block h-[88px] w-[88px] overflow-hidden bg-card"
+                    style={{ borderRadius: "33%" }}
+                  >
+                    {profile.photo ? (
+                      <img src={profile.photo} alt={`Foto de ${profile.name}`} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center">
+                        <LexicoMascot size={82} mood="happy" />
+                      </span>
+                    )}
+                  </span>
                 </span>
               </span>
               <button
@@ -380,9 +429,11 @@ export function ProfileScreen() {
           </div>
           <XpBar into={into} needed={needed} />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+            <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs font-bold text-muted-foreground">
               <Droplets className="h-3.5 w-3.5 text-primary" aria-hidden />
-              Tinta del Bazar: <span className="numeric text-foreground">{core.wallet?.tinta ?? 0}</span> en el tintero
+              <span>Tinta del Bazar:</span>
+              <span className="numeric text-foreground">{core.wallet?.tinta ?? 0}</span>
+              <span>en el tintero</span>
               <span className="text-muted-foreground/70">· {tintaTotal} ganada en total</span>
             </p>
             <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "shop" }); }}>

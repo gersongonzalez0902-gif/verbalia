@@ -408,6 +408,61 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (c) => c.stats.totalSessions >= 100,
     progress: (c) => c.stats.totalSessions / 100,
   },
+  /* ==================== Mega-6: logros del Salón de Juegos ==================== */
+  {
+    id: "ac-arcade-primera",
+    name: "Primera partida del salón",
+    description: "Juega tu primera partida en el Salón de Juegos Educativos.",
+    icon: "Gamepad2",
+    xpReward: 30,
+    check: (c) => Object.values(c.arcade.plays).reduce((a, b) => a + b, 0) >= 1,
+    progress: (c) => Math.min(Object.values(c.arcade.plays).reduce((a, b) => a + b, 0), 1),
+  },
+  {
+    id: "ac-arcade-ajedrez",
+    name: "El faro cae",
+    description: "Gana tu primera partida de ajedrez al motor local.",
+    icon: "Crown",
+    xpReward: 120,
+    check: (c) => c.arcade.chessRecord.w >= 1,
+    progress: (c) => Math.min(c.arcade.chessRecord.w, 1),
+  },
+  {
+    id: "ac-arcade-elo",
+    name: "Mente de farero",
+    description: "Alcanza 1400 de ELO en el ajedrez del salón.",
+    icon: "Swords",
+    xpReward: 150,
+    check: (c) => (c.arcade.chessElo ?? 1200) >= 1400,
+    progress: (c) => Math.min(((c.arcade.chessElo ?? 1200) - 1200) / 200, 1),
+  },
+  {
+    id: "ac-arcade-coleccionista",
+    name: "Habitual del salón",
+    description: "Desbloquea 8 juegos del salón con tinta.",
+    icon: "Droplets",
+    xpReward: 100,
+    check: (c) => c.arcade.unlocked.length >= 8,
+    progress: (c) => Math.min(c.arcade.unlocked.length / 8, 1),
+  },
+  {
+    id: "ac-arcade-record",
+    name: "Cazador de récords",
+    description: "Logra un récord personal en 5 juegos distintos.",
+    icon: "Trophy",
+    xpReward: 90,
+    check: (c) => Object.keys(c.arcade.best).length >= 5,
+    progress: (c) => Math.min(Object.keys(c.arcade.best).length / 5, 1),
+  },
+  {
+    id: "ac-arcade-maraton",
+    name: "Maratón de mareas",
+    description: "Juega 50 partidas en el Salón de Juegos.",
+    icon: "Zap",
+    xpReward: 110,
+    check: (c) => Object.values(c.arcade.plays).reduce((a, b) => a + b, 0) >= 50,
+    progress: (c) => Math.min(Object.values(c.arcade.plays).reduce((a, b) => a + b, 0) / 50, 1),
+  },
 ];
 
 /**
@@ -428,3 +483,4 @@ export const ACHIEVEMENTS_BY_ID: Record<string, AchievementDef> = ACHIEVEMENTS.r
   },
   {} as Record<string, AchievementDef>,
 );
+

@@ -58,7 +58,7 @@ export function MapScreen() {
       <main className="mx-auto w-full max-w-4xl px-4 pb-28">
         {/* ===== Escena del mapa ===== */}
         <div
-          className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md sm:aspect-[16/10]"
+          className="relative mt-4 h-[68dvh] max-h-[640px] min-h-[440px] w-full overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md sm:h-auto sm:aspect-[16/10] sm:max-h-none sm:min-h-0"
           role="img"
           aria-label="Mapa del Archipiélago de las Palabras con ocho regiones"
         >
@@ -92,14 +92,14 @@ export function MapScreen() {
                 )}
                 <span
                   className={cn(
-                    "gloss anim-bob relative flex h-14 w-14 items-center justify-center rounded-full border-4 text-white sm:h-16 sm:w-16",
-                    unlocked ? "border-white/90" : "border-white/60 grayscale",
+                    "gloss anim-bob relative flex h-16 w-16 items-center justify-center rounded-full border-4 text-white sm:h-[4.5rem] sm:w-[4.5rem]",
+                    unlocked ? "border-white/90" : "border-white/50",
                   )}
                   style={{
-                    background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) 74%, white 18%), var(${r.colorVar}) 55%, color-mix(in oklch, var(${r.colorVar}) 80%, #000 18%))`,
+                    background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 74 : 52}%, ${unlocked ? "white" : "#5a5a6e"} ${unlocked ? 18 : 26}%), var(${r.colorVar}) ${unlocked ? 55 : 60}%, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 80 : 62}%, #000 ${unlocked ? 18 : 38}%))`,
                     boxShadow: unlocked
                       ? `0 4px 0 0 color-mix(in oklch, var(${r.colorVar}) 50%, #000 30%), 0 8px 16px -8px color-mix(in oklch, var(${r.colorVar}) 55%, transparent)`
-                      : undefined,
+                      : `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) 35%, #000 45%)`,
                     animationDelay: `${index * 0.7}s`,
                   }}
                 >
@@ -162,10 +162,11 @@ export function MapScreen() {
                     )}
                   >
                     <span
-                      className={cn("gloss flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white", !unlocked && "grayscale")}
+                      className="gloss flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white"
                       style={{
-                        background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) 76%, white 18%), var(${r.colorVar}) 58%, color-mix(in oklch, var(${r.colorVar}) 82%, #000 16%))`,
-                        boxShadow: `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) 52%, #000 30%)`,
+                        background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 76 : 50}%, ${unlocked ? "white" : "#5a5a6e"} ${unlocked ? 18 : 30}%), var(${r.colorVar}) ${unlocked ? 58 : 62}%, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 82 : 60}%, #000 ${unlocked ? 16 : 40}%))`,
+                        boxShadow: `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 52 : 30}%, #000 ${unlocked ? 30 : 50}%)`,
+                        filter: unlocked ? undefined : "saturate(0.55)",
                       }}
                       aria-hidden
                     >
@@ -476,6 +477,61 @@ function IslandScene() {
         <path className="anim-float" style={{ animationDuration: "7s" }} d="M620 70 q7 -7 14 0 q7 -7 14 0" />
         <path className="anim-float" style={{ animationDuration: "9s", animationDelay: "-3s" }} d="M100 260 q6 -6 12 0 q6 -6 12 0" />
         <path className="anim-float" style={{ animationDuration: "8s", animationDelay: "-5s" }} d="M480 520 q5 -5 10 0 q5 -5 10 0" />
+      </g>
+
+      {/* Nubes perezosas que cruzan el cielo */}
+      <g fill="var(--foreground)" fillOpacity="0.08">
+        <g className="cloud-drift">
+          <ellipse cx="150" cy="52" rx="34" ry="11" />
+          <ellipse cx="180" cy="44" rx="22" ry="9" />
+          <ellipse cx="126" cy="46" rx="16" ry="7" />
+        </g>
+        <g className="cloud-drift" style={{ animationDelay: "-14s", animationDuration: "46s" }}>
+          <ellipse cx="520" cy="200" rx="30" ry="9" />
+          <ellipse cx="548" cy="194" rx="18" ry="7" />
+        </g>
+        <g className="cloud-drift" style={{ animationDelay: "-30s", animationDuration: "56s" }}>
+          <ellipse cx="330" cy="560" rx="36" ry="10" />
+          <ellipse cx="358" cy="554" rx="20" ry="7" />
+        </g>
+      </g>
+
+      {/* Delfines saltando en grupo */}
+      <g fill="var(--foreground)" fillOpacity="0.4">
+        <path className="dolphin-jump" d="M0 0 q8 -12 16 0 q8 12 16 0 q-4 5 -16 5 q-12 0 -16 -5 Z" transform="translate(210,392)" />
+        <path className="dolphin-jump" style={{ animationDelay: "-2.2s" }} d="M0 0 q6 -9 12 0 q6 9 12 0 q-3 4 -12 4 q-9 0 -12 -4 Z" transform="translate(248,404)" />
+        <path className="dolphin-jump" style={{ animationDelay: "-4.1s" }} d="M0 0 q5 -8 10 0 q5 8 10 0 q-2 3 -10 3 q-8 0 -10 -3 Z" transform="translate(282,398)" />
+      </g>
+
+      {/* Pececitos asomando bajo el puente del puerto */}
+      <g fill="var(--region-puerto)" fillOpacity="0.6">
+        <path className="fish-dart" d="M0 0 q5 -4 10 0 q-5 4 -10 0 Z" transform="translate(540,360)" />
+        <path className="fish-dart" style={{ animationDelay: "-3s", animationDuration: "13s" }} d="M0 0 q4 -3 8 0 q-4 3 -8 0 Z" transform="translate(180,470)" />
+      </g>
+
+      {/* Soplo de la ballena del observatorio */}
+      <g stroke="var(--region-puerto)" strokeOpacity="0.5" strokeWidth="3" fill="none" strokeLinecap="round">
+        <path className="whale-spout" d="M104 440 q-2 -14 0 -24 M110 440 q0 -12 8 -20 M98 440 q-6 -10 -12 -14" />
+      </g>
+      <path d="M86 446 q22 -8 42 0 q6 8 -4 10 q-18 4 -34 0 q-10 -2 -4 -10 Z" fill="var(--foreground)" fillOpacity="0.22" />
+
+      {/* Botella con mensaje derivando */}
+      <g className="cloud-drift" style={{ animationDuration: "64s", animationDelay: "-20s" }}>
+        <path d="M690 250 l4 -10 l3 10 l-3 2 Z" fill="var(--region-biblioteca)" fillOpacity="0.55" />
+        <path d="M690 250 l4 -10 l3 10 Z" fill="none" stroke="var(--region-biblioteca)" strokeOpacity="0.7" strokeWidth="1.5" />
+      </g>
+
+      {/* Estrella fugaz del observatorio */}
+      <g stroke="var(--xp)" strokeWidth="2" strokeLinecap="round">
+        <path className="shooting-star" d="M60 80 L84 56" />
+      </g>
+
+      {/* Ondas concéntricas bajo las islas (vida en el mar) */}
+      <g stroke="var(--region-puerto)" strokeOpacity="0.3" fill="none" strokeLinecap="round">
+        <circle className="ripple-ring" cx="190" cy="250" r="8" />
+        <circle className="ripple-ring" style={{ animationDelay: "-2s" }} cx="640" cy="210" r="10" />
+        <circle className="ripple-ring" style={{ animationDelay: "-4s" }} cx="410" cy="470" r="9" />
+        <circle className="ripple-ring" style={{ animationDelay: "-1s" }} cx="300" cy="410" r="7" />
       </g>
 
       {/* Sol de tarde con halo suave */}

@@ -561,6 +561,23 @@ const SCENES: Record<string, SceneMusic> = {
     pluckType: "sine",
     bass: true,
   },
+  /* Salón de Juegos: chispa arcade, mayor brillante de Sol, juguetón */
+  arcade: {
+    root: 392,
+    scale: [0, 2, 4, 7, 9, 12, 14, 16, 19],
+    bpm: 92,
+    chords: [
+      [0, 2, 4],
+      [1, 3, 5],
+      [0, 2, 4],
+      [3, 4, 6],
+    ],
+    pluck: 0.8,
+    texture: "air",
+    textureLevel: 0,
+    pluckType: "square",
+    bass: true,
+  },
 };
 
 /* ======================= secuenciador generativo ======================= */
@@ -639,73 +656,12 @@ function stopTexture() {
 }
 
 function startTexture(scene: SceneMusic) {
-  const ac = ctx;
-  if (!ac || !noiseBuffer) return;
-  const src = ac.createBufferSource();
-  src.buffer = noiseBuffer;
-  src.loop = true;
-  const filter = ac.createBiquadFilter();
-  const gain = ac.createGain();
-  gain.gain.value = 0.0001;
-  const t = ac.currentTime;
-  let lfo: OscillatorNode | null = null;
-  let lfoGain: GainNode | null = null;
-
-  switch (scene.texture) {
-    case "wind":
-      filter.type = "lowpass";
-      filter.frequency.value = 420;
-      // ráfagas lentas
-      lfo = ac.createOscillator();
-      lfo.frequency.value = 0.09;
-      lfoGain = ac.createGain();
-      lfoGain.gain.value = scene.textureLevel * 0.7;
-      lfo.connect(lfoGain).connect(gain.gain);
-      gain.gain.value = scene.textureLevel;
-      break;
-    case "waves":
-      filter.type = "lowpass";
-      filter.frequency.value = 300;
-      lfo = ac.createOscillator();
-      lfo.frequency.value = 0.07; // marea muy lenta
-      lfoGain = ac.createGain();
-      lfoGain.gain.value = scene.textureLevel * 0.8;
-      lfo.connect(lfoGain).connect(gain.gain);
-      gain.gain.value = scene.textureLevel;
-      break;
-    case "hum":
-      filter.type = "lowpass";
-      filter.frequency.value = 180;
-      gain.gain.setTargetAtTime(scene.textureLevel, t, 1.2);
-      break;
-    case "paper":
-      filter.type = "bandpass";
-      filter.frequency.value = 4200;
-      filter.Q.value = 0.4;
-      gain.gain.setTargetAtTime(scene.textureLevel * 0.5, t, 1.5);
-      break;
-    case "crackle":
-      filter.type = "bandpass";
-      filter.frequency.value = 2600;
-      filter.Q.value = 2.5;
-      lfo = ac.createOscillator();
-      lfo.frequency.value = 1.7;
-      lfoGain = ac.createGain();
-      lfoGain.gain.value = scene.textureLevel;
-      lfo.connect(lfoGain).connect(gain.gain);
-      gain.gain.value = scene.textureLevel * 0.3;
-      break;
-    case "air":
-    default:
-      filter.type = "lowpass";
-      filter.frequency.value = 900;
-      gain.gain.setTargetAtTime(scene.textureLevel, t, 1.5);
-      break;
-  }
-  src.connect(filter).connect(gain).connect(noiseBus ?? master ?? ac.destination);
-  if (lfo && lfoGain) lfo.start();
-  src.start();
-  textureNodes = { src, gain };
+  // 🎵 Retirado por petición del navegante: sin ruido de lluvia, viento ni
+  // ambiente de fondo. La banda sonora queda solo con la parte melódica
+  // (pads, arpegios y bajo), mucho más limpia y agradable.
+  void scene;
+  void noiseBus;
+  return;
 }
 
 /** Colchón armónico suave (pad) con ataque largo y filtro móvil. */

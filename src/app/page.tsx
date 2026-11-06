@@ -26,6 +26,7 @@ import { SettingsScreen } from "@/screens/settings";
 import { LibraryScreen } from "@/screens/library";
 import { MusicStationScreen } from "@/screens/music-station";
 import { ShopScreen } from "@/screens/shop";
+import { ArcadeScreen } from "@/screens/arcade";
 import { PwaRegistration } from "@/components/game/pwa";
 import { useSceneSystem } from "@/hooks/use-scene";
 import { Loader2 } from "lucide-react";
@@ -109,6 +110,8 @@ export default function Page() {
         return <MusicStationScreen />;
       case "shop":
         return <ShopScreen />;
+      case "arcade":
+        return <ArcadeScreen />;
       case "library":
         return <LibraryScreen />;
       case "home":

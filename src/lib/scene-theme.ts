@@ -35,7 +35,8 @@ export type SceneId =
   | "results"
   | "welcome"
   | "onboarding"
-  | "placement";
+  | "placement"
+  | "arcade";
 
 interface SceneDef {
   /** Matiz oklch del color de escena. */
@@ -68,6 +69,7 @@ const SCENES: Record<SceneId, SceneDef> = {
   welcome: { hue: 156, name: "verde de bienvenida", motif: "leaves" },
   onboarding: { hue: 156, name: "verde de bienvenida", motif: "leaves" },
   placement: { hue: 95, name: "oliva del faro", motif: "notes" },
+  arcade: { hue: 262, name: "violeta arcade", motif: "stars" },
 };
 
 export function sceneDef(scene: SceneId): SceneDef {
@@ -184,6 +186,8 @@ export function themeForScreen(
       return { scene: "settings" };
     case "music":
       return { scene: "music" };
+    case "arcade":
+      return { scene: "arcade" };
     default:
       return { scene: "home", hue: SCENES[activeRegionScene(level)].hue };
   }

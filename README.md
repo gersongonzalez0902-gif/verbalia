@@ -2,7 +2,7 @@
 
 **VerbalIA** es un videojuego educativo de entrenamiento lingüístico en español. El jugador explora el **Archipiélago de las Palabras**: **ocho islas** (una por habilidad, incluida la **cultura lingüística** y la nueva **Forja del Escritor** de estilo) con **56 minijuegos**, misiones, economía de tinta y progresión adaptativa, en sesiones de 3 a 5 minutos.
 
-> Estado actual: **v4.0 · Etapa 4 «El Códice Infinito»** — la octava isla (**Forja del Escritor**) con 5 formatos de estilo y retórica (metáforas, registro, conectores, ironía, redundancias), **economía de tinta** con el **Bazar del Copista** (marcos, títulos, escudos), **5 081 ejercicios** (+60), **1 310 palabras** (+150), **328 frases del día** (+108), perfil 3.0 con **marco, título e insignia destacada**, **palabra del día** y saludo por hora en el inicio, **estadísticas 3.0** (proyección de nivel, tinta, mejor isla, constancia de 16 semanas), **colección con filtro MCER**, cuaderno por habilidad, **paisajes sonoros sintetizados** (lluvia, olas, chimenea, noche), ajustes de **velocidad de voz y háptics**, paleta elegida desde el onboarding, atajos PWA y **migración automática de partidas antiguas** que repara perfiles sin banner. Total: **209 pruebas** del motor pasando.
+> Estado actual: **v4.0 · Etapa 4 «El Códice Infinito»** — la octava isla (**Forja del Escritor**) con 5 formatos de estilo y retórica (metáforas, registro, conectores, ironía, redundancias), **economía de tinta** con el **Bazar del Copista** (marcos, títulos, escudos), **5 081 ejercicios** (+60), **1 310 palabras** (+150), **328 frases del día** (+108), perfil 3.0 con **marco, título e insignia destacada**, **palabra del día** y saludo por hora en el inicio, **estadísticas 3.0** (proyección de nivel, tinta, mejor isla, constancia de 16 semanas), **colección con filtro MCER**, cuaderno por habilidad, **paisajes sonoros sintetizados** (lluvia, olas, chimenea, noche), ajustes de **velocidad de voz y háptics**, paleta elegida desde el onboarding, atajos PWA y **migración automática de partidas antiguas** que repara perfiles sin banner. Total: **209 pruebas** del motor pasando. (v4.1: 226 pruebas, ver 1.cuater)
 
 ---
 
@@ -74,6 +74,23 @@
 | **Progresión** | **+13 logros** (40 en total: forja, tinta, ocho islas, racha 30, combo 15, 10 h, 100 sesiones, nivel 15 «Leyenda del Códice»), **misiones de tinta** diarias y semanales, métrica `tinta` en el motor |
 
 ---
+
+## 1.cuater · Qué incluye la Mega-6 · «El Salón de Juegos» (tanda 3)
+
+| Área | Entregado |
+|---|---|
+| **Salón de Juegos Educativos** | Sección nueva (navegable como «Juegos» en el muelle móvil, la barra lateral de PC y el dashboard) con **23 juegos**: ajedrez, damas y 21 minijuegos de cálculo, memoria, lógica, letras y reflejos. Desbloqueo con **tinta** (nunca cuesta nivel ni XP), XP por partida con tope diario anti-farmeo, récords personales y 6 logros nuevos |
+| **Ajedrez con motor local** | Motor completo en TypeScript dentro del dispositivo: jugadas legales (enroque, al paso, promoción), jaque/mate/ahogado/tablas, IA negamax con poda alfa-beta y 4 niveles (~800-2000 ELO). **Verificado con perft canónico** (inicial 20/400/8902, Kiwipete 48/2039, posición 3: 14/191/2812) |
+| **Revisión de partidas** | Al terminar el ajedrez, el motor repite cada posición y compara tu jugada con la mejor línea: precisión por bando, jugada a jugada clasificada (óptima/buena/dudosa/error/desastre), barra de evaluación y tablero reproducible |
+| **Damas españolas** | Captura obligatoria, cadenas de captura y damas voladoras; IA minimax a 3 profundidades con 3 rivales |
+| **21 minijuegos** | Mates Relámpago, Códice Romano, Faro Binario, Mayor o Menor, Simón de la Marea, Pares de Letras, Memoria de Dígitos, Luces del Muelle, Torres de la Fortaleza, Sudoku 4×4, Caza de Minas, Puzle Deslizable, Tres en Raya (rival perfecto), Conecta Cuatro, Pluma Veloz (mecanografía), Anagramas, Palabra Secreta, Ahorcado de la Fauna, Test de Stroop, Reflejo del Faro y Danza de Flechas |
+| **Bazar 2.0** | **Decoraciones de avatar de doble anillo (estilo Discord)** con rarezas (común/raro/épico/legendario), **banners premium** equipables en la ficha, 5 marcos nuevos (hasta legendarios), 4 títulos nuevos del salón, vistas previas reales en cada tarjeta |
+| **Perfil 3.5** | Avatar con **doble anillo tipo Discord** (gradiente + separador oscuro), botón de banner arriba a la derecha (ya no lo tapa el nivel), banners premium en el selector, texto de tinta con mejor ajuste |
+| **Mapa con más vida** | Escena **más alta en móvil** (68dvh, islas más grandes y separadas), iconos de islas bloqueadas **con color** (ya no en gris), nubes que cruzan, delfines saltando, ballena con soplo, pececitos, estrella fugaz, ondas concéntricas y botella a la deriva |
+| **Dashboard emparejado** | **Tira de estadísticas siempre visible** (XP hoy, exactitud, racha, sesiones, palabras) también en móvil, **maquetación a dos columnas en PC**, acceso directo a Juegos y estadísticas desde el inicio |
+| **Sonido** | Retiradas las texturas de ruido ambiental (lluvia, viento, olas de fondo, chimenea): la banda sonora queda solo con la parte melódica; nueva escena musical propia del salón |
+| **Vocabulario** | **1 844 palabras** (+534): fusionados los packs C1 y D1 que habían quedado huérfanos (330 recuperadas) y nuevo paquete E1 con finanzas, ciencia, arte, clima, ley, oficios, salud, emociones, colores matizados, geografía y léxico marinero — deduplicado por palabra |
+| **Estabilidad** | Corregidos: el enrutador ignoraba la pantalla «juegos» (hash `#/juegos`), 3 bugs del motor de ajedrez detectados por perft (ataques de peón, deslizamiento vertical, casillas de enroque), textos corruptos en el paquete nuevo. **226 pruebas** del motor pasando |
 
 ## 2. Arquitectura
 

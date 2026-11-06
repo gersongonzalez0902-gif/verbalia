@@ -1,87 +1,87 @@
 ```json
 [
   {
+    "word": "burocracia",
+    "pos": "sustantivo",
+    "definition": "Sistema complejo de administración caracterizado por procedimientos detallados.",
+    "example": "La lentitud de la burocracia retrasaba la tramitación del documento.",
+    "tags": ["sociedad", "instituciones"]
+  },
+  {
     "word": "hegemonía",
     "pos": "sustantivo",
-    "definition": "Dominio o influencia predominante de una persona, grupo o país sobre otros.",
-    "example": "La hegemonía cultural de Estados Unidos se manifiesta en la difusión global de sus producciones audiovisuales.",
-    "tags": ["sociedad", "política"]
+    "definition": "Dominación política, económica o cultural de un Estado sobre otros.",
+    "example": "La influencia cultural estadounidense es una clara hegemonía global.",
+    "tags": ["política", "sociedad"]
   },
   {
     "word": "clientelismo",
     "pos": "sustantivo",
-    "definition": "Práctica política basada en el intercambio de beneficios por apoyo electoral.",
-    "example": "El clientelismo político socava la meritocracia y genera dependencia en los beneficiarios.",
-    "tags": ["sociedad", "política"]
+    "definition": "Práctica política de favorecer a seguidores a cambio de apoyo.",
+    "example": "El candidato fue criticado por su evidente clientelismo durante la campaña.",
+    "tags": ["política", "sociedad"]
   },
   {
-    "word": "burocracia",
+    "word": "subversión",
     "pos": "sustantivo",
-    "definition": "Sistema complejo de administración caracterizado por procedimientos rígidos y múltiples instancias.",
-    "example": "La burocracia estatal puede retrasar la implementación de políticas públicas necesarias.",
-    "tags": ["sociedad", "instituciones"]
-  },
-  {
-    "word": "constitucional",
-    "pos": "adjetivo",
-    "definition": "Relativo a la constitución o conforme a sus principios y normas.",
-    "example": "El tribunal constitucional tiene la facultad de declarar inconstitucionales las leyes.",
-    "tags": ["sociedad", "instituciones"]
+    "definition": "Acción destinada a cambiar o derrocar un orden establecido.",
+    "example": "El grupo fue acusado de actividades de subversión contra el gobierno.",
+    "tags": ["política", "sociedad"]
   },
   {
     "word": "legislativo",
     "pos": "adjetivo",
-    "definition": "Pertenece o relativo a la función de elaborar leyes.",
-    "example": "El poder legislativo está compuesto por diputados y senadores que discuten los proyectos de ley.",
-    "tags": ["sociedad", "instituciones"]
+    "definition": "Relativo a la función de crear leyes en un Estado.",
+    "example": "El poder legislativo está compuesto por el Congreso y el Senado.",
+    "tags": ["instituciones", "política"]
   },
   {
-    "word": "populista",
-    "pos": "adjetivo",
-    "definition": "Que emplea discursos y políticas que apelan directamente al pueblo, simplificando problemas complejos.",
-    "example": "El discurso populista suele polarizar la sociedad y prometer soluciones milagrosas a problemas estructurales.",
-    "tags": ["sociedad", "política"]
+    "word": "soberanía",
+    "pos": "sustantivo",
+    "definition": "Poder supremo de un Estado para gobernarse sin interferencia externa.",
+    "example": "La independencia del país fue clave para ejercer su soberanía plena.",
+    "tags": ["política", "sociedad"]
   },
   {
     "word": "globalización",
     "pos": "sustantivo",
-    "definition": "Proceso de creciente interdependencia económica, política y cultural entre países.",
-    "example": "La globalización ha transformado las estructuras productivas y las identidades culturales locales.",
+    "definition": "Proceso de interdependencia económica, cultural y política mundial.",
+    "example": "La globalización ha transformado por completo las economías nacionales.",
+    "tags": ["sociedad", "política"]
+  },
+  {
+    "word": "autoritarismo",
+    "pos": "sustantivo",
+    "definition": "Sistema político que concentra el poder en una autoridad única.",
+    "example": "El régimen se caracterizaba por su marcado autoritarismo y censura.",
+    "tags": ["política", "sociedad"]
+  },
+  {
+    "word": "constitucional",
+    "pos": "adjetivo",
+    "definition": "Relativo a la Constitución, ley fundamental de un Estado.",
+    "example": "Las reformas constitucionales requieren una mayoría cualificada.",
+    "tags": ["instituciones", "política"]
+  },
+  {
+    "word": "participación",
+    "pos": "sustantivo",
+    "definition": "Involucramento activo de los ciudadanos en asuntos públicos.",
+    "example": "La alta participación electoral reflejó el interés ciudadano.",
     "tags": ["sociedad", "política"]
   },
   {
     "word": "corrupción",
     "pos": "sustantivo",
-    "definition": "Uso ilícito del poder público para beneficio personal o de grupos de interés.",
-    "example": "La corrupción institucional erosiona la confianza de los ciudadanos en el sistema democrático.",
-    "tags": ["sociedad", "política", "instituciones"]
-  },
-  {
-    "word": "democracia",
-    "pos": "sustantivo",
-    "definition": "Sistema político en el cual el poder reside en el pueblo, ejercido directamente o mediante representantes.",
-    "example": "Una democracia robusta requiere instituciones fuertes, un sistema judicial independiente y una ciudadanía informada.",
-    "tags": ["sociedad", "política", "instituciones"]
-  },
-  {
-    "word": "participación",
-    "pos": "sustantivo",
-    "definition": "Intervención activa de los individuos en la vida social, política o cultural de su comunidad.",
-    "example": "La participación ciudadana en las asambleas municipales es fundamental para el desarrollo local.",
-    "tags": ["sociedad", "política", "instituciones"]
-  },
-  {
-    "word": "autoritarismo",
-    "pos": "sustantivo",
-    "definition": "Sistema político que concentra el poder en una sola persona o grupo, limitando las libertades individuales.",
-    "example": "El autoritarismo se perpetúa mediante el control de los medios de comunicación y la represión de la disidencia.",
+    "definition": "Uso ilegal del poder público para beneficio personal.",
+    "example": "El escándalo de corrupción salió a la luz tras la investigación periodística.",
     "tags": ["sociedad", "política"]
   },
   {
-    "word": "ideología",
+    "word": "convivencia",
     "pos": "sustantivo",
-    "definition": "Conjunto de ideas, doctrinas y creencias que orientan la acción política y social de un individuo o grupo.",
-    "example": "La ideología de un partido político define sus propuestas y su visión del orden social y económico.",
+    "definition": "Coexistencia pacífica y respetuosa entre individuos o grupos.",
+    "example": "La buena convivencia en el vecindario es espara una comunidad sana.",
     "tags": ["sociedad", "política"]
   }
 ]

@@ -63,6 +63,8 @@ export function musicSceneFor(screen: Screen, level: number): string {
       return "settings";
     case "music":
       return "station";
+    case "arcade":
+      return "arcade";
     default:
       return activeRegion;
   }

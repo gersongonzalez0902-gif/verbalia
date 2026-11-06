@@ -1,13 +1,10 @@
 import type { SrsWord } from "@/types";
 
 /**
- * Paquete C1 · Mega-ampliación (niveles A1-B1): 110 A1 · 110 A2 · 110 B1.
- * Ejes: vida cotidiana, hogar, comida, familia, trabajo, naturaleza,
- * emociones y tecnología.
+ * Paquete C1 · Mega-ampliación (niveles A1-B1), depurado sin duplicados.
  */
-export const SRS_WORDS_C1: SrsWord[] = [
-  // ---------- A1 ----------
 
+export const SRS_WORDS_C1: SrsWord[] = [
   { id: "w1c-vela", word: "vela", pos: "sustantivo", definition: "Cilindro de cera con pabilo que se enciende para dar luz.", example: "Encendió una vela cuando se fue la luz.", difficulty: 1, cefr: "A1", tags: ["hogar"] },
   { id: "w1c-almohada", word: "almohada", pos: "sustantivo", definition: "Pieza blanda donde se apoya la cabeza para dormir.", example: "Compró una almohada nueva porque la suya estaba vieja.", difficulty: 1, cefr: "A1", tags: ["hogar"] },
   { id: "w1c-manta", word: "manta", pos: "sustantivo", definition: "Tejido grueso que sirve para abrigarse.", example: "Hace frío en el salón: pásame esa manta, por favor.", difficulty: 1, cefr: "A1", tags: ["hogar"] },
@@ -118,9 +115,6 @@ export const SRS_WORDS_C1: SrsWord[] = [
   { id: "w1c-nunca", word: "nunca", pos: "adverbio", definition: "En ningún momento; ninguna vez.", example: "Nunca llega tarde a sus citas.", difficulty: 1, cefr: "A1", tags: ["tiempo"] },
   { id: "w1c-tambien", word: "también", pos: "adverbio", definition: "Además; de la misma manera.", example: "Yo también quiero un vaso de agua fría.", difficulty: 1, cefr: "A1", tags: ["cotidiano"] },
   { id: "w1c-despacio", word: "despacio", pos: "adverbio", definition: "Con poca velocidad.", example: "Habla despacio para que todos lo entiendan.", difficulty: 1, cefr: "A1", tags: ["cotidiano"] },
-
-  // ---------- A2 ----------
-
   { id: "w1c-lavadora", word: "lavadora", pos: "sustantivo", definition: "Máquina que lava la ropa con agua y jabón.", example: "Puso la ropa de color en la lavadora.", difficulty: 2, cefr: "A2", tags: ["hogar"] },
   { id: "w1c-tostadora", word: "tostadora", pos: "sustantivo", definition: "Aparato eléctrico para tostar el pan.", example: "El pan salió muy crujiente de la tostadora.", difficulty: 2, cefr: "A2", tags: ["hogar"] },
   { id: "w1c-microondas", word: "microondas", pos: "sustantivo", definition: "Aparato que calienta la comida muy rápido.", example: "Calentó la sopa en el microondas dos minutos.", difficulty: 2, cefr: "A2", tags: ["hogar"] },

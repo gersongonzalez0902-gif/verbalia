@@ -998,6 +998,70 @@ html[data-text-size="xl"] {
   animation: wave-drift 7s ease-in-out infinite;
 }
 
+/* ============ Vida extra en el mapa del Archipiélago (Mega-6) ============ */
+
+/* Nubes y objetos que derivan por toda la escena */
+@keyframes cloud-cross {
+  from { transform: translateX(-160px); }
+  to { transform: translateX(960px); }
+}
+.cloud-drift {
+  animation: cloud-cross 38s linear infinite;
+}
+
+/* Delfines saltando en arco */
+@keyframes dolphin-arc {
+  0% { transform: translate(0, 6px) rotate(-8deg); opacity: 0; }
+  15% { opacity: 0.9; }
+  50% { transform: translate(30px, -26px) rotate(10deg); }
+  85% { opacity: 0.9; }
+  100% { transform: translate(60px, 6px) rotate(-8deg); opacity: 0; }
+}
+.dolphin-jump {
+  animation: dolphin-arc 6.5s ease-in-out infinite;
+}
+
+/* Pececitos que cruzan rapiditos */
+@keyframes fish-swim {
+  0% { transform: translateX(0) scaleX(1); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateX(-120px) scaleX(1); opacity: 0; }
+}
+.fish-dart {
+  animation: fish-swim 11s linear infinite;
+}
+
+/* Soplo de ballena intermitente */
+@keyframes spout-breathe {
+  0%, 55% { opacity: 0; transform: scaleY(0.4); transform-origin: 440px 446px; }
+  70% { opacity: 0.6; transform: scaleY(1); }
+  90% { opacity: 0; transform: scaleY(1.1); }
+  100% { opacity: 0; }
+}
+.whale-spout {
+  animation: spout-breathe 9s ease-in-out infinite;
+}
+
+/* Estrella fugaz cada tanto */
+@keyframes star-fall {
+  0%, 88% { opacity: 0; transform: translate(0, 0); }
+  90% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(-70px, 70px); }
+}
+.shooting-star {
+  animation: star-fall 11s ease-in infinite;
+}
+
+/* Ondas concéntricas que se expanden */
+@keyframes ripple-grow {
+  0% { r: 6; opacity: 0.55; stroke-width: 3; }
+  100% { r: 30; opacity: 0; stroke-width: 1; }
+}
+.ripple-ring {
+  animation: ripple-grow 5s ease-out infinite;
+}
+
 /* ================== Repertorio ampliado de dinamismo ================== */
 @keyframes sway {
   0%, 100% { transform: rotate(-4deg) translateY(0); }

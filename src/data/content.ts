@@ -14,6 +14,9 @@ import { HISTORIAS_PACK } from "./historias";
 import { REFRANES_PACK } from "./refranes";
 import { MINUTO_PACK } from "./minuto";
 import { SRS_WORDS } from "./words-srs";
+import { SRS_WORDS_C1 } from "./gen/words-srs-c1";
+import { SRS_WORDS_D1 } from "./gen/words-srs-d1";
+import { SRS_WORDS_E1 } from "./gen/words-srs-e1";
 // ---- Etapa 3 · duplicación de variedad (packs ampliados) ----
 import { TRIVIA_PACK_X } from "./gen/trivia-x";
 import { CLOZE_PACK_X } from "./gen/cloze-x";
@@ -133,6 +136,6 @@ export function packStats(game: string): { total: number; byDifficulty: Record<n
 }
 
 /** Palabras SRS completas: catálogo original + ampliación de la Etapa 4. */
-export const SRS_WORDS_FULL = [...SRS_WORDS, ...SRS_WORDS_B];
+export const SRS_WORDS_FULL = [...SRS_WORDS, ...SRS_WORDS_B, ...SRS_WORDS_C1, ...SRS_WORDS_D1, ...SRS_WORDS_E1];
 
 export { SRS_WORDS };

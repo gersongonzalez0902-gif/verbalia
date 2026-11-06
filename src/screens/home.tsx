@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Droplets,
   Flame,
+  Gamepad2,
   Library,
   ListMusic,
   NotebookPen,
@@ -38,6 +39,8 @@ import {
   ShoppingBag,
   Sparkles,
   Sprout,
+  Target,
+  Zap,
 } from "lucide-react";
 import { getIcon } from "@/components/game/icons";
 
@@ -101,6 +104,15 @@ export function HomeScreen() {
 
   const unlockedRegions = REGIONS.filter((r) => r.games.length > 0 && level >= r.unlockLevel);
 
+  /** Mini resumen para la tira de estadísticas (visible en móvil). */
+  const statsMini = useMemo(() => {
+    const answers = core.stats.totalAnswers;
+    const correct = core.stats.totalCorrect ?? 0;
+    const acc = answers > 0 ? Math.round((correct / answers) * 100) : null;
+    const learned = Object.values(srs).filter((c) => c.reps >= 2).length;
+    return { acc, learned, pctWords: Math.round((learned / Math.max(SRS_WORDS_FULL.length, 1)) * 100) };
+  }, [core.stats, srs]);
+
   /** Región dueña de cada minijuego (para respetar la progresión). */
   const gameRegion = useMemo(() => {
     const map = new Map<string, { name: string; unlockLevel: number }>();
@@ -147,8 +159,24 @@ export function HomeScreen() {
       {/* ===== Léxico ===== */}
       <LexicoBubble mood={xpToday >= settings.dailyGoalXp ? "happy" : "idle"} text={greeting.text({ name: profile.name, streak: core.streak.current, dueCards: due.length })} className="mt-4" />
 
+      {/* ===== Tira de estadísticas (siempre visible, también en móvil) ===== */}
+      <button
+        onClick={() => { sfx.click(); navigate({ name: "stats" }); }}
+        className="card-aurora tap-3d group mt-4 flex w-full items-stretch gap-1 overflow-hidden rounded-3xl border bg-card p-1.5 text-left"
+        aria-label="Ver todas las estadísticas"
+      >
+        <StatStripCell icon={<Zap className="h-4 w-4" aria-hidden />} value={`${xpToday}`} label="XP hoy" tone="--xp" />
+        <StatStripCell icon={<Target className="h-4 w-4" aria-hidden />} value={statsMini.acc !== null ? `${statsMini.acc}%` : "—"} label="exactitud" tone="--region-bosque" />
+        <StatStripCell icon={<Flame className="h-4 w-4" aria-hidden />} value={`${core.streak.current}`} label="racha" tone="--region-torre" />
+        <StatStripCell icon={<ChartColumn className="h-4 w-4" aria-hidden />} value={`${core.stats.totalSessions}`} label="sesiones" tone="--region-puerto" />
+        <StatStripCell icon={<Sprout className="h-4 w-4" aria-hidden />} value={`${statsMini.pctWords}%`} label="palabras" tone="--primary" />
+      </button>
+
+      {/* ===== Dos columnas en escritorio: viaje a la izquierda, progreso a la derecha ===== */}
+      <div className="lg:mt-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-5">
+        <div className="lg:space-y-5">
       {/* ===== Objetivo diario + sesión recomendada ===== */}
-      <section className="card-aurora mt-4 grid gap-4 rounded-3xl border bg-card p-4 sm:grid-cols-[auto_1fr]" aria-labelledby="goal-title">
+      <section className="card-aurora mt-4 grid gap-4 rounded-3xl border bg-card p-4 sm:grid-cols-[auto_1fr] lg:mt-0" aria-labelledby="goal-title">
         <div className="flex items-center justify-center">
           <ProgressRing value={goalPct} size={124} stroke={11} label="Objetivo diario de XP">
             <span className="numeric font-display text-2xl font-bold">{xpToday}</span>
@@ -233,9 +261,12 @@ export function HomeScreen() {
           </Button>
         </div>
       </section>
+        </div>
 
+        {/* Columna derecha: progreso del navegante */}
+        <div className="lg:space-y-5">
       {/* ===== Misiones diarias ===== */}
-      <section className="mt-6" aria-labelledby="missions-title">
+      <section className="mt-6 lg:mt-0" aria-labelledby="missions-title">
         <div className="mb-2.5 flex items-center justify-between">
           <h2 id="missions-title" className="font-display text-lg font-bold">
             Misiones de hoy
@@ -247,7 +278,7 @@ export function HomeScreen() {
             Ver todas <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <div className="stagger grid gap-2.5 sm:grid-cols-3">
+        <div className="stagger grid gap-2.5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
           {missions.map((m) => {
             const Icon = getIcon(m.mission.icon, Play);
             const pct = Math.min(1, m.current / m.target);
@@ -289,8 +320,10 @@ export function HomeScreen() {
           })}
         </div>
       </section>
+        </div>
+      </div>
 
-      {/* ===== Regiones ===== */}
+      {/* ===== Regiones (ancho completo en escritorio) ===== */}
       <section className="mt-6" aria-labelledby="regions-title">
         <div className="mb-2.5 flex items-center justify-between">
           <h2 id="regions-title" className="font-display text-lg font-bold">
@@ -381,9 +414,9 @@ export function HomeScreen() {
         <QuickLink icon={NotebookPen} label="Errores" onClick={() => { sfx.click(); navigate({ name: "errors" }); }} hint={`${core.errors.length} pendientes`} />
         <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS_FULL.length}`} />
         <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => { sfx.click(); navigate({ name: "stats" }); }} hint={`${core.stats.totalSessions} sesiones`} />
+        <QuickLink icon={Gamepad2} label="Juegos" onClick={() => { sfx.whoosh(); navigate({ name: "arcade" }); }} hint="ajedrez y 22 más" />
         <QuickLink icon={ListMusic} label="Estación" onClick={() => { sfx.click(); navigate({ name: "music" }); }} hint={`${stationCount} canciones`} />
         <QuickLink icon={ShoppingBag} label="Bazar" onClick={() => { sfx.pop(); navigate({ name: "shop" }); }} hint={`${core.wallet.tinta} de tinta`} />
-        <QuickLink icon={Droplets} label="Tintero" onClick={() => { sfx.tap(); navigate({ name: "shop" }); }} hint={`${core.wallet.tinta + core.wallet.spent} ganada`} />
         <QuickLink icon={Quote} label="Frase" onClick={() => { sfx.tap(); navigate({ name: "map" }); }} hint="del día" />
       </section>
 
@@ -402,6 +435,29 @@ export function HomeScreen() {
         Biblioteca de contenidos y hoja de ruta
       </button>
     </div>
+  );
+}
+
+function StatStripCell({
+  icon,
+  value,
+  label,
+  tone,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  tone: string;
+}) {
+  return (
+    <span
+      className="flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-2 transition group-hover:bg-primary/5"
+      style={{ color: `var(${tone})` }}
+    >
+      <span className="flex items-center gap-1" aria-hidden>{icon}</span>
+      <span className="numeric font-display text-base font-black leading-none text-foreground">{value}</span>
+      <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+    </span>
   );
 }
 
