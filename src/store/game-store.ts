@@ -22,6 +22,7 @@ import { createCore, reduceSessionComplete, computePlacement } from "@/engine/co
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { EMPTY_PROFILE, migrateProfile, migrateCore } from "@/engine/migrate";
 import { applyPurchase, applyEquip } from "@/engine/shop";
+import { applyArcadeUnlock, applyArcadeScore, applyChessElo } from "@/engine/arcade";
 import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
 import { useMusicStore } from "@/services/music-station";
 import { setSoundEnabled, setMusicVolume, setSfxVolume, setTtsRate, setHaptics } from "@/services/audio";
@@ -67,6 +68,12 @@ export interface GameStore {
   buyShopItem: (itemId: string) => "ok" | "sin-fondos" | "ya-propietario" | "escudo-lleno" | "item-desconocido";
   /** Equipa un marco o título ya comprado. */
   equipShopItem: (itemId: string) => void;
+  /** Desbloquea un juego del Salón con tinta. */
+  unlockArcade: (gameId: string) => "ok" | "sin-fondos" | "ya-desbloqueado" | "item-desconocido";
+  /** Registra la puntuación de una partida del Salón (XP + tinta + récord). */
+  recordArcadeScore: (gameId: string, score: number) => { xp: number; tinta: number; isRecord: boolean };
+  /** Actualiza el ELO de ajedrez tras una partida contra el motor. */
+  recordChessResult: (result: "w" | "d" | "l", engineElo: number) => void;
   resetAll: () => Promise<void>;
   /** Borra progreso (XP, niveles, logros, misiones, historial) conservando perfil y ajustes. */
   resetProgress: () => Promise<void>;
@@ -241,6 +248,27 @@ export const useGameStore = create<GameStore>((set, get) => {
 
     equipShopItem(itemId) {
       const core = applyEquip(get().core, itemId);
+      set({ core });
+      persist(true);
+    },
+
+    unlockArcade(gameId) {
+      const outcome = applyArcadeUnlock(get().core, gameId);
+      if (!outcome.ok || !outcome.core) return outcome.reason ?? "item-desconocido";
+      set({ core: outcome.core });
+      persist(true);
+      return "ok";
+    },
+
+    recordArcadeScore(gameId, score) {
+      const outcome = applyArcadeScore(get().core, gameId, score);
+      set({ core: outcome.core });
+      persist(true);
+      return { xp: outcome.xp, tinta: outcome.tinta, isRecord: outcome.isRecord };
+    },
+
+    recordChessResult(result, engineElo) {
+      const core = applyChessElo(get().core, result, engineElo);
       set({ core });
       persist(true);
     },

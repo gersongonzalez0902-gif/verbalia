@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "empleo",
+    "pos": "sustantivo",
+    "definition": "Oportunidad de trabajar y recibir remuneración.",
+    "example": "Encontré un empleo en la empresa tecnológica.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "presupuesto",
+    "pos": "sustantivo",
+    "definition": "Plan financiero de ingresos y gastos.",
+    "example": "Necesitamos ajustar el presupuesto familiar este mes.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "empleada",
+    "pos": "sustantivo",
+    "definition": "Mujer que trabaja por sueldo.",
+    "example": "La empleada doméstica ayuda con las tareas diarias.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "ahorrar",
+    "pos": "verbo",
+    "definition": "Dejar dinero sin gastar para el futuro.",
+    "example": "Es importante ahorrar para emergencias.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "comerciante",
+    "pos": "sustantivo",
+    "definition": "Persona que se dedica al comercio.",
+    "example": "El comerciante vendió todos sus productos.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "barrio",
+    "pos": "sustantivo",
+    "definition": "Zona urbana con características propias.",
+    "example": "Vivo en un barrio tranquilo cerca del centro.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "factura",
+    "pos": "sustantivo",
+    "definition": "Documento que detalla una venta.",
+    "example": "La factura del supermercado me sorprendió.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "gasto",
+    "pos": "sustantivo",
+    "definition": "Dinero que se gasta en algo.",
+    "example": "El gasto mensual incluye luz y agua.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "oficina",
+    "pos": "sustantivo",
+    "definition": "Lugar donde se realizan trabajos administrativos.",
+    "example": "Mi oficina está en el décimo piso del edificio.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "avenida",
+    "pos": "sustantivo",
+    "definition": "Calle ancha y importante en la ciudad.",
+    "example": "La avenida principal siempre está congestionada.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "inversión",
+    "pos": "sustantivo",
+    "definition": "Acto de poner dinero en algo para obtener beneficio.",
+    "example": "Hice una inversión segura en el mercado de valores.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "alquiler",
+    "pos": "sustantivo",
+    "definition": "Pago por usar algo temporalmente, como una vivienda.",
+    "example": "El alquiler del apartamento es bastante alto.",
+    "tags": ["economía doméstica"]
+  }
+]
+```

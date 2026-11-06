@@ -1,0 +1,58 @@
+[
+  {
+    "word": "apuntador",
+    "pos": "sustantivo",
+    "definition": "Persona que indica a los actores sus entradas y movimientos en escena.",
+    "example": "El apuntadorwhispered las indicaciones desde los laterales del escenario.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "entrada",
+    "pos": "sustantivo",
+    "definition": "Acceso a un lugar o boleto para asistir a un espectáculo.",
+    "example": "La entrada al teatro costaba veinte euros por persona.",
+    "tags": ["teatro", "eventos"]
+  },
+  {
+    "word": "fila",
+    "pos": "sustantivo",
+    "definition": "Línea de asientos o personas situadas una detrás de otra.",
+    "example": "Los espectadores se sentaron en la fila quinta del palco.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "butaca",
+    "pos": "sustantivo",
+    "definition": "Asiento individual con respaldo, común en teatros y cines.",
+    "example": "La butaca roja era mi lugar preferido en el teatro.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "palco",
+    "pos": "sustantivo",
+    "definition": "Zona elevada con asientos en un teatro, separada de la platea.",
+    "example": "Los actores recibieron los aplausos desde el palco.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "telón",
+    "pos": "sustantivo",
+    "definition": "Cortina grande que oculta o descubre el escenario en un teatro.",
+    "example": "El telón se abrió para revelar el escenario iluminado.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "bambalina",
+    "pos": "sustantivo",
+    "definition": "Lado del escenario no visible para el público, donde hay telones.",
+    "example": "Los actores esperaban en bambalina antes de entrar en escena.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "aplausos",
+    "pos": "sustantivo",
+    "definition": "Sonidos producidos al golpear las manos en señal de aprobación.",
+    "example": "Los aplausos llenaron el teatro al final del espectáculo.",
+    "tags": ["teatro"]
+  }
+]

@@ -1,0 +1,16 @@
+```json
+[
+  {"word":"trabajo","pos":"sustantivo","definition":"Actividad realizada a cambio de remuneración o para conseguir un objetivo.","example":"Mi trabajo consiste en atender a los clientes en la tienda.","tags":["trabajo"]},
+  {"word":"economía","pos":"sustantivo","definition":"Sistema o conjunto de actividades relacionadas con la producción y distribución de bienes.","example":"La economía del país está mejorando poco a poco.","tags":["economía doméstica"]},
+  {"word":"doméstico","pos":"adjetivo","definition":"Perteneciente o relativo al hogar o a la familia.","example":"Mis tareas domésticas incluyen limpiar y cocinar.","tags":["economía doméstica"]},
+  {"word":"comercio","pos":"sustantivo","definition":"Actividad económica que consiste en la compra y venta de bienes o servicios.","example":"El comercio local es muy importante para la comunidad.","tags":["comercio"]},
+  {"word":"oficina","pos":"sustantivo","definition":"Local o lugar donde se realizan trabajos administrativos o de gestión.","example":"Voy a la oficina cada día laborable de 9 a 5.","tags":["trabajo"]},
+  {"word":"sueldo","pos":"sustantivo","definition":"Remuneración periódica que se recibe por un trabajo.","example":"Con mi sueldo puedo pagar el alquiler y las facturas.","tags":["economía doméstica"]},
+  {"word":"negocio","pos":"sustantivo","definition":"Empresa o actividad comercial con fines de lucro.","example":"Mi padre tiene un negocio de reparación de coches.","tags":["comercio"]},
+  {"word":"empleo","pos":"sustantivo","definition":"Puesto de trabajo o actividad que se realiza a cambio de un salario.","example":"Estoy buscando un empleo en el sector de la tecnología.","tags":["trabajo"]},
+  {"word":"bolsillo","pos":"sustantivo","definition":"Pequeño espacio en una prenda de vestir para guardar objetos.","example":"Guardo mis llaves en el bolsillo de mi chaqueta.","tags":["economía doméstica"]},
+  {"word":"venta","pos":"sustantivo","definition":"Acto de vender algo o acción de comerciar.","example":"La venta de casas ha aumentado este año.","tags":["comercio"]},
+  {"word":"factura","pos":"sustantivo","definition":"Documento que detalla los productos o servicios prestados y su precio.","example":"La empresa me envió la factura por correo electrónico.","tags":["economía doméstica"]},
+  {"word":"empleada","pos":"sustantivo","definition":"Mujer que trabaja para otra persona o en una empresa.","example":"La empleada limpia las oficinas todos los días.","tags":["trabajo"]}
+]
+```

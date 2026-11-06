@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "salario",
+    "pos": "sustantivo",
+    "definition": "Remuneración económica por trabajo realizado",
+    "example": "Mi salario me permite cubrir los gastos mensuales de mi hogar.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "presupuesto",
+    "pos": "sustantivo",
+    "definition": "Plan detallado de ingresos y gastos",
+    "example": "Necesitamos ajustar el presupuesto para ahorrar más dinero.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "urbanización",
+    "pos": "sustantivo",
+    "definition": "Área residencial planificada con servicios",
+    "example": "Vivimos en una urbanización con jardín y piscina comunitaria.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "estantería",
+    "pos": "sustantivo",
+    "definition": "Estantes para almacenar objetos",
+    "example": "La estantería de la cocina está llena de alimentos enlatados.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "empleador",
+    "pos": "sustantivo",
+    "definition": "Persona o empresa que contrata trabajadores",
+    "example": "El empleador ofreció un contrato a tiempo completo.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "empleada",
+    "pos": "sustantivo",
+    "definition": "Mujer que trabaja para otra persona o empresa",
+    "example": "La empleada doméstica limpia la casa tres veces por semana.",
+    "tags": ["trabajo", "economía doméstica"]
+  },
+  {
+    "word": "comerciante",
+    "pos": "sustantivo",
+    "definition": "Persona que se dedica al comercio",
+    "example": "El comerciante del barrio abre su tienda temprano cada mañana.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "venta",
+    "pos": "sustantivo",
+    "definition": "Acto de vender algo",
+    "example": "La venta de mi coche me ayudó a pagar la deuda.",
+    "tags": ["comercio", "economía doméstica"]
+  },
+  {
+    "word": "negocio",
+    "pos": "sustantivo",
+    "definition": "Actividad comercial o empresa",
+    "example": "Mi padre tiene un pequeño negocio de reparaciones eléctricas.",
+    "tags": ["trabajo", "comercio"]
+  },
+  {
+    "word": "edificio",
+    "pos": "sustantivo",
+    "definition": "Construcción con varios niveles",
+    "example": "El edificio de oficinas está en el centro financiero de la ciudad.",
+    "tags": ["ciudad", "trabajo"]
+  },
+  {
+    "word": "tráfico",
+    "pos": "sustantivo",
+    "definition": "Intensidad de vehículos en una vía",
+    "example": "El tráfico de la mañana es muy denso en la avenida principal.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "empleo",
+    "pos": "sustantivo",
+    "definition": "Puesto de trabajo o actividad laboral",
+    "example": "Encontrar un empleo estable es mi objetivo principal este año.",
+    "tags": ["trabajo"]
+  }
+]
+```

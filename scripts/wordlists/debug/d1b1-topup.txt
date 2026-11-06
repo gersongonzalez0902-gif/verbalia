@@ -1,0 +1,172 @@
+```json
+[
+  {
+    "word": "atleta",
+    "pos": "sustantivo",
+    "definition": "Persona que practica un deporte de forma competitiva.",
+    "example": "El atleta entrenó todos los días para la maratón.",
+    "tags": ["deporte"]
+  },
+  {
+    "word": "equipo",
+    "pos": "sustantivo",
+    "definition": "Grupo de personas que juegan juntas en un deporte.",
+    "example": "Nuestro equipo de fútbol ganó el campeonato regional.",
+    "tags": ["deporte"]
+  },
+  {
+    "word": "partido",
+    "pos": "sustantivo",
+    "definition": "Competición deportiva entre dos equipos o personas.",
+    "example": "El partido de tenis se suspendió por la lluvia.",
+    "tags": ["deporte"]
+  },
+  {
+    "word": "entrenador",
+    "pos": "sustantivo",
+    "definition": "Persona que enseña y dirige a un deportista o equipo.",
+    "example": "El entrenador motivó a sus jugadores antes del partido.",
+    "tags": ["deporte"]
+  },
+  {
+    "word": "disciplina",
+    "pos": "sustantivo",
+    "definition": "Cualidad de ser ordenado y constante en el trabajo.",
+    "example": "La disciplina es clave para ser un buen deportista.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "respeto",
+    "pos": "sustantivo",
+    "definition": "Consideración y valoración hacia los demás.",
+    "example": "El respeto al rival es fundamental en el deporte.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "superación",
+    "pos": "sustantivo",
+    "definition": "Capacidad de mejorar y superar dificultades.",
+    "example": "La superación personal es el mayor premio en el deporte.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "trabajo",
+    "pos": "sustantivo",
+    "definition": "Esfuerzo y dedicación para alcanzar una meta.",
+    "example": "El trabajo en equipo nos ayudó a ganar el torneo.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "música",
+    "pos": "sustantivo",
+    "definition": "Arte de combinar sonidos para crear melodías.",
+    "example": "Me gusta escuchar música clásica para relajarme.",
+    "tags": ["música"]
+  },
+  {
+    "word": "instrumento",
+    "pos": "sustantivo",
+    "definition": "Objeto que se usa para crear música.",
+    "example": "Toco el piano en la orquesta de mi ciudad.",
+    "tags": ["música"]
+  },
+  {
+    "word": "ritmo",
+    "pos": "sustantivo",
+    "definition": "Secuencia regular de sonidos y silencios en la música.",
+    "example": "Esta canción tiene un ritmo muy pegadizo.",
+    "tags": ["música"]
+  },
+  {
+    "word": "melodía",
+    "pos": "sustantivo",
+    "definition": "Sucesión de sonidos armónicos y agradables.",
+    "example": "La melodía de esa canción es muy bonita.",
+    "tags": ["música"]
+  },
+  {
+    "word": "teatro",
+    "pos": "sustantivo",
+    "definition": "Arte de representar historias ante un público.",
+    "example": "Voy al teatro a ver la obra de este fin de semana.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "actor",
+    "pos": "sustantivo",
+    "definition": "Persona que interpreta un personaje en una obra.",
+    "example": "El actor recibió un aplauso tras su monólogo.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "representación",
+    "pos": "sustantivo",
+    "definition": "Puesta en escena de una obra de teatro.",
+    "example": "La representación duró dos horas sin interrupción.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "escenario",
+    "pos": "sustantivo",
+    "definition": "Lugar donde se representa una obra de teatro.",
+    "example": "Los actores entraron en el escenario con luces.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "habilidad",
+    "pos": "sustantivo",
+    "definition": "Capacidad para hacer algo bien.",
+    "example": "La habilidad del jugador de baloncesto impresionó.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "esfuerzo",
+    "pos": "sustantivo",
+    "definition": "Trabajo y dedicación para lograr algo.",
+    "example": "Su esfuerzo en el entrenamiento fue evidente.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "compañerismo",
+    "pos": "sustantivo",
+    "definition": "Apoyo y ayuda mutua entre miembros de un grupo.",
+    "example": "El compañerismo en el equipo era muy fuerte.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "afición",
+    "pos": "sustantivo",
+    "definition": "Interés y gusto por una actividad o equipo.",
+    "example": "La afión del estadio se hizo notar durante el partido.",
+    "tags": ["deporte"]
+  },
+  {
+    "word": "concentración",
+    "pos": "sustantivo",
+    "definition": "Atención completa en una tarea o actividad.",
+    "example": "La concentración del jugador fue clave para ganar.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "virtud",
+    "pos": "sustantivo",
+    "definition": "Cualidad moral excelente o positiva.",
+    "example": "La humildad es una gran virtud en un deportista.",
+    "tags": ["valores del deportista"]
+  },
+  {
+    "word": "coreografía",
+    "pos": "sustantivo",
+    "definition": "Composición de movimientos para una obra de teatro o danza.",
+    "example": "La coreografía del musical fue muy original.",
+    "tags": ["teatro"]
+  },
+  {
+    "word": "orquesta",
+    "pos": "sustantivo",
+    "definition": "Grupo de músicos que tocan juntos instrumentos.",
+    "example": "La orquesta interpretó una sinfonía magnífica.",
+    "tags": ["música"]
+  }
+]
+```

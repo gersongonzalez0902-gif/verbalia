@@ -7,17 +7,20 @@
  * El HUD superior muestra nivel, XP, racha y ajustes en pantallas clave.
  */
 
+import { useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { levelProgress } from "@/engine/xp";
 import { LevelBadge, StreakBadge, XpBar } from "@/components/game/widgets";
 import { AmbientBackdrop } from "@/components/game/ambient";
 import { OrnamentLayer } from "@/components/game/ornaments";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import {
   BookMarked,
   ChartColumn,
+  Gamepad2,
   Home,
   Library,
   ListChecks,
@@ -27,6 +30,7 @@ import {
   Settings,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   User,
 } from "lucide-react";
 import type { Screen } from "@/types";
@@ -39,12 +43,24 @@ const MOBILE_NAV: { screen: Screen; label: string; icon: React.ElementType }[] =
   { screen: { name: "profile" }, label: "Perfil", icon: User },
 ];
 
+/** Destinos extra disponibles en móvil a través del botón «Más» del muelle. */
+const MORE_NAV: { screen: Screen; label: string; hint: string; icon: React.ElementType }[] = [
+  { screen: { name: "stats" }, label: "Estadísticas", hint: "Gráficas, récords y evolución", icon: ChartColumn },
+  { screen: { name: "arcade" }, label: "Juegos educativos", hint: "Ajedrez, damas y 20 retos más", icon: Gamepad2 },
+  { screen: { name: "shop" }, label: "El Bazar del Copista", hint: "Gasta tu tinta en estilo", icon: ShoppingBag },
+  { screen: { name: "errors" }, label: "Cuaderno de errores", hint: "Repasa lo fallado", icon: NotebookPen },
+  { screen: { name: "music" }, label: "Estación de música", hint: "Tus canciones, tu viaje", icon: ListMusic },
+  { screen: { name: "library" }, label: "Biblioteca", hint: "Contenidos y hoja de ruta", icon: Library },
+  { screen: { name: "settings" }, label: "Ajustes", hint: "Tema, sonido y datos", icon: Settings },
+];
+
 const SIDEBAR_NAV: { section: string; items: { screen: Screen; label: string; icon: React.ElementType }[] }[] = [
   {
     section: "Aventura",
     items: [
       { screen: { name: "home" }, label: "Inicio", icon: Home },
       { screen: { name: "map" }, label: "Mapa del Archipiélago", icon: MapIcon },
+      { screen: { name: "arcade" }, label: "Juegos educativos", icon: Gamepad2 },
       { screen: { name: "missions" }, label: "Misiones y logros", icon: ListChecks },
       { screen: { name: "collection" }, label: "Colección de palabras", icon: BookMarked },
     ],
@@ -99,7 +115,11 @@ export function AppShell({
   const screen = useUiStore((s) => s.screen);
   const navigate = useUiStore((s) => s.navigate);
   const core = useGameStore((s) => s.core);
+  const [moreOpen, setMoreOpen] = useState(false);
   const { level, into, needed } = levelProgress(core.xp);
+
+  /** ¿Está abierta ahora una pantalla del menú «Más»? (píldora activa) */
+  const moreActive = MORE_NAV.some((m) => m.screen.name === screen.name);
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-background lg:flex-row">
@@ -183,11 +203,12 @@ export function AppShell({
 
       {/* ===== Muelle flotante (móvil) ===== */}
       {showChrome && (
+        <>
         <nav
           aria-label="Navegación principal"
           className="safe-bottom dock sticky bottom-3 z-40 mx-3 mb-3 lg:hidden"
         >
-          <ul className="grid grid-cols-5 items-center px-1.5 py-1.5">
+          <ul className="grid grid-cols-6 items-center px-1.5 py-1.5">
             {MOBILE_NAV.map((item) => {
               const Icon = item.icon;
               const active = isActive(screen, item.screen);
@@ -200,13 +221,13 @@ export function AppShell({
                     }}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "dock-item tap-target flex w-full flex-col items-center gap-0.5 rounded-2xl px-1 py-1.5 text-[10px] font-bold",
+                      "dock-item tap-target flex w-full flex-col items-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-bold",
                       active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     <span
                       className={cn(
-                        "flex h-8 w-14 items-center justify-center rounded-full transition-all duration-200",
+                        "flex h-8 w-12 items-center justify-center rounded-full transition-all duration-200",
                         active && "dock-pill",
                       )}
                       aria-hidden
@@ -218,8 +239,68 @@ export function AppShell({
                 </li>
               );
             })}
+            <li>
+              <button
+                onClick={() => { sfx.pop(); setMoreOpen(true); }}
+                aria-label="Más secciones: estadísticas, juegos, bazar, ajustes…"
+                aria-current={moreActive ? "page" : undefined}
+                className={cn(
+                  "dock-item tap-target flex w-full flex-col items-center gap-0.5 rounded-2xl px-0.5 py-1.5 text-[10px] font-bold",
+                  moreActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex h-8 w-12 items-center justify-center rounded-full transition-all duration-200",
+                    moreActive && "dock-pill",
+                  )}
+                  aria-hidden
+                >
+                  <Sparkles className={cn("h-5 w-5", moreActive && "scale-110 drop-shadow-sm")} />
+                </span>
+                <span className={cn(moreActive && "tracking-wide")}>Más</span>
+              </button>
+            </li>
           </ul>
         </nav>
+
+        {/* Hoja «Más»: estadísticas, juegos, bazar y demás rincones del Archipiélago */}
+        <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+          <SheetContent
+            side="bottom"
+            className="safe-bottom max-h-[78dvh] overflow-y-auto rounded-t-3xl px-4 pb-8 pt-4 sm:mx-auto sm:max-w-md"
+          >
+            <SheetHeader className="p-0 text-left">
+              <SheetTitle className="font-display text-lg font-bold">Más rincones del Archipiélago</SheetTitle>
+              <SheetDescription>Toda la aventura cabe en tu bolsillo.</SheetDescription>
+            </SheetHeader>
+            <div className="mt-3 grid grid-cols-2 gap-2.5">
+              {MORE_NAV.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      sfx.navigate();
+                      setMoreOpen(false);
+                      navigate(item.screen);
+                    }}
+                    className="tap-3d card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3.5 text-left"
+                  >
+                    <span className="chip-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-bold">{item.label}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">{item.hint}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </SheetContent>
+        </Sheet>
+        </>
       )}
     </div>
   );

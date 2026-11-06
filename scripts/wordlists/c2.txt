@@ -1,0 +1,173 @@
+litoral|B2
+insular|B2
+archipielago|B2
+cordillera|B2
+meseta|B2
+pampa|B2
+selva|B2
+pantano|B2
+esteros|B2
+humedal|B2
+estuario|B2
+afluente|B2
+cauce|B2
+ribera|B2
+orilla|B2
+acantilado|B2
+duna|B2
+arrecife|B2
+atolon|B2
+manglar|B2
+jungla|B2
+sabana|B2
+paramo|B2
+altiplano|B2
+volcan|B2
+geiser|B2
+crater|B2
+lava|B2
+ceniza|B2
+sismo|B2
+terremoto|B2
+epicentro|B2
+réplica sismica|B2
+marea viva|B2
+estiaje|B2
+sequia|B2
+inundacion|B2
+alud|B2
+derrumbe|B2
+incendio forestal|B2
+reforestacion|B2
+tala|B2
+deforestacion|B2
+biodiversidad|B2
+ecosistema|B2
+endemico|B2
+autóctono|B2
+especie invasora|B2
+fauna|B2
+flora|B2
+avifauna|B2
+mamifero|B2
+reptil|B2
+anfibio|B2
+insecto|B2
+polinizacion|B2
+migratorio|B2
+nidificar|B2
+camuflaje|B2
+depredador|B2
+presa|B2
+cadena trofica|B2
+mutualismo|B2
+simbiosis|B2
+parasito|B2
+ecosistema marino|B2
+plancton|B2
+arrecife coralino|B2
+estuario|B2
+manglar costero|B2
+sobrepesca|B2
+veda|B2
+acuicultura|B2
+gastronomia|B2
+cocina criolla|B2
+fusión gastronómica|B2
+puchero|B2
+locro|B2
+ceviche|B2
+anticucho|B2
+empanada|B2
+arepa|B2
+tortilla|B2
+tamal|B2
+mole|B2
+pozole|B2
+chile|B2
+ají|B2
+achiote|B2
+culantro|B2
+papaya|B2
+guanabana|B2
+mamey|B2
+zapote|B2
+lucuma|B2
+aguaymanto|B2
+pitahaya|B2
+maracuya|B2
+guayaba|B2
+jocote|B2
+nance|B2
+pixbae|B2
+burocracia|C1
+gremio|C1
+colegio profesional|C1
+sindicato|C1
+pacto|C1
+consenso|C1
+disenso|C1
+plebiscito|C1
+referendum|C1
+sufragio|C1
+escrutinio|C1
+coyuntura|C1
+partido|C1
+fraccion|C1
+bancada|C1
+legislatura|C1
+reglamento|C1
+jurisdiccion|C1
+titularidad|C1
+inamovilidad|C1
+amparo|C1
+indemnizacion|C1
+reparacion|C1
+restitucion|C1
+usurpacion|C1
+desalojo|C1
+censura|C1
+veto|C1
+destitucion|C1
+impunidad|C1
+transparencia|C1
+rendicion de cuentas|C1
+corrupcion|C1
+cohecho|C1
+prevaricato|C1
+malversacion|C1
+fraude fiscal|C1
+evasion|C1
+paraiso fiscal|C1
+cavidad|C2
+estuco|C2
+azulejo|C2
+balcon|C2
+barandal|C2
+zaguan|C2
+portalada|C2
+aljibe|C2
+acequia|C2
+noria|C2
+noray|C2
+malecon|C2
+paseo maritimo|C2
+veril|C2
+acantilado marino|C2
+espigon|C2
+rompeolas|C2
+dique|C2
+compuerta|C2
+atarazana|C2
+varadero|C2
+astillero|C2
+galeon|C2
+carabela|C2
+bergantin|C2
+fragata|C2
+goleta|C2
+chalana|C2
+lancha|C2
+falucho|C2
+balandra|C2
+cañonera|C2

@@ -1,0 +1,172 @@
+```json
+[
+  {
+    "word": "calafatear",
+    "pos": "verbo",
+    "definition": "Sellar las juntas de un barco con estopa y brea para impedir que entre agua.",
+    "example": "Los marineros calafateaban la cubierta antes de zarpar hacia el Caribe.",
+    "tags": ["marinería", "construcción naval"]
+  },
+  {
+    "word": "cimarrón",
+    "pos": "adjetivo",
+    "definition": "Dicho del viento o del mar, que es fuerte, torrencial y contrario.",
+    "example": "La tripulación se aferró a la borda durante el temporal cimarrón.",
+    "tags": ["marinería", "léxico culto de América"]
+  },
+  {
+    "word": "eslora",
+    "pos": "sustantivo",
+    "definition": "Longitud de una nave medida desde la proa hasta la popa.",
+    "example": "La eslora del galeón español superaba los cincuenta metros.",
+    "tags": ["construcción naval"]
+  },
+  {
+    "word": "jarcia",
+    "pos": "sustantivo",
+    "definition": "Conjunto de cuerdas o cabos que forman el aparejo de una embarcación.",
+    "example": "El marino experto conocía cada cabo de la jarcia como la palma de su mano.",
+    "tags": ["marinería"]
+  },
+  {
+    "word": "cabotaje",
+    "pos": "sustantivo",
+    "definition": "Navegación marítima que se efectúa entre puertos de un mismo país.",
+    "example": "El cabotaje fue fundamental para el comercio en la América colonial.",
+    "tags": ["marinería", "léxico culto de América"]
+  },
+  {
+    "word": "carena",
+    "pos": "sustantivo",
+    "definition": "Parte de la nave que está sumergida y forma su fondo exterior.",
+    "example": "Para inspeccionar la carena, se varó la embarcación en la playa.",
+    "tags": ["construcción naval"]
+  },
+  {
+    "word": "arribada",
+    "pos": "sustantivo",
+    "definition": "Llegada de una embarcación a un puerto o a la costa.",
+    "example": "La arribada del galeón fue un evento celebrado en toda la colonia.",
+    "tags": ["marinería", "léxico culto de América"]
+  },
+  {
+    "word": "proceloso",
+    "pos": "adjetivo",
+    "definition": "Dicho del mar, que está agitado y con grandes olas.",
+    "example": "El capitán decía que un mar proceloso no era obstáculo para su barco.",
+    "tags": ["marinería"]
+  },
+  {
+    "word": "timonel",
+    "pos": "sustantivo",
+    "definition": "Persona que tiene a su cargo la dirección de un barco.",
+    "example": "El timonel guió la nave con una pericia que admiraba a toda la tripulación.",
+    "tags": ["marinería"]
+  },
+  {
+    "word": "astillero",
+    "pos": "sustantivo",
+    "definition": "Lugar donde se construyen o reparan buques.",
+    "example": "El astillero de La Habana era uno de los más importantes del Nuevo Mundo.",
+    "tags": ["construcción naval", "léxico culto de América"]
+  },
+  {
+    "word": "bitácora",
+    "pos": "sustantivo",
+    "definition": "Libro donde se anotan los sucesos de un viaje marítimo.",
+    "example": "El capitán consignó en la bitácora el avistamiento de tierra nueva.",
+    "tags": ["marinería"]
+  },
+  {
+    "word": "quilate",
+    "pos": "sustantivo",
+    "definition": "Unidad de peso para las piedras preciosas y de pureza del oro.",
+    "example": "El almirante lucaba un medallón de oro de veintidós quilates.",
+    "tags": ["léxico culto de América"]
+  },
+  {
+    "word": "zalamera",
+    "pos": "adjetivo",
+    "definition": "Dicho de una embarcación, de poco calado y con cubierta alta.",
+    "example": "La pequeña lancha era de tipo zalamera, ideal para navegar por ríos.",
+    "tags": ["marinería", "construcción naval"]
+  },
+  {
+    "word": "mamparo",
+    "pos": "sustantivo",
+    "definition": "Tabique o tablón que divide los compartimentos de una embarcación.",
+    "example": "El impacto rompió varios mamparos, causando una inundación rápida.",
+    "tags": ["construcción naval"]
+  },
+  {
+    "word": "deslindar",
+    "pos": "verbo",
+    "definition": "Determinar los límites o fronteras de una propiedad o territorio.",
+    "example": "El ingeniero deslindó los terrenos que pertenecían a la corona.",
+    "tags": ["léxico culto de América"]
+  },
+  {
+    "word": "tertuliano",
+    "pos": "adjetivo",
+    "definition": "Dicho de una conversación o debate, que es animado y erudito.",
+    "example": "Las tertulianos en los cafés de Lima eran famosos por su ingenio.",
+    "tags": ["léxico culto de América"]
+  },
+  {
+    "word": "cabildo",
+    "pos": "sustantivo",
+    "definition": "Corporación municipal de las ciudades españolas y americanas.",
+    "example": "El cabildo de Buenos Aires decidió la independencia en 1810.",
+    "tags": ["léxico culto de América"]
+  },
+  {
+    "word": "grieta",
+    "pos": "sustantivo",
+    "definition": "Hendidura o fisura en una superficie, especialmente en la roca.",
+    "example": "Los marineros usaban la grieta de la roca como refugio temporal.",
+    "tags": ["marinería", "construcción naval"]
+  },
+  {
+    "word": "chimenea",
+    "pos": "sustantivo",
+    "definition": "Construcción vertical para evacuar el humo de una nave.",
+    "example": "La gran chimenea del vapor era visible desde muchos kilómetros de distancia.",
+    "tags": ["construcción naval"]
+  },
+  {
+    "word": "timonear",
+    "pos": "verbo",
+    "definition": "Conducir o dirigir una embarcación usando el timón.",
+    "example": "Timonear el barco en plena tormenta requería una fuerza de voluntad inquebrantable.",
+    "tags": ["marinería"]
+  },
+  {
+    "word": "selvático",
+    "pos": "adjetivo",
+    "definition": "Relativo a la selva o propio de ella.",
+    "example": "Los conquistadores se perdieron en las selváticas tierras de la Amazonía.",
+    "tags": ["léxico culto de América"]
+  },
+  {
+    "word": "arboladura",
+    "pos": "sustantivo",
+    "definition": "Conjunto de los palos, velas y cabos de un barco.",
+    "example": "La arboladura del navío de tres palos era imponente a la vista.",
+    "tags": ["marinería"]
+  },
+  {
+    "word": "parnimeo",
+    "pos": "adjetivo",
+    "definition": "Dicho de una voz o sonido, que es suave, dulce y agradable.",
+    "example": "El canto parnimeo del gallo rompió el silencio de la aldea.",
+    "tags": ["léxico culto de América"]
+  },
+  {
+    "word": "casco",
+    "pos": "sustantivo",
+    "definition": "Estructura principal de un buque, que le da su forma flotante.",
+    "example": "El casco del galeón estaba construido con maderas de primera calidad.",
+    "tags": ["construcción naval"]
+  }
+]
+```

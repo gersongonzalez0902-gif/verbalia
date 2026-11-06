@@ -1,0 +1,39 @@
+```json
+[
+  {
+    "word": "autobús",
+    "pos": "sustantivo",
+    "definition": "Vehículo público que transporta personas por calles o carreteras.",
+    "example": "Tomo el autobús todas las mañanas para ir al trabajo.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "tren",
+    "pos": "sustantivo",
+    "definition": "Vehículo que circula por vías férreas transportando pasajeros o mercancías.",
+    "example": "Viajamos en tren desde Madrid a Barcelona.",
+    "tags": ["transporte", "viaje"]
+  },
+  {
+    "word": "cabello",
+    "pos": "sustantivo",
+    "definition": "Pelo que crece en la cabeza de las personas.",
+    "example": "Me lavo el cabello todos los días por la mañana.",
+    "tags": ["cuerpo"]
+  },
+  {
+    "word": "doctor",
+    "pos": "sustantivo",
+    "definition": "Profesional de la medicina que cuida de la salud de las personas.",
+    "example": "El doctor me revisó y dijo que estoy sano.",
+    "tags": ["salud"]
+  },
+  {
+    "word": "cocina",
+    "pos": "sustantivo",
+    "definition": "Habitación del hogar donde se prepara la comida.",
+    "example": "Mi madre está cocinando en la cocina.",
+    "tags": ["hogar"]
+  }
+]
+```

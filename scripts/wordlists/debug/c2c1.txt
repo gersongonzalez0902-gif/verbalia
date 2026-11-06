@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "encomienda",
+    "pos": "sustantivo",
+    "definition": "Concesión de tierras y gente por parte de la corona española en América.",
+    "example": "Los colonizadores españoles recibieron una encomienda del rey.",
+    "tags": ["historia", "colonización"]
+  },
+  {
+    "word": "latifundio",
+    "pos": "sustantivo",
+    "definition": "Finca extensa de terreno cultivable, propiedad de una sola persona.",
+    "example": "En el sur de España abundan los grandes latifundios de olivares.",
+    "tags": ["agricultura", "economía"]
+  },
+  {
+    "word": "minifundio",
+    "pos": "sustantivo",
+    "definition": "Finca pequeña de tierra, generalmente con escasa productividad.",
+    "example": "Muchos campesinos trabajan en minifundios familiares.",
+    "tags": ["agricultura", "economía"]
+  },
+  {
+    "word": "vendimia",
+    "pos": "sustantivo",
+    "definition": "Época en que se recogen los racimos de uina para hacer vino.",
+    "example": "La vendimia suele comenzar en septiembre en la región.",
+    "tags": ["agricultura", "vino"]
+  },
+  {
+    "word": "cosecha",
+    "pos": "sustantivo",
+    "definition": "Recolección de los productos del campo cuando están maduros.",
+    "example": "La cosecha de trigo fue excelente este año.",
+    "tags": ["agricultura", "alimentos"]
+  },
+  {
+    "word": "trilla",
+    "pos": "sustantivo",
+    "definition": "Acción de separar el grano de la paja en la cosecha.",
+    "example": "En la antigüedad, la trilla se hacía con animales.",
+    "tags": ["agricultura", "tradiciones"]
+  },
+  {
+    "word": "tahona",
+    "pos": "sustantivo",
+    "definition": "Horno o lugar donde se hace pan a escala industrial.",
+    "example": "La tahona del pueblo hornea el pan desde hace siglos.",
+    "tags": ["panadería", "comida"]
+  },
+  {
+    "word": "chicha",
+    "pos": "sustantivo",
+    "definition": "Bebida fermentada hecha de maíz, muy popular en América.",
+    "example": "En algunos países, la chicha es parte de las festividades.",
+    "tags": ["bebida", "cultura"]
+  },
+  {
+    "word": "mate",
+    "pos": "sustantivo",
+    "definition": "Bebida tradicional del cono sur, preparada con hojas de yerba mate.",
+    "example": "En Argentina es común tomar mate con amigos por la tarde.",
+    "tags": ["bebida", "tradiciones"]
+  },
+  {
+    "word": "cacao",
+    "pos": "sustantivo",
+    "definition": "Semilla tropical que se usa para hacer chocolate.",
+    "example": "El chocolate de alta calidad contiene mucho cacao puro.",
+    "tags": ["alimentos", "planta"]
+  },
+  {
+    "word": "vainilla",
+    "pos": "sustantivo",
+    "definition": "Fruto de orquídea usado como saborizante dulce.",
+    "example": "La vainilla es uno de los sabores más apreciados en repostería.",
+    "tags": ["especias", "alimentos"]
+  },
+  {
+    "word": "mandioca",
+    "pos": "sustantivo",
+    "definition": "Planta tropical de raíz comestible, también llamada yuca.",
+    "example": "En muchos países tropicales, la mandioca es básica en la dieta.",
+    "tags": ["alimentos", "planta"]
+  }
+]
+```

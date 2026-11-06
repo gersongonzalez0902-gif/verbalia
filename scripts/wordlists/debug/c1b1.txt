@@ -1,0 +1,3 @@
+```json
+[{"word":"beca","pos":"sustantivo","definition":"Ayuda económica para estudiar o investigar","example":"Recibió una beca para estudiar en el extranjero","tags":["educación","economía"]}]
+```

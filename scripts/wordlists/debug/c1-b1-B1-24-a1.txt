@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "estadística",
+    "pos": "sustantivo",
+    "definition": "Colección y análisis de datos numéricos para estudiar fenómenos.",
+    "example": "La estadística nos muestra la evolución de las ventas en el último año.",
+    "tags": ["datos", "matemáticas"]
+  },
+  {
+    "word": "porcentaje",
+    "pos": "sustantivo",
+    "definition": "Cienava parte de una cantidad expresada con signo %.",
+    "example": "El IVA es un porcentaje que se suma al precio final del producto.",
+    "tags": ["matemáticas", "economía"]
+  },
+  {
+    "word": "promedio",
+    "pos": "sustantivo",
+    "definition": "Resultado de sumar varios valores y dividirlos entre su número.",
+    "example": "El promedio de notas en el examen fue de siete punto cinco.",
+    "tags": ["matemáticas", "educación"]
+  },
+  {
+    "word": "crecimiento",
+    "pos": "sustantivo",
+    "definition": "Aumento en tamaño, cantidad o importancia de algo.",
+    "example": "El crecimiento económico del país ha sido notable este año.",
+    "tags": ["economía", "desarrollo"]
+  },
+  {
+    "word": "crisis",
+    "pos": "sustantivo",
+    "definition": "Situación difícil o problemática que requiere solución urgente.",
+    "example": "La empresa atraviesa una crisis financiera desde el año pasado.",
+    "tags": ["economía", "problemas"]
+  },
+  {
+    "word": "impuesto",
+    "pos": "sustantivo",
+    "definition": "Contribución económica obligatoria que se paga al estado.",
+    "example": "El impuesto de la renta se paga anualmente según los ingresos.",
+    "tags": ["economía", "finanzas"]
+  },
+  {
+    "word": "tasa",
+    "pos": "sustantivo",
+    "definition": "Proporción o relación entre dos cantidades de diferente naturaleza.",
+    "example": "La tasa de interés determina el costo de pedir un préstamo.",
+    "tags": ["economía", "finanzas"]
+  },
+  {
+    "word": "exportar",
+    "pos": "verbo",
+    "definition": "Enviar productos o servicios a otro país para su venta.",
+    "example": "España exporta principalmente vino y aceite de oliva.",
+    "tags": ["economía", "comercio"]
+  },
+  {
+    "word": "importar",
+    "pos": "verbo",
+    "definition": "Comprar productos o servicios de otro país para su uso.",
+    "example": "La empresa importa materia prima de países asiáticos.",
+    "tags": ["economía", "comercio"]
+  },
+  {
+    "word": "mercancía",
+    "pos": "sustantivo",
+    "definition": "Bienes o productos que se transportan o venden.",
+    "example": "El barco transportaba mercancías valiosas hacia el puerto.",
+    "tags": ["comercio", "logística"]
+  },
+  {
+    "word": "almacén",
+    "pos": "sustantivo",
+    "definition": "Lugar donde se guardan mercancías o productos.",
+    "example": "Todos los productos nuevos llegaron al almacén principal.",
+    "tags": ["comercio", "logística"]
+  },
+  {
+    "word": "estantería",
+    "pos": "sustantivo",
+    "definition": "Mueble con estantes para guardar o exhibir objetos.",
+    "example": "Los libros están ordenados en la estantería del salón.",
+    "tags": ["hogar", "mobiliario"]
+  }
+]
+```

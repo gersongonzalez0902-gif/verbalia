@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "oficina",
+    "pos": "sustantivo",
+    "definition": "Lugar donde se realizan actividades administrativas y laborales.",
+    "example": "Todos los días voy a mi oficina a las nueve de la mañana.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "sueldo",
+    "pos": "sustantivo",
+    "definition": "Remuneración económica por el trabajo realizado.",
+    "example": "Con mi primer sueldo pude pagar el alquiler del piso.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "presupuesto",
+    "pos": "sustantivo",
+    "definition": "Plan detallado de ingresos y gastos de una familia o empresa.",
+    "example": "Este mes tenemos un presupuesto ajustado para ahorrar.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "factura",
+    "pos": "sustantivo",
+    "definition": "Documento que detalla una venta y el importe a pagar.",
+    "example": "El camarero me trajo la factura después de cenar.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "edificio",
+    "pos": "sustantivo",
+    "definition": "Construcción de varios pisos para viviendas o oficinas.",
+    "example": "Mi oficina está en un edificio céntrico de la ciudad.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "avenida",
+    "pos": "sustantivo",
+    "definition": "Calle ancha y importante de una ciudad.",
+    "example": "Para llegar al centro, debemos tomar la avenida principal.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "comerciante",
+    "pos": "sustantivo",
+    "definition": "Persona cuyo trabajo es vender productos o servicios.",
+    "example": "El comerciante abrió su nuevo local en la plaza.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "venta",
+    "pos": "sustantivo",
+    "definition": "Acto de vender o acción de entregar algo a cambio de dinero.",
+    "example": "La venta de entrantes comenzó a las diez de la mañana.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "empleada",
+    "pos": "sustantivo",
+    "definition": "Mujer que trabaja para otra persona o empresa.",
+    "example": "La empleada doméstica limpia la casa tres veces por semana.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "empleador",
+    "pos": "sustantivo",
+    "definition": "Persona que ofrece trabajo a otros.",
+    "example": "El empleador busca personal para su nuevo negocio.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "empleo",
+    "pos": "sustantivo",
+    "definition": "Trabajo remunerado que una persona desempeña.",
+    "example": "Estoy buscando un empleo con mejores condiciones.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "negocio",
+    "pos": "sustantivo",
+    "definition": "Actividad económica que se realiza para obtener beneficios.",
+    "example": "Mi padre tiene un pequeño negocio de alimentación.",
+    "tags": ["economía doméstica"]
+  }
+]
+```

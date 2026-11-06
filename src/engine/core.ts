@@ -83,6 +83,15 @@ export function createCore(now = Date.now()): GameCore {
     seenExercises: {},
     sessions: [],
     wallet: DEFAULT_WALLET(),
+    arcade: {
+      unlocked: [],
+      best: {},
+      plays: {},
+      playsByDay: {},
+      chessElo: 1200,
+      chessRecord: { w: 0, d: 0, l: 0 },
+      xpEarned: 0,
+    },
   };
 }
 

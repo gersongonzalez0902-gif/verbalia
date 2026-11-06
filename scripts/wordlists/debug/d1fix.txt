@@ -1,0 +1,81 @@
+```json
+[
+  {
+    "word": "boli",
+    "pos": "sustantivo",
+    "definition": "Bolígrafo, instrumento para escribir con tinta.",
+    "example": "El boli se me acabó en medio del examen.",
+    "tags": ["escritura", "utensilio"]
+  },
+  {
+    "word": "tiza",
+    "pos": "sustantivo",
+    "definition": "Barra de yeso para escribir en pizarra.",
+    "example": "El profesor borró la pizarra con una tiza.",
+    "tags": ["escritura", "educación"]
+  },
+  {
+    "word": "compás",
+    "pos": "sustantivo",
+    "definition": "Instrumento para trazar círculos y medir distancias.",
+    "example": "El arquitecto usó un compás para el diseño.",
+    "tags": ["instrumento", "dibujo"]
+  },
+  {
+    "word": "plastilina",
+    "pos": "sustantivo",
+    "definition": "Masa de arcilla blanda y moldeable.",
+    "example": "Los niños juegan con plastilina de colores.",
+    "tags": ["juguete", "manualidad"]
+  },
+  {
+    "word": "columpio",
+    "pos": "sustantivo",
+    "definition": "Asiento suspendido que oscila para jugar.",
+    "example": "Los niños se divierten en el columpio del parque.",
+    "tags": ["juego", "parque"]
+  },
+  {
+    "word": "tobogán",
+    "pos": "sustantivo",
+    "definition": "Rampa curva para deslizarse rápidamente.",
+    "example": "Los niños corren hacia el tobogán del parque.",
+    "tags": ["juego", "parque"]
+  },
+  {
+    "word": "pijama",
+    "pos": "sustantivo",
+    "definition": "Conjunto de ropa para dormir.",
+    "example": "Me pongo el pijama antes de dormir.",
+    "tags": ["ropa", "dormir"]
+  },
+  {
+    "word": "bata",
+    "pos": "sustantivo",
+    "definition": "Ropa holgada usada sobre la ropa normal.",
+    "example": "El médico lleva una bata blanca en el hospital.",
+    "tags": ["profesión", "ropa"]
+  },
+  {
+    "word": "chubasquero",
+    "pos": "sustantivo",
+    "definition": "Impermeable para protegerse de la lluvia.",
+    "example": "Lleva un chubasquero por si llueve.",
+    "tags": ["ropa", "clima"]
+  },
+  {
+    "word": "bañador",
+    "pos": "sustantivo",
+    "definition": "Traje de baño para nadar o tomar el sol.",
+    "example": "Me pongo el bañador para ir a la playa.",
+    "tags": ["ropa", "deporte"]
+  },
+  {
+    "word": "albornoz",
+    "pos": "sustantivo",
+    "definition": "Bata de baño hecha de toalla.",
+    "example": "Me cubro con el albornoz después de ducharme.",
+    "tags": ["ropa", "higiene"]
+  }
+]
+```

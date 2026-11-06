@@ -1,0 +1,16 @@
+```json
+[
+  {"word":"bolsillo","pos":"sustantivo","definition":"Abertura en la ropa para guardar objetos.","example":"Guardé las llaves en el bolsillo de mi pantalón.","tags":["ropa"]},
+  {"word":"manga","pos":"sustantivo","definition":"Parte de la prenda que cubre el brazo.","example":"Esta chaqueta tiene mangas largas muy cálidas.","tags":["ropa"]},
+  {"word":"cinturon","pos":"sustantivo","definition":"Tira de cuero o tela que se ajusta a la cintura.","example":"El cinturon de mi traje es de cuero genuino.","tags":["accesorio"]},
+  {"word":"zapato","pos":"sustantivo","definition":"Calzado que cubre el pie y el tobillo.","example":"Me compré unos zapatos nuevos para la boda.","tags":["calzado"]},
+  {"word":"zapatilla","pos":"sustantivo","definition":"Calzado blando y flexible, usado para deporte o descanso.","example":"Llevo zapatillas para correr por el parque.","tags":["calzado"]},
+  {"word":"camiseta","pos":"sustantivo","definition":"Prenda de manga corta que se viste sobre el torso.","example":"Esta camiseta es de algodón muy suave.","tags":["ropa"]},
+  {"word":"chaqueta","pos":"sustantivo","definition":"Prenda exterior que cubre el torso y los brazos.","example":"Ponéos chaquetas hace mucho frío afuera.","tags":["ropa"]},
+  {"word":"bufanda","pos":"sustantivo","definition":"Tira de tela larga que se usa alrededor del cuello.","example":"Me envolví la bufanda para no pasar frío.","tags":["accesorio"]},
+  {"word":"reembolso","pos":"sustantivo","definition":"Devolución de dinero por un gasto anterior.","example":"El reembolso del viaje lo hicieron en una semana.","tags":["dinero"]},
+  {"word":"queja","pos":"sustantivo","definition":"Expresión de insatisfacción o malestar.","example":"El cliente hizo una queja por el mal servicio.","tags":["emoción"]},
+  {"word":"sugerencia","pos":"sustantivo","definition":"Idea o propuesta que se presenta para consideración.","example":"Le hice una sugerencia para mejorar el trabajo.","tags":["comunicación"]},
+  {"word":"encuesta","pos":"sustantivo","definition":"Recopilación de opiniones mediante preguntas.","example":"Hicieron una encuesta sobre hábitos de consumo.","tags":["investigación"]}
+]
+```

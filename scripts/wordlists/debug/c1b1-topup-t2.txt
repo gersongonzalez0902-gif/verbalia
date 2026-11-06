@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "trabajo",
+    "pos": "sustantivo",
+    "definition": "Actividad realizada para producir algo o por un salario.",
+    "example": "Mi trabajo consiste en atender a los clientes de la tienda.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "economía",
+    "pos": "sustantivo",
+    "definition": "Sistema de producción, distribución y consumo de bienes y servicios.",
+    "example": "La economía del país está mejorando poco a poco.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "presupuesto",
+    "pos": "sustantivo",
+    "definition": "Plan detallado de ingresos y gastos para un período determinado.",
+    "example": "Necesito ajustar el presupuesto familiar para el mes que viene.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "factura",
+    "pos": "sustantivo",
+    "definition": "Documento que detalla los productos o servicios comprados y su precio.",
+    "example": "La empresa me envió la factura por los servicios de consultoría.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "barrio",
+    "pos": "sustantivo",
+    "definition": "Zona urbana con características propias dentro de una ciudad.",
+    "example": "Vivo en un barrio tranquilo, cerca del centro.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "avenida",
+    "pos": "sustantivo",
+    "definition": "Calle ancha y importante, a menudo con árboles a los lados.",
+    "example": "La avenida principal siempre está llena de tráfico en horas punta.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "comerciante",
+    "pos": "sustantivo",
+    "definition": "Persona cuyo trabajo es vender productos o servicios.",
+    "example": "El comerciante del mercado es muy amable y siempre da buen precio.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "venta",
+    "pos": "sustantivo",
+    "definition": "Acto de vender algo o el resultado de esta acción.",
+    "example": "La venta de casas ha aumentado este año en la ciudad.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "empleado",
+    "pos": "sustantivo",
+    "definition": "Persona que trabaja para otra o para una empresa a cambio de un salario.",
+    "example": "Mi hermano es empleado en una multinacional de tecnología.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "sueldo",
+    "pos": "sustantivo",
+    "definition": "Pago regular que recibe un trabajador por su labor.",
+    "example": "Con mi primer sueldo pude comprarme una bicicleta nueva.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "negocio",
+    "pos": "sustantivo",
+    "definition": "Actividad comercial o empresa con fines de lucro.",
+    "example": "Mis padres tienen un pequeño negocio de reparación de ordenadores.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "ahorrar",
+    "pos": "verbo",
+    "definition": "Dejar de gastar dinero para usarlo más adelante.",
+    "example": "Es importante ahorrar cada mes para imprevistos.",
+    "tags": ["economía doméstica"]
+  }
+]
+```

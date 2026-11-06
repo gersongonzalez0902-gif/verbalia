@@ -1,0 +1,172 @@
+```json
+[
+  {
+    "word": "autobús",
+    "pos": "sustantivo",
+    "definition": "Vehículo de transporte público urbano.",
+    "example": "Tomo el autobús para ir al centro cada mañana.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "zapato",
+    "pos": "sustantivo",
+    "definition": "Calzado que se usa en los pies.",
+    "example": "Llevo zapatos negros para la entrevista.",
+    "tags": ["ropa"]
+  },
+  {
+    "word": "gato",
+    "pos": "sustantivo",
+    "definition": "Animal doméstico de cuatro patas.",
+    "example": "Mi vecino tiene un gato muy juguetón.",
+    "tags": ["animales"]
+  },
+  {
+    "word": "mesa",
+    "pos": "sustantivo",
+    "definition": "Mueble plano con patas para poner cosas.",
+    "example": "Comemos en la mesa de la cocina.",
+    "tags": ["objetos cotidianos"]
+  },
+  {
+    "word": "tren",
+    "pos": "sustantivo",
+    "definition": "Vehículo que circula por vías férreas.",
+    "example": "El tren es más rápido que el coche.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "camisa",
+    "pos": "sustantivo",
+    "definition": "Prenda de vestir para el torso.",
+    "example": "Me pongo una camisa azul para trabajar.",
+    "tags": ["ropa"]
+  },
+  {
+    "word": "pájaro",
+    "pos": "sustantivo",
+    "definition": "Animal que vuela y tiene plumas.",
+    "example": "El pájaro canta en el árbol.",
+    "tags": ["animales"]
+  },
+  {
+    "word": "silla",
+    "pos": "sustantivo",
+    "definition": "Asiento para una persona con respaldo.",
+    "example": "Me siento en la silla del jardín.",
+    "tags": ["objetos cotidianos"]
+  },
+  {
+    "word": "taxi",
+    "pos": "sustantivo",
+    "definition": "Automóvil de alquiler con conductor.",
+    "example": "Tomo un taxi para llegar al aeropuerto.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "sombrero",
+    "pos": "sustantivo",
+    "definition": "Prenda para la cabeza que protege del sol.",
+    "example": "Llevo un sombrero en la playa.",
+    "tags": ["ropa"]
+  },
+  {
+    "word": "pez",
+    "pos": "sustantivo",
+    "definition": "Animal que vive en el agua.",
+    "example": "En el acuario hay muchos peces.",
+    "tags": ["animales"]
+  },
+  {
+    "word": "llave",
+    "pos": "sustantivo",
+    "definition": "Objeto para abrir cerraduras.",
+    "example": "La llave está en la mesa del recibidor.",
+    "tags": ["objetos cotidianos"]
+  },
+  {
+    "word": "moto",
+    "pos": "sustantivo",
+    "definition": "Motocicleta vehículo de dos ruedas.",
+    "example": "Mi hermano tiene una moto nueva.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "pantalón",
+    "pos": "sustantivo",
+    "definition": "Prenda de vestir para las piernas.",
+    "example": "Me compro un pantalón de mezclilla.",
+    "tags": ["ropa"]
+  },
+  {
+    "word": "vaca",
+    "pos": "sustantivo",
+    "definition": "Animal doméstico que da leche.",
+    "example": "La vaca come hierba en el campo.",
+    "tags": ["animales"]
+  },
+  {
+    "word": "cuchara",
+    "pos": "sustantivo",
+    "definition": "Utensilio para comer o cocinar.",
+    "example": "Mezclo la sopa con una cuchara.",
+    "tags": ["objetos cotidianos"]
+  },
+  {
+    "word": "metro",
+    "pos": "sustantivo",
+    "definition": "Transporte subterráneo urbano.",
+    "example": "Voy al trabajo en metro.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "bufanda",
+    "pos": "sustantivo",
+    "definition": "Prenda de tela para el cuello.",
+    "example": "Me pongo una bufanda en invierno.",
+    "tags": ["ropa"]
+  },
+  {
+    "word": "conejo",
+    "pos": "sustantivo",
+    "definition": "Animal pequeño con orejas largas.",
+    "example": "Mi primo tiene un conejo como mascota.",
+    "tags": ["animales"]
+  },
+  {
+    "word": "plato",
+    "pos": "sustantivo",
+    "definition": "Recipiente para comer o servir comida.",
+    "example": "Lavo los platos después de cenar.",
+    "tags": ["objetos cotidianos"]
+  },
+  {
+    "word": "bicicleta",
+    "pos": "sustantivo",
+    "definition": "Vehículo de dos ruedas con pedales.",
+    "example": "Voy al trabajo en bicicleta.",
+    "tags": ["transporte"]
+  },
+  {
+    "word": "vestido",
+    "pos": "sustantivo",
+    "definition": "Prenda de vestir para el cuerpo.",
+    "example": "Mi madre lleva un vestido rojo.",
+    "tags": ["ropa"]
+  },
+  {
+    "word": "ave",
+    "pos": "sustantivo",
+    "definition": "Animal con plumas que vuela.",
+    "example": "El pájaro es un tipo de ave.",
+    "tags": ["animales"]
+  },
+  {
+    "word": "cuchillo",
+    "pos": "sustantivo",
+    "definition": "Utensilio con hoja cortante.",
+    "example": "Corto el pan con un cuchillo.",
+    "tags": ["objetos cotidianos"]
+  }
+]
+```

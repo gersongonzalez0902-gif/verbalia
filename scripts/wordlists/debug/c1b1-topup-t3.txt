@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "trabajo",
+    "pos": "sustantivo",
+    "definition": "Actividad realizada a cambio de remuneración o para lograr un objetivo.",
+    "example": "Mi trabajo consiste en atender a los clientes de la tienda.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "economía",
+    "pos": "sustantivo",
+    "definition": "Sistema de producción, distribución y consumo de bienes y servicios.",
+    "example": "La economía del país está mejorando poco a poco.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "presupuesto",
+    "pos": "sustantivo",
+    "definition": "Plan detallado de ingresos y gastos para un período determinado.",
+    "example": "Necesito hacer un presupuesto mensual para controlar mis gastos.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "factura",
+    "pos": "sustantivo",
+    "definition": "Documento que detalla los bienes o servicios prestados y su coste.",
+    "example": "El restaurante me dio una factura por la cena.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "empleo",
+    "pos": "sustantivo",
+    "definition": "Puesto de trabajo o situación laboral de una persona.",
+    "example": "Estoy buscando un empleo que me permita crecer profesionalmente.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "negocio",
+    "pos": "sustantivo",
+    "definition": "Actividad económica orientada a la obtención de beneficios.",
+    "example": "Mis padres tienen un pequeño negocio de reparaciones.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "bolsillo",
+    "pos": "sustantivo",
+    "definition": "Parte de una prenda donde se guardan objetos pequeños.",
+    "example": "Guardé mis llaves en el bolsillo de mi chaqueta.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "edificio",
+    "pos": "sustantivo",
+    "definition": "Construcción de varios pisos destinada a viviendas u oficinas.",
+    "example": "Vivo en un edificio céntrico, cerca de mi trabajo.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "empleada",
+    "pos": "sustantivo",
+    "definition": "Mujer que trabaja para otra persona o empresa a cambio de un sueldo.",
+    "example": "La empleada doméstica limpia la casa tres veces por semana.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "venta",
+    "pos": "sustantivo",
+    "definition": "Acto de entregar un bien a cambio de dinero.",
+    "example": "La venta de mi coche me permitió pagar las deudas.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "empleador",
+    "pos": "sustantivo",
+    "definition": "Persona o empresa que contrata a un trabajador.",
+    "example": "El empleador ofrece buenos beneficios a sus empleados.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "comerciante",
+    "pos": "sustantivo",
+    "definition": "Persona cuyo oficio es comprar y vender productos.",
+    "example": "El comerciante abrió su tienda a las nueve de la mañana.",
+    "tags": ["comercio"]
+  }
+]
+```

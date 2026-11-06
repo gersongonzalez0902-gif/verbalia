@@ -1,0 +1,60 @@
+```json
+[
+  {
+    "word": "arcilla",
+    "pos": "sustantivo",
+    "definition": "Tierna roca de minerales que se usa para hacer cerámica.",
+    "example": "El alfarero amasa la arcilla con sus manos para crear una vasija.",
+    "tags": ["geología", "arte"]
+  },
+  {
+    "word": "basalto",
+    "pos": "sustantivo",
+    "definition": "Roca volcánica oscura y densa rica en hierro.",
+    "example": "Las columnas de basalto forman la costa de la isla de Staffa.",
+    "tags": ["geología", "roca"]
+  },
+  {
+    "word": "cuarcita",
+    "pos": "sustantivo",
+    "definition": "Roca dura formada por cuarzo cementado.",
+    "example": "La cuarcita es resistente y se usa para construcción de paredes.",
+    "tags": ["geología", "roca"]
+  },
+  {
+    "word": "granito",
+    "pos": "sustantivo",
+    "definition": "Roca ígrea cristalina con cuarzo, feldespato y mica.",
+    "example": "Las mesas de cocina a menudo están hechas de granito pulido.",
+    "tags": ["geología", "roca"]
+  },
+  {
+    "word": "sedimento",
+    "pos": "sustantivo",
+    "definition": "Material acumulado por agua, viento o hielo.",
+    "example": "Los sedimentos transportados por el río forman un delta.",
+    "tags": ["geología", "naturaleza"]
+  },
+  {
+    "word": "erosionar",
+    "pos": "verbo",
+    "definition": "Desgastar o corroer la superficie por agentes naturales.",
+    "example": "El viento erosionó lentamente la roca durante milenios.",
+    "tags": ["geología", "proceso"]
+  },
+  {
+    "word": "socavón",
+    "pos": "sustantivo",
+    "definition": "Hueco o cavidad formada por erosión o excavación.",
+    "example": "El socavón en la carretera peligroso para los conductores.",
+    "tags": ["geología", "accidente"]
+  },
+  {
+    "word": "gruta",
+    "pos": "sustantivo",
+    "definition": "Cavidad natural en el terreno, generalmente pequeña.",
+    "example": "Los exploradores descubrieron una gruta con pinturas rupestres.",
+    "tags": ["geología", "naturaleza"]
+  }
+]
+```

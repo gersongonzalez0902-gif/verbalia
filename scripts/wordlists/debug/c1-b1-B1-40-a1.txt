@@ -1,0 +1,144 @@
+```json
+[
+  {
+    "word": "guante",
+    "pos": "sustantivo",
+    "definition": "Prenda para cubrir la mano, separando los dedos.",
+    "example": "Me compré unos guantes de cuero para el invierno.",
+    "tags": ["ropa", "accesorio"]
+  },
+  {
+    "word": "paraguas",
+    "pos": "sustantivo",
+    "definition": "Artefacto para proteger de la lluvia.",
+    "example": "Lleva un paraguas porque va a llover.",
+    "tags": ["clima", "objetos"]
+  },
+  {
+    "word": "bolso",
+    "pos": "sustantivo",
+    "definition": "Bolsa con asa para llevar objetos personales.",
+    "example": "Llevaba un bolso de mano elegante.",
+    "tags": ["moda", "accesorio"]
+  },
+  {
+    "word": "cartera",
+    "pos": "sustantivo",
+    "definition": "Bolsa pequeña para llevar dinero y documentos.",
+    "example": "Guardó su cartera en el bolso.",
+    "tags": ["dinero", "objetos"]
+  },
+  {
+    "word": "moneda",
+    "pos": "sustantivo",
+    "definition": "Pieza metálica de valor para transacciones.",
+    "example": "La moneda de un euro tiene dos caras.",
+    "tags": ["dinero", "objetos"]
+  },
+  {
+    "word": "propina",
+    "pos": "sustantivo",
+    "definition": "Dinero extra dado como agradecimiento.",
+    "example": "Dejé una propina al camarero por su servicio.",
+    "tags": ["dinero", "servicio"]
+  },
+  {
+    "word": "gasto",
+    "pos": "sustantivo",
+    "definition": "Dinero utilizado en comprar algo.",
+    "example": "Mis gastos mensuales son muy altos.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "ahorrar",
+    "pos": "verbo",
+    "definition": "Guardar dinero para usarlo en el futuro.",
+    "example": "Ella ahorra cada mes para comprar una casa.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "ingreso",
+    "pos": "sustantivo",
+    "definition": "Dinero que se recibe o gana.",
+    "example": "Mis ingresos provienen de mi trabajo.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "prestamo",
+    "pos": "sustantivo",
+    "definition": "Cantidad de dinero que se pide y se devuelve.",
+    "example": "Pedí un préstamo para comprar un coche.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "deuda",
+    "pos": "sustantivo",
+    "definition": "Cantidad de dinero que se debe pagar.",
+    "example": "Tengo una deuda con mi amigo.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "entidad",
+    "pos": "sustantivo",
+    "definition": "Organización o institución financiera.",
+    "example": "La entidad bancaria está cerca de mi casa.",
+    "tags": ["finanzas", "organización"]
+  },
+  {
+    "word": "sucursal",
+    "pos": "sustantivo",
+    "definition": "Sucursal de una empresa o banco.",
+    "example": "Voy a la sucursal del banco a hacer un trámite.",
+    "tags": ["finanzas", "lugar"]
+  },
+  {
+    "word": "ventanilla",
+    "pos": "sustantivo",
+    "definition": "Hueco en mostrador para atención al público.",
+    "example": "Fui a la ventanilla para retirar dinero.",
+    "tags": ["finanzas", "lugar"]
+  },
+  {
+    "word": "saldo",
+    "pos": "sustantivo",
+    "definition": "Cantidad de dinero disponible en una cuenta.",
+    "example": "Mi saldo bancario es muy bajo.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "transferencia",
+    "pos": "sustantivo",
+    "definition": "Movimiento de dinero entre cuentas.",
+    "example": "Hice una transferencia a mi cuenta corriente.",
+    "tags": ["dinero", "finanzas"]
+  },
+  {
+    "word": "justificante",
+    "pos": "sustantivo",
+    "definition": "Documento que prueba una operación.",
+    "example": "Necesito el justificante del pago.",
+    "tags": ["documentos", "finanzas"]
+  },
+  {
+    "word": "garantia",
+    "pos": "sustantivo",
+    "definition": "Seguridad o respaldo para algo.",
+    "example": "El coche tiene dos años de garantía.",
+    "tags": ["seguridad", "compra"]
+  },
+  {
+    "word": "reclamacion",
+    "pos": "sustantivo",
+    "definition": "Queja formal por algo insatisfactorio.",
+    "example": "Presenté una reclamación por el servicio.",
+    "tags": ["servicio", "queja"]
+  },
+  {
+    "word": "devolucion",
+    "pos": "sustantivo",
+    "definition": "Acto de devolver algo comprado.",
+    "example": "La devolución del producto fue fácil.",
+    "tags": ["compra", "servicio"]
+  }
+]
+```

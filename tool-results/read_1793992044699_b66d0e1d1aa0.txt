@@ -1,0 +1,610 @@
+     1→"use client";
+     2→
+     3→/**
+     4→ * Perfil del jugador 2.0 · Estilo ficha de navegante (Discord-like):
+     5→ * banner personalizable, foto con predeterminada, bio, rango con género,
+     6→ * habilidades (las 7 ciudades), insignias con tiers y gestión de datos.
+     7→ */
+     8→
+     9→import { createElement, useRef, useState } from "react";
+    10→import { useGameStore } from "@/store/game-store";
+    11→import { useUiStore } from "@/store/ui-store";
+    12→import { ScreenHeader } from "@/components/game/app-shell";
+    13→import { levelProgress, rankForLevel, rankName, cefrFromSkill, skillMasteryLabel } from "@/engine/xp";
+    14→import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
+    15→import { ACHIEVEMENTS } from "@/data/achievements";
+    16→import { FRAMES, frameCss, titleText } from "@/engine/shop";
+    17→import { LevelBadge, XpBar, ProgressRing } from "@/components/game/widgets";
+    18→import { getIcon } from "@/components/game/icons";
+    19→import { LexicoMascot } from "@/components/game/lexico";
+    20→import { resizeImageFile } from "@/lib/image-tools";
+    21→import { Button } from "@/components/ui/button";
+    22→import { Input } from "@/components/ui/input";
+    23→import { Textarea } from "@/components/ui/textarea";
+    24→import {
+    25→  AlertDialog,
+    26→  AlertDialogAction,
+    27→  AlertDialogCancel,
+    28→  AlertDialogContent,
+    29→  AlertDialogDescription,
+    30→  AlertDialogFooter,
+    31→  AlertDialogHeader,
+    32→  AlertDialogTitle,
+    33→  AlertDialogTrigger,
+    34→} from "@/components/ui/alert-dialog";
+    35→import { useToast } from "@/hooks/use-toast";
+    36→import { sfx } from "@/services/audio";
+    37→import { cn } from "@/lib/utils";
+    38→import type { AchievementDef } from "@/types";
+    39→import { formatPlaytime } from "@/lib/format-time";
+    40→import {
+    41→  Camera,
+    42→  Check,
+    43→  Droplets,
+    44→  Image as ImageIcon,
+    45→  Lock,
+    46→  PenLine,
+    47→  Star,
+    48→  Trash2,
+    49→  X,
+    50→} from "lucide-react";
+    51→
+    52→/** Banners predefinidos: gradientes del propio sistema de temas. */
+    53→const BANNER_PRESETS: { id: string; label: string; css: string }[] = [
+    54→  { id: "aurora", label: "Aurora", css: "linear-gradient(135deg, oklch(0.55 0.17 285), oklch(0.72 0.13 210) 60%, oklch(0.82 0.13 85))" },
+    55→  { id: "coral", label: "Coral", css: "linear-gradient(135deg, oklch(0.6 0.17 25), oklch(0.75 0.13 50) 70%, oklch(0.9 0.08 85))" },
+    56→  { id: "miel", label: "Miel", css: "linear-gradient(135deg, oklch(0.7 0.14 70), oklch(0.82 0.13 90) 55%, oklch(0.95 0.05 95))" },
+    57→  { id: "lavanda", label: "Lavanda", css: "linear-gradient(135deg, oklch(0.5 0.16 305), oklch(0.7 0.13 280) 65%, oklch(0.88 0.08 320))" },
+    58→  { id: "oceano", label: "Océano", css: "linear-gradient(135deg, oklch(0.4 0.11 250), oklch(0.6 0.11 215) 60%, oklch(0.85 0.09 195))" },
+    59→  { id: "marea", label: "Marea", css: "linear-gradient(135deg, oklch(0.45 0.1 160), oklch(0.62 0.12 200) 55%, oklch(0.85 0.1 85))" },
+    60→  { id: "biblioteca", label: "Biblioteca", css: "linear-gradient(135deg, oklch(0.35 0.07 60), oklch(0.5 0.09 40) 55%, oklch(0.82 0.12 85))" },
+    61→  { id: "observatorio", label: "Observatorio", css: "linear-gradient(160deg, oklch(0.25 0.05 285), oklch(0.45 0.12 290) 60%, oklch(0.85 0.13 85))" },
+    62→];
+    63→
+    64→/** Nivel de insignia según recompensa: bronce / plata / oro / platino. */
+    65→function badgeTier(xpReward: number): { label: string; from: string; to: string } {
+    66→  if (xpReward >= 150) return { label: "Platino", from: "oklch(0.85 0.06 240)", to: "oklch(0.95 0.03 240)" };
+    67→  if (xpReward >= 100) return { label: "Oro", from: "oklch(0.75 0.15 85)", to: "oklch(0.88 0.12 95)" };
+    68→  if (xpReward >= 50) return { label: "Plata", from: "oklch(0.62 0.05 250)", to: "oklch(0.82 0.03 250)" };
+    69→  return { label: "Bronce", from: "oklch(0.55 0.09 55)", to: "oklch(0.72 0.09 65)" };
+    70→}
+    71→
+    72→export function ProfileScreen() {
+    73→  const { profile, core, srs, updateProfile, resetAll, resetProgress, resetSrs, exportJson, importJson } = useGameStore();
+    74→  const navigate = useUiStore((s) => s.navigate);
+    75→  const { toast } = useToast();
+    76→  const [editing, setEditing] = useState(false);
+    77→  const [nameDraft, setNameDraft] = useState(profile.name);
+    78→  const [bioDraft, setBioDraft] = useState(profile.bio);
+    79→  const photoRef = useRef<HTMLInputElement>(null);
+    80→  const bannerRef = useRef<HTMLInputElement>(null);
+    81→  const importRef = useRef<HTMLInputElement>(null);
+    82→  const [bannerPicker, setBannerPicker] = useState(false);
+    83→
+    84→  const { level, into, needed } = levelProgress(core.xp);
+    85→  const rank = rankForLevel(level);
+    86→  const unlockedCount = Object.keys(core.achievements).length;
+    87→  const wordsLearned = Object.values(srs).filter((c) => c.reps >= 2).length;
+    88→  const wordsMastered = Object.values(srs).filter((c) => c.state === "review" && c.intervalDays >= 21).length;
+    89→  const totalWords = Object.keys(srs).length || 1;
+    90→
+    91→  const saveIdentity = () => {
+    92→    updateProfile({ name: nameDraft.trim() || profile.name, bio: bioDraft.slice(0, 160) });
+    93→    setEditing(false);
+    94→    sfx.pop();
+    95→    toast({ title: "Perfil actualizado", description: "La bitácora ya luce tus cambios." });
+    96→  };
+    97→
+    98→  const doExport = () => {
+    99→    const json = exportJson();
+   100→    if (!json) return;
+   101→    const blob = new Blob([json], { type: "application/json" });
+   102→    const url = URL.createObjectURL(blob);
+   103→    const a = document.createElement("a");
+   104→    a.href = url;
+   105→    a.download = `verbalia-backup-${new Date().toISOString().slice(0, 10)}.json`;
+   106→    a.click();
+   107→    URL.revokeObjectURL(url);
+   108→    toast({ title: "Copia exportada", description: "Archivo JSON descargado con todo tu progreso." });
+   109→  };
+   110→
+   111→  const doImport = async (file: File) => {
+   112→    const text = await file.text();
+   113→    const ok = await importJson(text);
+   114→    toast({
+   115→      title: ok ? "Copia restaurada" : "Archivo no válido",
+   116→      description: ok
+   117→        ? "Tu progreso importado se ha cargado."
+   118→        : "No hemos podido leer esa copia. Comprueba que es una exportación de VerbalIA.",
+   119→      variant: ok ? undefined : "destructive",
+   120→    });
+   121→  };
+   122→
+   123→  const onPhotoPicked = async (file: File) => {
+   124→    try {
+   125→      const dataUrl = await resizeImageFile(file, 256, 256);
+   126→      updateProfile({ photo: dataUrl });
+   127→      sfx.pop();
+   128→      toast({ title: "Foto actualizada", description: "Tu rostro ya viaja en la bitácora (solo en este dispositivo)." });
+   129→    } catch {
+   130→      toast({ title: "No se pudo cargar la imagen", variant: "destructive" });
+   131→    }
+   132→  };
+   133→
+   134→  const onBannerPicked = async (file: File) => {
+   135→    try {
+   136→      const dataUrl = await resizeImageFile(file, 1200, 400, 0.82);
+   137→      updateProfile({ banner: dataUrl });
+   138→      setBannerPicker(false);
+   139→      sfx.pop();
+   140→    } catch {
+   141→      toast({ title: "No se pudo cargar el banner", variant: "destructive" });
+   142→    }
+   143→  };
+   144→
+   145→  // Guard defensivo: un dato corrupto o muy antiguo nunca debe romper la ficha.
+   146→  const bannerId = typeof profile.banner === "string" && profile.banner
+   147→    ? profile.banner
+   148→    : "preset:aurora";
+   149→  const bannerCss = (() => {
+   150→    if (bannerId.startsWith("data:")) return undefined;
+   151→    const preset = BANNER_PRESETS.find((b) => b.id === bannerId.replace("preset:", "")) ?? BANNER_PRESETS[0];
+   152→    return { background: preset.css };
+   153→  })();
+   154→  const isCustomBanner = bannerId.startsWith("data:");
+   155→
+   156→  const memberSince = new Date(profile.createdAt).toLocaleDateString("es-ES", {
+   157→    month: "long",
+   158→    year: "numeric",
+   159→  });
+   160→
+   161→  const allSkills = ["vocabulario", "gramatica", "ortografia", "lectura", "audicion", "expresion", "cultura"] as const;
+   162→
+   163→  // Cosméticos equipados (Etapa 4): marco y título del Bazar.
+   164→  const equipFrameCss = frameCss(core.wallet?.frame ?? "frame-none");
+   165→  const equipTitle = titleText(core.wallet?.title ?? "title-none");
+   166→  const tintaTotal = (core.wallet?.tinta ?? 0) + (core.wallet?.spent ?? 0);
+   167→  const featured = ACHIEVEMENTS.find((a) => a.id === profile.featuredBadge && core.achievements[a.id]);
+   168→  const toggleFeatured = (id: string) => {
+   169→    updateProfile({ featuredBadge: profile.featuredBadge === id ? "" : id });
+   170→    sfx.pop();
+   171→  };
+   172→
+   173→  return (
+   174→    <div>
+   175→      <ScreenHeader
+   176→        title="Perfil del navegante"
+   177→        backTo={{ name: "home" }}
+   178→        right={
+   179→          <Button
+   180→            variant="ghost"
+   181→            size="sm"
+   182→            className="font-bold"
+   183→            onClick={() => { sfx.click(); setEditing(!editing); setNameDraft(profile.name); setBioDraft(profile.bio); }}
+   184→          >
+   185→            <PenLine className="mr-1.5 h-4 w-4" aria-hidden />
+   186→            {editing ? "Cancelar" : "Editar"}
+   187→          </Button>
+   188→        }
+   189→      />
+   190→
+   191→      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+   192→        {/* ===== Banner estilo ficha ===== */}
+   193→        <section className="card-aurora relative mt-4 overflow-hidden rounded-3xl border">
+   194→          <div
+   195→            className="relative h-32 sm:h-40"
+   196→            style={bannerCss}
+   197→            role="img"
+   198→            aria-label={isCustomBanner ? "Banner personalizado" : `Banner ${bannerId.replace("preset:", "")}`}
+   199→          >
+   200→            {isCustomBanner && (
+   201→              <img src={bannerId} alt="" className="h-full w-full object-cover" />
+   202→            )}
+   203→            <span className="anim-twinkle absolute right-3 top-3 text-xl opacity-70" aria-hidden>✦</span>
+   204→            <button
+   205→              onClick={() => { sfx.tap(); setBannerPicker(!bannerPicker); }}
+   206→              className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur transition hover:bg-black/55"
+   207→              aria-label="Cambiar banner del perfil"
+   208→            >
+   209→              <ImageIcon className="h-3.5 w-3.5" aria-hidden />
+   210→              Banner
+   211→            </button>
+   212→          </div>
+   213→
+   214→          {/* Selector de banners */}
+   215→          {bannerPicker && (
+   216→            <div className="anim-slide-up absolute inset-x-3 top-16 z-10 rounded-2xl border bg-card p-3 shadow-xl">
+   217→              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Elige tu horizonte</p>
+   218→              <div className="grid grid-cols-4 gap-2">
+   219→                {BANNER_PRESETS.map((b) => (
+   220→                  <button
+   221→                    key={b.id}
+   222→                    onClick={() => { sfx.tap(); updateProfile({ banner: `preset:${b.id}` }); setBannerPicker(false); }}
+   223→                    aria-label={`Banner ${b.label}`}
+   224→                    aria-pressed={bannerId === `preset:${b.id}`}
+   225→                    className={cn(
+   226→                      "h-10 rounded-xl border-2 transition hover:scale-[1.03]",
+   227→                      bannerId === `preset:${b.id}` ? "border-primary" : "border-transparent",
+   228→                    )}
+   229→                    style={{ background: b.css }}
+   230→                  />
+   231→                ))}
+   232→              </div>
+   233→              <div className="mt-2.5 flex gap-2">
+   234→                <Button
+   235→                  size="sm"
+   236→                  variant="outline"
+   237→                  className="flex-1 text-xs font-bold"
+   238→                  onClick={() => bannerRef.current?.click()}
+   239→                >
+   240→                  <ImageIcon className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+   241→                  Subir imagen
+   242→                </Button>
+   243→                <Button size="sm" variant="ghost" className="text-xs" onClick={() => setBannerPicker(false)}>
+   244→                  <X className="h-4 w-4" aria-hidden />
+   245→                </Button>
+   246→              </div>
+   247→              <input
+   248→                ref={bannerRef}
+   249→                type="file"
+   250→                accept="image/*"
+   251→                className="hidden"
+   252→                aria-hidden
+   253→                onChange={(e) => {
+   254→                  const f = e.target.files?.[0];
+   255→                  if (f) void onBannerPicked(f);
+   256→                  e.target.value = "";
+   257→                }}
+   258→              />
+   259→            </div>
+   260→          )}
+   261→
+   262→          {/* Identidad sobre el banner */}
+   263→          <div className="relative -mt-12 flex items-end gap-3 px-4 pb-4">
+   264→            <div className="relative shrink-0">
+   265→              <span
+   266→                className={cn("block rounded-3xl shadow-lg", equipFrameCss ? "p-[3px]" : "")}
+   267→                style={
+   268→                  equipFrameCss
+   269→                    ? { background: equipFrameCss }
+   270→                    : { boxShadow: "inset 0 0 0 3px color-mix(in oklch, var(--primary) 35%, var(--card))" }
+   271→                }
+   272→                aria-hidden
+   273→              >
+   274→                <span className="block h-[90px] w-[90px] overflow-hidden rounded-[calc(1.5rem-3px)] bg-card">
+   275→                  {profile.photo ? (
+   276→                    <img src={profile.photo} alt={`Foto de ${profile.name}`} className="h-full w-full object-cover" />
+   277→                  ) : (
+   278→                    <span className="flex h-full w-full items-center justify-center">
+   279→                      <LexicoMascot size={86} mood="happy" />
+   280→                    </span>
+   281→                  )}
+   282→                </span>
+   283→              </span>
+   284→              <button
+   285→                onClick={() => photoRef.current?.click()}
+   286→                className="tap-target absolute -bottom-1.5 -right-1.5 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-primary text-primary-foreground shadow-md transition hover:scale-105"
+   287→                aria-label="Cambiar foto de perfil"
+   288→              >
+   289→                <Camera className="h-4 w-4" aria-hidden />
+   290→              </button>
+   291→              <input
+   292→                ref={photoRef}
+   293→                type="file"
+   294→                accept="image/*"
+   295→                className="hidden"
+   296→                aria-hidden
+   297→                onChange={(e) => {
+   298→                  const f = e.target.files?.[0];
+   299→                  if (f) void onPhotoPicked(f);
+   300→                  e.target.value = "";
+   301→                }}
+   302→              />
+   303→            </div>
+   304→
+   305→            <div className="min-w-0 flex-1 pb-1">
+   306→              {editing ? (
+   307→                <Input
+   308→                  autoFocus
+   309→                  value={nameDraft}
+   310→                  onChange={(e) => setNameDraft(e.target.value)}
+   311→                  onKeyDown={(e) => e.key === "Enter" && saveIdentity()}
+   312→                  maxLength={20}
+   313→                  aria-label="Nuevo nombre"
+   314→                  className="h-10"
+   315→                />
+   316→              ) : (
+   317→                <h2 className="font-display title-sheen truncate text-2xl font-bold leading-tight drop-shadow-sm">{profile.name}</h2>
+   318→              )}
+   319→              <p className="mt-0.5 text-xs font-semibold leading-snug text-foreground/85 drop-shadow-sm">
+   320→                {rankName(rank, profile.gender)} · desde {memberSince}
+   321→              </p>
+   322→              {equipTitle && (
+   323→                <p className="mt-1 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+   324→                  <Star className="h-3 w-3" aria-hidden /> {equipTitle}
+   325→                </p>
+   326→              )}
+   327→            </div>
+   328→            <div className="shrink-0 pb-1">
+   329→              <LevelBadge level={level} size="lg" />
+   330→            </div>
+   331→          </div>
+   332→        </section>
+   333→
+   334→        {/* ===== Bio ===== */}
+   335→        <section className="mt-3">
+   336→          {editing ? (
+   337→            <div className="anim-slide-up space-y-2">
+   338→              <Textarea
+   339→                value={bioDraft}
+   340→                onChange={(e) => setBioDraft(e.target.value)}
+   341→                maxLength={160}
+   342→                rows={3}
+   343→                placeholder="Preséntate a la tripulación… (160 caracteres)"
+   344→                aria-label="Descripción del perfil"
+   345→                className="rounded-2xl"
+   346→              />
+   347→              <div className="flex items-center gap-2">
+   348→                <p className="numeric flex-1 text-[11px] text-muted-foreground">{bioDraft.length}/160</p>
+   349→                <Button size="sm" onClick={saveIdentity} className="font-bold">
+   350→                  <Check className="mr-1.5 h-4 w-4" aria-hidden />
+   351→                  Guardar
+   352→                </Button>
+   353→              </div>
+   354→            </div>
+   355→          ) : (
+   356→            <div className="card-aurora rounded-3xl border bg-card p-4">
+   357→              <p className="text-sm leading-relaxed">
+   358→                {profile.bio || (
+   359→                  <span className="italic text-muted-foreground">
+   360→                    Navegante sin biografía… por ahora. Edita el perfil y preséntate a la tripulación.
+   361→                  </span>
+   362→                )}
+   363→              </p>
+   364→            </div>
+   365→          )}
+   366→        </section>
+   367→
+   368→        {/* ===== Progreso global ===== */}
+   369→        <section className="mt-4 grid grid-cols-4 gap-2.5">
+   370→          <StatCard value={`${core.xp}`} label="XP total" />
+   371→          <StatCard value={`${core.streak.best}`} label="Mejor racha" />
+   372→          <StatCard value={formatPlaytime(core.stats.totalTimeMs ?? 0)} label="Jugado" />
+   373→          <StatCard value={`${core.stats.totalSessions}`} label="Sesiones" />
+   374→        </section>
+   375→
+   376→        <section className="card-aurora mt-3 rounded-3xl border bg-card p-4">
+   377→          <div className="mb-2 flex items-baseline justify-between">
+   378→            <p className="text-sm font-bold">Nivel {level} · {rankName(rank, profile.gender)}</p>
+   379→            <p className="numeric text-xs text-muted-foreground">{into}/{needed} XP</p>
+   380→          </div>
+   381→          <XpBar into={into} needed={needed} />
+   382→          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+   383→            <p className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+   384→              <Droplets className="h-3.5 w-3.5 text-primary" aria-hidden />
+   385→              Tinta del Bazar: <span className="numeric text-foreground">{core.wallet?.tinta ?? 0}</span> en el tintero
+   386→              <span className="text-muted-foreground/70">· {tintaTotal} ganada en total</span>
+   387→            </p>
+   388→            <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "shop" }); }}>
+   389→              Visitar el Bazar →
+   390→            </Button>
+   391→          </div>
+   392→        </section>
+   393→
+   394→        {/* ===== Habilidades (las 7 islas) ===== */}
+   395→        <section className="mt-6" aria-labelledby="skills-title">
+   396→          <h3 id="skills-title" className="font-display text-lg font-bold">Tus habilidades</h3>
+   397→          <p className="mt-0.5 text-xs text-muted-foreground">
+   398→            Estimación orientativa. VerbalIA no certifica niveles oficiales.
+   399→          </p>
+   400→          <div className="mt-3 space-y-2.5">
+   401→            {allSkills.map((skill) => {
+   402→              const lvl = core.skills[skill] ?? 2;
+   403→              const cefr = cefrFromSkill(lvl);
+   404→              return (
+   405→                <div key={skill} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3.5">
+   406→                  <span
+   407→                    className="gloss h-3.5 w-3.5 shrink-0 rounded-full"
+   408→                    style={{ background: SKILL_COLORS[skill], boxShadow: `0 0 8px color-mix(in oklch, ${SKILL_COLORS[skill]} 60%, transparent)` }}
+   409→                    aria-hidden
+   410→                  />
+   411→                  <div className="min-w-0 flex-1">
+   412→                    <div className="flex items-baseline justify-between">
+   413→                      <p className="text-sm font-bold">{SKILL_LABELS[skill]}</p>
+   414→                      <p className="text-xs font-bold text-muted-foreground">
+   415→                        {skillMasteryLabel(lvl)} · <span className="text-foreground">{cefr}</span>
+   416→                      </p>
+   417→                    </div>
+   418→                    <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
+   419→                      <div
+   420→                        className="h-full rounded-full transition-[width] duration-500"
+   421→                        style={{ width: `${(lvl / 10) * 100}%`, background: SKILL_COLORS[skill] }}
+   422→                      />
+   423→                    </div>
+   424→                  </div>
+   425→                </div>
+   426→              );
+   427→            })}
+   428→          </div>
+   429→        </section>
+   430→
+   431→        {/* ===== Colección ===== */}
+   432→        <section className="card-aurora mt-6 flex items-center gap-4 rounded-3xl border bg-card p-4">
+   433→          <ProgressRing value={wordsLearned / Math.max(totalWords, 48)} size={80} stroke={8}>
+   434→            <span className="numeric font-display text-base font-bold">{wordsLearned}</span>
+   435→          </ProgressRing>
+   436→          <div>
+   437→            <p className="text-sm font-bold">Palabras aprendidas</p>
+   438→            <p className="text-xs text-muted-foreground">{wordsMastered} dominadas</p>
+   439→            <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "collection" }); }}>
+   440→              Ver la colección →
+   441→            </Button>
+   442→          </div>
+   443→        </section>
+   444→
+   445→        {/* ===== Insignias por niveles ===== */}
+   446→        <section className="mt-6" aria-labelledby="badges-title">
+   447→          <h3 id="badges-title" className="font-display text-lg font-bold">
+   448→            Insignias: {unlockedCount} / {ACHIEVEMENTS.length}
+   449→          </h3>
+   450→          <p className="mt-0.5 text-xs text-muted-foreground">
+   451→            Bronce, plata, oro y platino según la talla del logro. Toca una insignia desbloqueada para destacarla en tu ficha.
+   452→          </p>
+   453→
+   454→          {/* Insignia destacada */}
+   455→          {featured && <FeaturedBadgeCard badge={featured} onRemove={() => toggleFeatured(featured.id)} />}
+   456→
+   457→          <div className="mt-3 grid grid-cols-4 gap-2.5 sm:grid-cols-6">
+   458→            {ACHIEVEMENTS.map((a) => {
+   459→              const got = Boolean(core.achievements[a.id]);
+   460→              const tier = badgeTier(a.xpReward);
+   461→              const Icon = getIcon(a.icon);
+   462→              const isStarred = profile.featuredBadge === a.id && got;
+   463→              return (
+   464→                <button
+   465→                  key={a.id}
+   466→                  title={`${a.name}: ${a.description}`}
+   467→                  aria-pressed={got ? isStarred : undefined}
+   468→                  aria-label={got ? `${a.name}. Tocar para ${isStarred ? "quitar" : "destacar"} en la ficha.` : `${a.name} (bloqueada)`}
+   469→                  onClick={() => got && toggleFeatured(a.id)}
+   470→                  className={cn(
+   471→                    "group relative flex aspect-square items-center justify-center rounded-2xl border p-1.5 transition",
+   472→                    got ? "border-border" : "border-border/60 bg-muted/40",
+   473→                    isStarred && "border-primary ring-2 ring-primary/50",
+   474→                  )}
+   475→                  style={
+   476→                    got
+   477→                      ? {
+   478→                          background: `linear-gradient(150deg, color-mix(in oklch, ${tier.from} 32%, var(--card)), var(--card))`,
+   479→                          boxShadow: `inset 0 0 0 1.5px color-mix(in oklch, ${tier.from} 55%, transparent)`,
+   480→                        }
+   481→                      : undefined
+   482→                  }
+   483→                >
+   484→                  {got ? (
+   485→                    <span
+   486→                      className="flex h-9 w-9 items-center justify-center rounded-xl shadow-inner"
+   487→                      style={{ background: `linear-gradient(140deg, ${tier.from}, ${tier.to})`, color: "oklch(0.25 0.03 260)" }}
+   488→                    >
+   489→                      <Icon className="h-4.5 w-4.5" aria-hidden />
+   490→                    </span>
+   491→                  ) : (
+   492→                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-muted-foreground/60">
+   493→                      <Lock className="h-4 w-4" aria-hidden />
+   494→                    </span>
+   495→                  )}
+   496→                  {isStarred && (
+   497→                    <Star className="absolute -right-1 -top-1 h-4 w-4 fill-primary text-primary drop-shadow" aria-hidden />
+   498→                  )}
+   499→                  <span className="sr-only">{a.name}</span>
+   500→                </button>
+   501→              );
+   502→            })}
+   503→          </div>
+   504→          <Button variant="link" className="mt-1.5 h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "missions" }); }}>
+   505→            Ver misiones y logros →
+   506→          </Button>
+   507→        </section>
+   508→
+   509→        {/* ===== Tus datos (gestión completa) ===== */}
+   510→        <section className="mt-6" aria-labelledby="data-title">
+   511→          <h3 id="data-title" className="font-display text-lg font-bold">Tus datos</h3>
+   512→          <p className="mt-0.5 text-xs text-muted-foreground">
+   513→            Todo vive en este dispositivo (IndexedDB). Sin cuentas, sin rastreadores.
+   514→            Para migrar a otro aparato: exporta aquí, importa allí.
+   515→          </p>
+   516→          <div className="mt-3 flex flex-wrap gap-2.5">
+   517→            <Button variant="outline" onClick={() => { sfx.page(); doExport(); }}>
+   518→              Exportar copia
+   519→            </Button>
+   520→            <Button variant="outline" onClick={() => importRef.current?.click()}>
+   521→              Importar copia
+   522→            </Button>
+   523→            <input
+   524→              ref={importRef}
+   525→              type="file"
+   526→              accept="application/json"
+   527→              className="hidden"
+   528→              aria-hidden
+   529→              onChange={(e) => {
+   530→                const f = e.target.files?.[0];
+   531→                if (f) void doImport(f);
+   532→                e.target.value = "";
+   533→              }}
+   534→            />
+   535→            <Button variant="outline" onClick={() => { sfx.click(); navigate({ name: "settings" }); }}>
+   536→              Más opciones de datos →
+   537→            </Button>
+   538→          </div>
+   539→
+   540→          <AlertDialog>
+   541→            <AlertDialogTrigger asChild>
+   542→              <Button variant="destructive" className="mt-2.5 w-full font-bold sm:w-auto">
+   543→                <Trash2 className="mr-2 h-4 w-4" aria-hidden /> Borrar todo
+   544→              </Button>
+   545→            </AlertDialogTrigger>
+   546→            <AlertDialogContent>
+   547→              <AlertDialogHeader>
+   548→                <AlertDialogTitle>¿Borrar todos tus datos?</AlertDialogTitle>
+   549→                <AlertDialogDescription>
+   550→                  Se eliminarán perfil, XP, niveles, palabras, logros e historial de este dispositivo.
+   551→                  Esta acción no se puede deshacer (a menos que tengas una copia exportada).
+   552→                </AlertDialogDescription>
+   553→              </AlertDialogHeader>
+   554→              <AlertDialogFooter>
+   555→                <AlertDialogCancel>Conservar mis datos</AlertDialogCancel>
+   556→                <AlertDialogAction
+   557→                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+   558→                  onClick={() => {
+   559→                    sfx.error();
+   560→                    void resetAll();
+   561→                    navigate({ name: "welcome" });
+   562→                  }}
+   563→                >
+   564→                  Borrar todo
+   565→                </AlertDialogAction>
+   566→              </AlertDialogFooter>
+   567→            </AlertDialogContent>
+   568→          </AlertDialog>
+   569→        </section>
+   570→
+   571→        <Button variant="outline" className="mt-4 w-full font-bold" onClick={() => { sfx.click(); navigate({ name: "settings" }); }}>
+   572→          Ajustes de temas, sonido y datos →
+   573→        </Button>
+   574→      </main>
+   575→    </div>
+   576→  );
+   577→}
+   578→
+   579→function StatCard({ value, label }: { value: string; label: string }) {
+   580→  return (
+   581→    <div className="gloss card-aurora rounded-2xl border bg-card p-2.5 text-center">
+   582→      <p className="numeric font-display title-sheen truncate text-base font-bold sm:text-lg">{value}</p>
+   583→      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+   584→    </div>
+   585→  );
+   586→}
+   587→
+   588→/** Tarjeta de la insignia destacada (componente de módulo, sin estado). */
+   589→function FeaturedBadgeCard({ badge, onRemove }: { badge: AchievementDef; onRemove: () => void }) {
+   590→  return (
+   591→    <div className="card-aurora anim-pop mt-3 flex items-center gap-3.5 rounded-3xl border border-primary/30 bg-card p-4">
+   592→      <span
+   593→        className="gloss flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-md"
+   594→        style={{ background: "linear-gradient(140deg, var(--xp), color-mix(in oklch, var(--primary) 60%, var(--card)))", color: "oklch(0.25 0.03 260)" }}
+   595→        aria-hidden
+   596→      >
+   597→        {createElement(getIcon(badge.icon), { className: "h-7 w-7" })}
+   598→      </span>
+   599→      <div className="min-w-0 flex-1">
+   600→        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Insignia destacada</p>
+   601→        <p className="font-display text-base font-bold leading-tight">{badge.name}</p>
+   602→        <p className="text-xs text-muted-foreground">{badge.description}</p>
+   603→      </div>
+   604→      <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={onRemove}>
+   605→        <X className="h-3.5 w-3.5" aria-hidden /> Quitar
+   606→      </Button>
+   607→    </div>
+   608→  );
+   609→}
+   610→

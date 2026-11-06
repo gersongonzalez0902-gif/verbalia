@@ -1,0 +1,151 @@
+alegoria|B2
+metafora|B2
+simil|B2
+paralelismo|B2
+hiperbaton|B2
+elipsis|B2
+asindeton|B2
+polisindeton|B2
+anadiplosis|B2
+anáfora|B2
+epifora|B2
+anadiplosis repetida|B2
+quia|B2
+paradoja|B2
+oximoron|B2
+ironia|B2
+sarcasmo|B2
+eutrapelia|B2
+litotes|B2
+hiperbole|B2
+prosopopeya|B2
+personificacion|B2
+sinestesia|B2
+simbolismo|B2
+alegoria naval|B2
+imagen poetica|B2
+verso|B2
+estrofa|B2
+soneto|B2
+haiku|B2
+octava real|B2
+copla|B2
+seguidilla|B2
+romance|B2
+silva|B2
+lira|B2
+endecasilabo|B2
+heptasilabo|B2
+verso blanco|B2
+rima consonante|B2
+ritmo|B2
+metrica|B2
+acento metrico|B2
+sinalefa|B2
+sinéresis|B2
+diéresis|B2
+hemistiquio|B2
+estribillo|B2
+poema|B2
+cantar|B2
+epopeya|B2
+cantar de gesta|B2
+romancero|B2
+epistolario|B2
+ensayo|B2
+articulismo|B2
+columna|B2
+crónica|B2
+reportaje|B2
+entrevista periodística|B2
+titular|B2
+entradilla|B2
+ladillo|B2
+pie de foto|B2
+primicia|B2
+escandalo|B2
+filtracion|B2
+fuente confidencial|B2
+sesgo informativo|B2
+posverdad|B2
+desinformacion|B2
+verificacion|B2
+chequeo de datos|B2
+catarata|C1
+sinfonía|C1
+partitura|C1
+pentagrama|C1
+clave de sol|C1
+compas|C1
+tempo|C1
+andante|C1
+allegro|C1
+presto|C1
+adagio|C1
+fortissimo|C1
+pianissimo|C1
+crescendo|C1
+calando|C1
+staccato|C1
+legato|C1
+acorde|C1
+armonia|C1
+contrapunto|C1
+fuga|C1
+toccata|C1
+sonata|C1
+concierto|C1
+obertura|C1
+lied|C1
+zarzuela|C1
+opereta|C1
+arieta|C1
+cantata|C1
+oratorio|C1
+requiem|C1
+misericordia|C2
+himno|C1
+marcha nupcial|C1
+serenata|C1
+estribillo musical|C1
+melodia|C1
+tesitura|C1
+timbre vocal|C1
+vibrato|C1
+falsete|C1
+coro|C1
+solista|C1
+director de orquesta|C1
+batuta|C1
+atril|C1
+diapason|C1
+metronomo|C1
+epistemologia|C2
+ontologia|C2
+metafisica|C2
+etica|C2
+estetica|C2
+gnoseologia|C2
+axiologia|C2
+deontologia|C2
+teleologia|C2
+cosmologia|C2
+teodicea|C2
+agnosticismo|C2
+escepticismo|C2
+estoicismo|C2
+epicureismo|C2
+cynicism|C2
+megalomania|C2
+necrofilia|C2
+ensoñacion|C2
+quimera|C2
+utopia|C2
+distopia|C2
+apoteosis|C2
+catarsis|C2
+peripetia|C2
+anagnorisis|C2
+hamartia|C2
+hybris|C2
+nemesis|C2

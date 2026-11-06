@@ -1,0 +1,172 @@
+```json
+[
+    {
+        "word": "selva",
+        "pos": "sustantivo",
+        "definition": "Bosque denso y exuberante de zonas tropicales con gran biodiversidad.",
+        "example": "La Amazonia es la selva más extensa del planeta.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "volcán",
+        "pos": "sustantivo",
+        "definition": "Montaña con una abertura por la que expulcan lava y gases.",
+        "example": "El Cotopaxi es un volcán activo de los Andes ecuatorianos.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "glaciar",
+        "pos": "sustantivo",
+        "definition": "Masa de hielo permanente que se desliza lentamente.",
+        "example": "Los glaciares están retrocediendo por el calentamiento global.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "arrecife",
+        "pos": "sustantivo",
+        "definition": "Estructura submarina formada por corales y otros organismos.",
+        "example": "La Gran Barrera de Coral es el arrecife más grande del mundo.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "meseta",
+        "pos": "sustantivo",
+        "definition": "Extensión de terreno elevado y casi plana.",
+        "example": "La meseta del Altiplano abarca partes de Bolivia y Perú.",
+        "tags": ["geografía"]
+    },
+    {
+        "word": "península",
+        "pos": "sustantivo",
+        "definition": "Porción de tierra rodeada de agua por tres lados.",
+        "example": "La península de Yucatán es conocida por sus cenotes.",
+        "tags": ["geografía"]
+    },
+    {
+        "word": "ceviche",
+        "pos": "sustantivo",
+        "definition": "Plato de pescado crudo marinado en jugo de limón.",
+        "example": "En el verano me gusta preparar ceviche de corvina.",
+        "tags": ["gastronomía"]
+    },
+    {
+        "word": "tamales",
+        "pos": "sustantivo",
+        "definition": "Masa de maíz rellena, envuelta en hojas de plátano.",
+        "example": "En México es tradicional comer tamales en el Día de Muertos.",
+        "tags": ["gastronomía"]
+    },
+    {
+        "word": "asado",
+        "pos": "sustantivo",
+        "definition": "Reunión donde se carne a la parrilla.",
+        "example": "Mis amigos y yo organizamos un asado los domingos.",
+        "tags": ["gastronomía"]
+    },
+    {
+        "word": "aji",
+        "pos": "sustantivo",
+        "definition": "Pimiento o chile, especialmente en Sudamérica.",
+        "example": "El aji amarillo es un ingrediente clave en la cocina peruana.",
+        "tags": ["gastronomía"]
+    },
+    {
+        "word": "exuberante",
+        "pos": "adjetivo",
+        "definition": "Que es muy abundante y frondoso.",
+        "example": "La selva amazónica es exuberante y llena de vida.",
+        "tags": ["naturaleza"]
+    },
+    {
+        "word": "árido",
+        "pos": "adjetivo",
+        "definition": "Que tiene muy poca agua y es estéril.",
+        "example": "El desierto de Atacama es uno de los lugares más áridos del mundo.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "tropical",
+        "pos": "adjetivo",
+        "definition": "Relativo a la zona cálima de la Tierra cerca del ecuador.",
+        "example": "El clima de Costa Rica es predominantemente tropical.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "endémico",
+        "pos": "adjetivo",
+        "definition": "Especie o planta que solo vive en una región concreta.",
+        "example": "El cóndor andino es una especie endémica de los Andes.",
+        "tags": ["naturaleza"]
+    },
+    {
+        "word": "caudaloso",
+        "pos": "adjetivo",
+        "definition": "Que tiene mucho agua, especialmente un río.",
+        "example": "El río Amazonas es el más caudaloso del planeta.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "humedad",
+        "pos": "sustantivo",
+        "definition": "Presencia de vapor de agua en el aire.",
+        "example": "La alta humedad en la selva hace el calor insoportable.",
+        "tags": ["naturaleza"]
+    },
+    {
+        "word": "biodiversidad",
+        "pos": "sustantivo",
+        "definition": "Variedad de vida en un hábitat o ecosistema.",
+        "example": "La Amazonia alberga una enorme biodiversidad.",
+        "tags": ["naturaleza"]
+    },
+    {
+        "word": "sazonar",
+        "pos": "verbo",
+        "definition": "Condimentar un alimento para darle sabor.",
+        "example": "Es importante sazonar bien los frijoles antes de servirlos.",
+        "tags": ["gastronomía"]
+    },
+    {
+        "word": "empanar",
+        "pos": "verbo",
+        "definition": "Recubrir un alimento con pan rallado antes de freírlo.",
+        "example": "Mi abuela empanaba el pollo de manera deliciosa.",
+        "tags": ["gastronomía"]
+    },
+    {
+        "word": "erosionar",
+        "pos": "verbo",
+        "definition": "Desgastar la superficie de algo, especialmente por el agua.",
+        "example": "El río erosionó lentamente las rocas del cauce.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "deslindar",
+        "pos": "verbo",
+        "definition": "Establecer los límites entre dos territorios.",
+        "example": "Los mapas ayudan a deslindar las fronteras entre países.",
+        "tags": ["geografía"]
+    },
+    {
+        "word": "pampa",
+        "pos": "sustantivo",
+        "definition": "Gran llanura de pastizales sin árboles en Sudamérica.",
+        "example": "Los gauchos viven y trabajan en las extensas pampas argentinas.",
+        "tags": ["geografía", "naturaleza"]
+    },
+    {
+        "word": "archipiélago",
+        "pos": "sustantivo",
+        "definition": "Grupo de islas cercanas entre sí.",
+        "example": "Las Galápagos son un archipiélago famoso por su fauna única.",
+        "tags": ["geografía"]
+    },
+    {
+        "word": "mole",
+        "pos": "sustantivo",
+        "definition": "Salsa mexicana compleja a base de chiles y chocolate.",
+        "example": "El mole poblano es un plato emblemático de la cocina mexicana.",
+        "tags": ["gastronomía"]
+    }
+]
+```

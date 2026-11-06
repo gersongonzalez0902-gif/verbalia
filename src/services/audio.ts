@@ -1034,6 +1034,26 @@ export const sfx = {
     tone(220, 0, 0.16, 0.05, "square");
     tone(207, 0.14, 0.2, 0.04, "square");
   },
+  /* ------- Salón de Juegos Educativos ------- */
+  /** Pieza que avanza: golpe seco de madera. */
+  move() {
+    if (!enabled) return;
+    tone(vary(180), 0, 0.07, 0.07, "sine");
+    noiseBurst(0, 0.045, 600, 0.025, "lowpass");
+  },
+  /** Pieza capturada: golpe doble con brillo. */
+  capture() {
+    if (!enabled) return;
+    tone(vary(150), 0, 0.06, 0.07, "sine");
+    tone(vary(240), 0.05, 0.08, 0.06, "triangle");
+    noiseBurst(0, 0.07, 900, 0.03, "lowpass");
+  },
+  /** Ficha que resbala (2048, deslizables). */
+  slide() {
+    if (!enabled) return;
+    noiseBurst(0, 0.12, 1400, 0.03, "bandpass", 0.9);
+    tone(vary(300), 0.06, 0.05, 0.03, "sine");
+  },
 };
 
 /* ============================== voz (TTS) ============================== */

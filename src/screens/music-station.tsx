@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { LexicoMascot } from "@/components/game/lexico";
 import { sfx } from "@/services/audio";
-import { SOUNDSCAPES, playSoundscape, stopSoundscape, soundscapePlaying, setSoundscapeVolume, type SoundscapeId } from "@/services/soundscapes";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "@/lib/format-time";
 import {
@@ -43,7 +42,6 @@ export function MusicStationScreen() {
   const stationVolume = useGameStore((s) => s.settings.stationVolume);
   const fileRef = useRef<HTMLInputElement>(null);
   const loadedOnce = useRef(false);
-  const [scape, setScape] = useState<SoundscapeId | null>(soundscapePlaying());
 
   // Carga la biblioteca del jugador al entrar (una sola vez).
   useEffect(() => {
@@ -57,25 +55,6 @@ export function MusicStationScreen() {
   useEffect(() => {
     station.setVolume(stationVolume);
   }, [stationVolume]);
-
-  // Volumen también para el paisaje sonoro activo.
-  useEffect(() => {
-    setSoundscapeVolume(stationVolume);
-  }, [stationVolume]);
-
-  const toggleScape = (id: SoundscapeId) => {
-    if (soundscapePlaying() === id) {
-      stopSoundscape();
-      setScape(null);
-      sfx.tap();
-    } else {
-      // Un solo paisaje sonoro a la vez: la radio calla por cortesía.
-      if (station.playing) station.toggle();
-      playSoundscape(id, stationVolume);
-      setScape(id);
-      sfx.splash?.();
-    }
-  };
 
   const current = station.tracks.find((t) => t.id === station.currentId) ?? null;
   const pct = station.duration > 0 ? station.currentTime / station.duration : 0;
@@ -268,41 +247,6 @@ export function MusicStationScreen() {
             <Upload className="mr-2 h-4 w-4" aria-hidden />
             Añadir música
           </Button>
-        </section>
-
-        {/* ===== Paisajes sonoros del Archipiélago (Etapa 4) ===== */}
-        <section aria-labelledby="scapes-title">
-          <h2 id="scapes-title" className="font-display mb-2.5 flex items-center gap-2 text-lg font-bold">
-            <Volume2 className="h-5 w-5 text-primary" aria-hidden />
-            Paisajes sonoros
-          </h2>
-          <p className="mb-2.5 text-xs leading-relaxed text-muted-foreground">
-            Ambientes sintetizados en tu propio aparato (sin descargas): lluvia, marea,
-            chimenea y noche. Pueden sonar mientras juegas; la música ambiental cede el paso.
-          </p>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {SOUNDSCAPES.map((s) => {
-              const active = scape === s.id;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => toggleScape(s.id)}
-                  aria-pressed={active}
-                  aria-label={`${s.name}. ${active ? "Sonando: tocar para detener" : "Tocar para escuchar"}`}
-                  className={cn(
-                    "tap-3d tap-target flex flex-col items-center gap-1 rounded-2xl border-2 p-3 text-center transition",
-                    active
-                      ? "gloss border-primary bg-primary/10"
-                      : "border-border bg-card hover:border-primary/50",
-                  )}
-                >
-                  <span className={cn("text-2xl", active && "anim-bob")} aria-hidden>{s.emoji}</span>
-                  <span className="text-[11px] font-bold leading-tight">{s.name}</span>
-                  <span className="text-[9px] leading-tight text-muted-foreground">{active ? "Sonando… tócalo para parar" : s.description}</span>
-                </button>
-              );
-            })}
-          </div>
         </section>
 
         {/* ===== Lista de reproducción ===== */}

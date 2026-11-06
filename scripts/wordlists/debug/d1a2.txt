@@ -1,0 +1,86 @@
+[
+  {
+    "word": "lavadora",
+    "pos": "sustantivo",
+    "definition": "aparato electrodoméstico para lavar ropa con agua y jabón",
+    "example": "La lavadora no funciona, hay que llamar al técnico.",
+    "tags": ["hogar", "electrodomésticos"]
+  },
+  {
+    "word": "secadora",
+    "pos": "sustantivo",
+    "definition": "aparato que seca la ropa después de lavada",
+    "example": "Pon la ropa en la secadora para que se seque rápido.",
+    "tags": ["hogar", "electrodomésticos"]
+  },
+  {
+    "word": "frigorífico",
+    "pos": "sustantivo",
+    "definition": "aparato que conserva los alimentos fríos",
+    "example": "Guarda la leche en el frigorífico para que no se eche a perder.",
+    "tags": ["hogar", "electrodomésticos"]
+  },
+  {
+    "word": "congelador",
+    "pos": "sustantivo",
+    "definition": "aparato que congela los alimentos a muy baja temperatura",
+    "example": "El congelador está lleno de hielo y necesita descongelarse.",
+    "tags": ["hogar", "electrodomésticos"]
+  },
+  {
+    "word": "batidora",
+    "pos": "sustantivo",
+    "definition": "aparato para batir o mezclar alimentos",
+    "example": "Usa la batidora para hacer un batido de frutas delicioso.",
+    "tags": ["hogar", "electrodomésticos"]
+  },
+  {
+    "word": "cafetera",
+    "pos": "sustantivo",
+    "definition": "aparato para preparar café",
+    "example": "La cafetera de cápsulas es muy rápida y práctica.",
+    "tags": ["hogar", "electrodomésticos"]
+  },
+  {
+    "word": "tetera",
+    "pos": "sustantivo",
+    "definition": "recipiente con pico para servir té",
+    "example": "Calienta agua en la tetera para preparar té caliente.",
+    "tags": ["hogar", "utensilios"]
+  },
+  {
+    "word": "cazo",
+    "pos": "sustantivo",
+    "definition": "recipiente metálico pequeño para cocinar",
+    "example": "Usa el cazo para hacer salsa para la carne.",
+    "tags": ["hogar", "utensilios"]
+  },
+  {
+    "word": "cucharaón",
+    "pos": "sustantivo",
+    "definition": "cuchara grande para servir comida",
+    "example": "El cucharaón sirve para sacar el arroz de la olla.",
+    "tags": ["hogar", "utensilios"]
+  },
+  {
+    "word": "espumadera",
+    "pos": "sustantivo",
+    "definition": "utensilio con agujeros para recoger espuma",
+    "example": "Con la espumadora retiras la espuma del café.",
+    "tags": ["hogar", "utensilios"]
+  },
+  {
+    "word": "delantal",
+    "pos": "sustantivo",
+    "definition": "prenda que se lleva delante para no mancharse",
+    "example": "Ponte el delantal para no manchar la ropa al cocinar.",
+    "tags": ["hogar", "vestimenta"]
+  },
+  {
+    "word": "mandil",
+    "pos": "sustantivo",
+    "definition": "prenda similar al delantal, usado en trabajos",
+    "example": "El chef lleva un mandil blanco en el restaurante.",
+    "tags": ["trabajo", "vestimenta"]
+  }
+]

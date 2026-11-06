@@ -1,0 +1,16 @@
+[
+  {
+    "word": "espigón",
+    "pos": "sustantivo",
+    "definition": "Construcción que se adentra en el mar para proteger una costa o un puerto.",
+    "example": "El espigón protege la playa de la fuerza de las olas.",
+    "tags": ["construcción", "geografía"]
+  },
+  {
+    "word": "falúcho",
+    "pos": "sustantivo",
+    "definition": "Embarcación pequeña con velas triangulares, usada en ríos.",
+    "example": "El falucho navegaba lentamente por el río Paraná.",
+    "tags": ["barco", "navegación"]
+  }
+]

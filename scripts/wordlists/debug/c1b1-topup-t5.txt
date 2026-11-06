@@ -1,0 +1,88 @@
+```json
+[
+  {
+    "word": "empleo",
+    "pos": "sustantivo",
+    "definition": "Oportunidad de trabajar en una empresa o institución.",
+    "example": "Después de graduarse, comenzó a buscar un empleo estable.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "presupuesto",
+    "pos": "sustantivo",
+    "definition": "Plan detallado de ingresos y gastos de un hogar o negocio.",
+    "example": "Cada mes revisamos el presupuesto familiar para controlar los gastos.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "barrio",
+    "pos": "sustantivo",
+    "definition": "Zona urbana con características propias dentro de una ciudad.",
+    "example": "Mi barrio es muy tranquilo y tiene muchos parques.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "comerciante",
+    "pos": "sustantivo",
+    "definition": "Persona que se dedica al comercio de productos o servicios.",
+    "example": "El comerciante abrió su tienda hace cinco años.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "desempleo",
+    "pos": "sustantivo",
+    "definition": "Situación de no tener un trabajo remunerado.",
+    "example": "La crisis económica aumentó el desempleo en el país.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "ahorrar",
+    "pos": "verbo",
+    "definition": "Dejar dinero o recursos para usarlos en el futuro.",
+    "example": "Mi familia ahorra cada mes para las vacaciones.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "avenida",
+    "pos": "sustantivo",
+    "definition": "Calle amplia, generalmente con árboles a los lados.",
+    "example": "La avenida principal siempre está llena de tráfico.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "venta",
+    "pos": "sustantivo",
+    "definition": "Acto de vender algo a cambio de dinero.",
+    "example": "La venta de casas ha aumentado este año.",
+    "tags": ["comercio"]
+  },
+  {
+    "word": "trabajador",
+    "pos": "sustantivo",
+    "definition": "Persona que realiza un trabajo a cambio de un salario.",
+    "example": "El trabajador recibió un ascenso por su buen desempeño.",
+    "tags": ["trabajo"]
+  },
+  {
+    "word": "gasto",
+    "pos": "sustantivo",
+    "definition": "Dinero o recursos que se utilizan para comprar algo.",
+    "example": "Los gastos del hogar incluyen luz, agua y comida.",
+    "tags": ["economía doméstica"]
+  },
+  {
+    "word": "edificio",
+    "pos": "sustantivo",
+    "definition": "Estructura construida para ser habitada o usada.",
+    "example": "El edificio nuevo tiene apartamentos muy modernos.",
+    "tags": ["ciudad"]
+  },
+  {
+    "word": "comprar",
+    "pos": "verbo",
+    "definition": "Adquirir un producto o servicio a cambio de dinero.",
+    "example": "Voy al supermercado a comprar víveres para la semana.",
+    "tags": ["comercio"]
+  }
+]
+```

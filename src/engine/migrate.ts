@@ -57,5 +57,14 @@ export function migrateCore(raw: Partial<GameCore> | undefined | null): GameCore
       ...raw.wallet,
       owned: Array.isArray(raw.wallet?.owned) ? [...raw.wallet.owned] : [],
     },
+    arcade: {
+      ...fresh.arcade,
+      ...raw.arcade,
+      unlocked: Array.isArray(raw.arcade?.unlocked) ? [...raw.arcade.unlocked] : [],
+      best: { ...raw.arcade?.best },
+      plays: { ...raw.arcade?.plays },
+      playsByDay: { ...raw.arcade?.playsByDay },
+      chessRecord: { ...fresh.arcade.chessRecord, ...raw.arcade?.chessRecord },
+    },
   };
 }

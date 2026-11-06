@@ -1,0 +1,144 @@
+```json
+[
+  {
+    "word": "desempleo",
+    "pos": "sustantivo",
+    "definition": "Situación de no tener trabajo remunerado.",
+    "example": "El desempleo afecta a muchos jóvenes en la actualidad.",
+    "tags": ["trabajo", "economía"]
+  },
+  {
+    "word": "beca",
+    "pos": "sustantivo",
+    "definition": "Ayuda económica para estudiar.",
+    "example": "Ganó una beca para estudiar en la universidad.",
+    "tags": ["educación", "ayuda"]
+  },
+  {
+    "word": "matricula",
+    "pos": "sustantivo",
+    "definition": "Inscripción oficial en un centro educativo.",
+    "example": "La matricula del curso termina el próximo viernes.",
+    "tags": ["educación", "administración"]
+  },
+  {
+    "word": "expediente",
+    "pos": "sustantivo",
+    "definition": "Conjunto de documentos sobre algo o alguien.",
+    "example": "El expediente académico contiene todas sus notas.",
+    "tags": ["administración", "documentos"]
+  },
+  {
+    "word": "titulacion",
+    "pos": "sustantivo",
+    "definition": "Título académico obtenido tras estudios.",
+    "example": "Su titulación es de ingeniero informático.",
+    "tags": ["educación", "logro"]
+  },
+  {
+    "word": "alumno",
+    "pos": "sustantivo",
+    "definition": "Persona que recibe enseñanza.",
+    "example": "El alumno entregó su tarea a tiempo.",
+    "tags": ["educación", "persona"]
+  },
+  {
+    "word": "profesorado",
+    "pos": "sustantivo",
+    "definition": "Conjunto de profesores de un centro.",
+    "example": "El profesorado se reunirá para evaluar a los alumnos.",
+    "tags": ["educación", "trabajo"]
+  },
+  {
+    "word": "deberes",
+    "pos": "sustantivo",
+    "definition": "Tareas que se deben hacer en casa.",
+    "example": "Los niños hacen deberes todos los días.",
+    "tags": ["educación", "tarea"]
+  },
+  {
+    "word": "apunte",
+    "pos": "sustantivo",
+    "definition": "Nota escrita rápida sobre algo importante.",
+    "example": "Hizo un apunte durante la clase de historia.",
+    "tags": ["educación", "escritura"]
+  },
+  {
+    "word": "repaso",
+    "pos": "sustantivo",
+    "definition": "Revisión de lo ya estudiado.",
+    "example": "Dio un repaso general antes del examen.",
+    "tags": ["educación", "estudio"]
+  },
+  {
+    "word": "suspender",
+    "pos": "verbo",
+    "definition": "No aprobar un examen o prueba.",
+    "example": "Suspendió el examen de matemáticas y deberá repetirlo.",
+    "tags": ["educación", "evaluación"]
+  },
+  {
+    "word": "aprobar",
+    "pos": "verbo",
+    "definition": "Superar un examen o prueba con éxito.",
+    "example": "Aprobó todos los cursos con notas excelentes.",
+    "tags": ["educación", "éxito"]
+  },
+  {
+    "word": "carnet",
+    "pos": "sustantivo",
+    "definition": "Documento oficial que acredita algo.",
+    "example": "Para conducir necesitas un carnet de conducir.",
+    "tags": ["documento", "legal"]
+  },
+  {
+    "word": "multa",
+    "pos": "sustantivo",
+    "definition": "Sanción económica por incumplir normas.",
+    "example": "Le pusieron una multa por aparcar en lugar prohibido.",
+    "tags": ["legal", "sanción"]
+  },
+  {
+    "word": "urbanizacion",
+    "pos": "sustantivo",
+    "definition": "Conjunto de viviendas con zonas comunes.",
+    "example": "Viven en una urbanización con piscina y jardín.",
+    "tags": ["vivienda", "ciudad"]
+  },
+  {
+    "word": "vecindario",
+    "pos": "sustantivo",
+    "definition": "Personas que viven cerca unas de otras.",
+    "example": "El vecindario se organizó para limpiar el parque.",
+    "tags": ["comunidad", "relaciones"]
+  },
+  {
+    "word": "mudanza",
+    "pos": "sustantivo",
+    "definition": "Cambio de domicilio o residencia.",
+    "example": "La mudanza al nuevo piso fue muy agotadora.",
+    "tags": ["vivienda", "cambio"]
+  },
+  {
+    "word": "reforma",
+    "pos": "sustantivo",
+    "definition": "Cambio o mejora en algo existente.",
+    "example": "Están haciendo una reforma integral en su casa.",
+    "tags": ["construcción", "mejora"]
+  },
+  {
+    "word": "electrodomestico",
+    "pos": "sustantivo",
+    "definition": "Aparato eléctrico para uso doméstico.",
+    "example": "El electrodomestico más importante en la cocina es la nevera.",
+    "tags": ["hogar", "tecnología"]
+  },
+  {
+    "word": "grifo",
+    "pos": "sustantivo",
+    "definition": "Dispositivo para controlar el paso del agua.",
+    "example": "El grifo de la cocina goteaba y lo tuvimos que arreglar.",
+    "tags": ["hogar", "agua"]
+  }
+]
+```

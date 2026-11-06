@@ -596,6 +596,8 @@ export interface GameCore {
   sessions: SessionRecord[];
   /** Economía del Bazar: tinta, cosméticos y mejoras (Etapa 4). */
   wallet: Wallet;
+  /** Salón de Juegos Educativos: retos de lógica, ajedrez y damas. */
+  arcade: ArcadeProgress;
 }
 
 /** Billetera del jugador: tinta ganada jugando y cosméticos comprados. */
@@ -621,6 +623,26 @@ export interface ErrorRecord {
   correctAnswer: string;
   explanation: string;
   at: number;
+}
+
+/* ============================== Salón de Juegos ============================== */
+
+/** Progreso en el Salón de Juegos Educativos (ajedrez, damas, retos…). */
+export interface ArcadeProgress {
+  /** Juegos desbloqueados con tinta (los gratuitos no se guardan aquí). */
+  unlocked: string[];
+  /** Mejor puntuación por juego (récord personal). */
+  best: Record<string, number>;
+  /** Partidas jugadas por juego. */
+  plays: Record<string, number>;
+  /** Partidas jugadas por juego y día (para límites de XP). */
+  playsByDay: Record<string, number>;
+  /** ELO aproximado del jugador contra el motor de ajedrez. */
+  chessElo: number;
+  /** Partidas de ajedrez: victorias / tablas / derrotas contra el motor. */
+  chessRecord: { w: number; d: number; l: number };
+  /** Cosecha total de XP en el salón. */
+  xpEarned: number;
 }
 
 export interface PlayerProfile {
@@ -740,4 +762,5 @@ export type Screen =
   | { name: "settings" }
   | { name: "music" }
   | { name: "shop" }
+  | { name: "arcade" }
   | { name: "library" };
