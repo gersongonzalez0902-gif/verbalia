@@ -21,6 +21,7 @@ import type {
 import { createCore, reduceSessionComplete, computePlacement } from "@/engine/core";
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
+import { useMusicStore } from "@/services/music-station";
 import { setSoundEnabled, setMusicVolume, setSfxVolume } from "@/services/audio";
 
 const SAVE_DEBOUNCE_MS = 700;
@@ -35,6 +36,10 @@ export const DEFAULT_SETTINGS: GameSettings = {
   newCardsPerDay: 8,
   offlineMode: true,
   nightMode: false,
+  themeColor: "aurora",
+  musicInGames: false,
+  stationVolume: 0.75,
+  stationInGames: false,
 };
 
 export interface GameStore {
@@ -55,6 +60,10 @@ export interface GameStore {
   updateSettings: (partial: Partial<GameSettings>) => void;
   updateProfile: (partial: Partial<PlayerProfile>) => void;
   resetAll: () => Promise<void>;
+  /** Borra progreso (XP, niveles, logros, misiones, historial) conservando perfil y ajustes. */
+  resetProgress: () => Promise<void>;
+  /** Borra solo el jardín de tarjetas (SRS). */
+  resetSrs: () => Promise<void>;
   exportJson: () => string | null;
   importJson: (text: string) => Promise<boolean>;
   clearLastResult: () => void;
@@ -65,6 +74,10 @@ const EMPTY_PROFILE: PlayerProfile = {
   avatar: "owl",
   goal: "leer",
   experience: "principiante",
+  gender: "x",
+  bio: "",
+  banner: "preset:aurora",
+  photo: "",
   createdAt: 0,
   onboarded: false,
   placementDone: false,
@@ -76,11 +89,13 @@ let pendingSave = false;
 function applySettingsSideEffects(settings: GameSettings) {
   if (typeof document === "undefined") return;
   document.documentElement.dataset.textSize = settings.textSize;
+  document.documentElement.dataset.theme = settings.themeColor ?? "aurora";
   document.documentElement.classList.toggle("reduce-motion", settings.reduceMotion);
   document.documentElement.classList.toggle("night", settings.nightMode);
   setSoundEnabled(settings.sound);
   setMusicVolume(settings.musicVolume);
   setSfxVolume(settings.sfxVolume);
+  useMusicStore.getState().setVolume(settings.stationVolume ?? 0.75);
 }
 
 export const useGameStore = create<GameStore>((set, get) => {
@@ -228,6 +243,17 @@ export const useGameStore = create<GameStore>((set, get) => {
         lastResult: null,
       });
       applySettingsSideEffects(DEFAULT_SETTINGS);
+    },
+
+    async resetProgress() {
+      const core = createCore();
+      set({ core, lastResult: null });
+      persist(true);
+    },
+
+    async resetSrs() {
+      set({ srs: {} });
+      persist(true);
     },
 
     exportJson() {

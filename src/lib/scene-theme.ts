@@ -22,6 +22,8 @@ export type SceneId =
   | "biblioteca"
   | "puerto"
   | "torre"
+  | "observatorio"
+  | "music"
   | "map"
   | "missions"
   | "collection"
@@ -52,6 +54,8 @@ const SCENES: Record<SceneId, SceneDef> = {
   biblioteca: { hue: 320, name: "violeta", motif: "stars" },
   puerto: { hue: 212, name: "azul marejada", motif: "bubbles" },
   torre: { hue: 12, name: "coral del alba", motif: "embers" },
+  observatorio: { hue: 288, name: "violeta estelar", motif: "stars" },
+  music: { hue: 58, name: "oro de la radio", motif: "notes" },
   map: { hue: 62, name: "pergamino soleado", motif: "notes" },
   missions: { hue: 85, name: "oro de misiones", motif: "confetti" },
   collection: { hue: 165, name: "jardín", motif: "leaves" },
@@ -178,6 +182,8 @@ export function themeForScreen(
       return { scene: "library" };
     case "settings":
       return { scene: "settings" };
+    case "music":
+      return { scene: "music" };
     default:
       return { scene: "home", hue: SCENES[activeRegionScene(level)].hue };
   }

@@ -10,8 +10,8 @@
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
 import { useGameStore } from "@/store/game-store";
-import { TintaBubble } from "@/components/game/tinta";
-import { TINTA_ONBOARDING } from "@/data/companion";
+import { LexicoBubble } from "@/components/game/lexico";
+import { LEXICO_ONBOARDING } from "@/data/companion";
 import { PLACEMENT_ITEMS, EXERCISES_BY_ID } from "@/data/content";
 import { GAMES } from "@/data/games";
 import { sfx } from "@/services/audio";
@@ -39,7 +39,7 @@ export function PlacementScreen() {
           </p>
         </div>
 
-        <TintaBubble text={TINTA_ONBOARDING.placement} />
+        <LexicoBubble mood="think" text={LEXICO_ONBOARDING.placement} />
 
         <ul className="mx-auto max-w-sm space-y-2 text-left text-sm text-muted-foreground">
           <li className="flex items-center gap-2">

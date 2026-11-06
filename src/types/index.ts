@@ -12,9 +12,60 @@ export type SkillId =
   | "ortografia"
   | "lectura"
   | "audicion"
-  | "expresion";
+  | "expresion"
+  | "cultura"; // Observatorio de la Palabra (etimologías, regionalismos, historia)
 
-/** Identificadores de los minijuegos implementados (Etapas 1 y 2). */
+/** Minijuegos de los formatos nuevos (Etapa 3 · “cielo de formatos”). */
+export type MemoriaGameId =
+  | "memoria-bosque"
+  | "memoria-fortaleza"
+  | "memoria-biblioteca"
+  | "memoria-puerto"
+  | "memoria-torre"
+  | "memoria-observatorio";
+
+export type IntrusoGameId =
+  | "intruso-bosque"
+  | "intruso-ciudad"
+  | "intruso-biblioteca"
+  | "intruso-observatorio";
+
+export type SorteaGameId =
+  | "sortea-ciudad"
+  | "sortea-fortaleza"
+  | "sortea-biblioteca"
+  | "sortea-puerto"
+  | "sortea-torre"
+  | "sortea-observatorio";
+
+export type VfGameId =
+  | "vf-bosque"
+  | "vf-ciudad"
+  | "vf-fortaleza"
+  | "vf-biblioteca"
+  | "vf-puerto"
+  | "vf-torre"
+  | "vf-observatorio";
+
+export type EscribeGameId =
+  | "escribe-bosque"
+  | "escribe-ciudad"
+  | "escribe-fortaleza"
+  | "escribe-torre";
+
+export type OyeGameId =
+  | "oye-bosque"
+  | "oye-fortaleza"
+  | "oye-puerto";
+
+export type ConectaGameId =
+  | "conecta-ciudad"
+  | "conecta-biblioteca"
+  | "conecta-puerto"
+  | "conecta-torre"
+  | "conecta-observatorio";
+
+/** Identificadores de los minijuegos implementados (Etapas 1-3). */
 export type GameId =
   | "srs" // Repetición espaciada (Bosque)
   | "trivia" // Trivia Relámpago (Bosque)
@@ -31,7 +82,15 @@ export type GameId =
   | "sinonimos" // Batalla de Sinónimos (Bosque)
   | "historias" // Historias Ramificadas (Torre)
   | "refranes" // Sabiduría Popular (Torre)
-  | "minuto"; // Reto del Minuto (Torre)
+  | "minuto" // Reto del Minuto (Torre)
+  // ---- Etapa 3 · cinco nuevos por ciudad ----
+  | MemoriaGameId
+  | IntrusoGameId
+  | SorteaGameId
+  | VfGameId
+  | EscribeGameId
+  | OyeGameId
+  | ConectaGameId;
 
 /** Identificadores de las regiones del Archipiélago. */
 export type RegionId =
@@ -40,7 +99,8 @@ export type RegionId =
   | "fortaleza"
   | "biblioteca"
   | "puerto"
-  | "torre";
+  | "torre"
+  | "observatorio";
 
 /** Nivel MCER de referencia (orientativo, no certificativo). */
 export type Cefr = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
@@ -234,6 +294,68 @@ export interface MinutoExercise extends ExerciseBase {
   wordGoal: number;
 }
 
+/* ============================ Etapa 3 · nuevos formatos ============================ */
+
+/** Memoria de pares: emparejar tarjetas volteando (palabra↔definición, etc.). */
+export interface MemoriaExercise extends ExerciseBase {
+  type: MemoriaGameId;
+  /** Pares a emparejar (4-6 por tablero). */
+  pairs: { left: string; right: string }[];
+}
+
+/** El intruso: cuatro elementos, uno no pertenece a la familia. */
+export interface IntrusoExercise extends ExerciseBase {
+  type: IntrusoGameId;
+  options: string[];
+  answerIndex: number;
+  /** Familía a la que pertenecen los otros tres. */
+  category: string;
+}
+
+/** Clasifica: asignar cada enunciado al cubo correcto (2-4 cubos). */
+export interface SorteaExercise extends ExerciseBase {
+  type: SorteaGameId;
+  statement: string;
+  buckets: string[];
+  answerIndex: number;
+}
+
+/** Verdadero o falso con corrección pedagógica. */
+export interface VfExercise extends ExerciseBase {
+  type: VfGameId;
+  statement: string;
+  answer: boolean;
+  /** Forma correcta cuando la afirmación es falsa. */
+  correction?: string;
+}
+
+/** Escribe la palabra: teclear el término a partir de la pista. */
+export interface EscribeExercise extends ExerciseBase {
+  type: EscribeGameId;
+  /** Pista (definición, conjugación pedida, etc.). */
+  clue: string;
+  /** Palabra exacta esperada (se normalizan tildes al validar en flexivo). */
+  word: string;
+  /** Segunda pista corta (categoría o inicial). */
+  hint?: string;
+}
+
+/** Oye: escucha (TTS) y elige la escritura correcta. */
+export interface OyeExercise extends ExerciseBase {
+  type: OyeGameId;
+  /** Palabra o frase corta que suena. */
+  word: string;
+  /** Escrituras erróneas verosímiles. */
+  wrongs: string[];
+}
+
+/** Conecta: unir columnas (inicio↔final, palabra↔origen, etc.). */
+export interface ConectaExercise extends ExerciseBase {
+  type: ConectaGameId;
+  /** Pares correctos; en pantalla la columna derecha se baraja. */
+  pairs: { left: string; right: string }[];
+}
+
 export type Exercise =
   | TriviaExercise
   | PuzzleExercise
@@ -248,7 +370,14 @@ export type Exercise =
   | SinonimosExercise
   | HistoriasExercise
   | RefranesExercise
-  | MinutoExercise;
+  | MinutoExercise
+  | MemoriaExercise
+  | IntrusoExercise
+  | SorteaExercise
+  | VfExercise
+  | EscribeExercise
+  | OyeExercise
+  | ConectaExercise;
 
 /* ============================== SRS ============================== */
 
@@ -367,6 +496,14 @@ export interface GameCore {
     comboByDay: Record<string, number>;
     activeDays: string[];
     startedAt: number;
+    /** Milisegundos de juego acumulados (sesiones completas). */
+    totalTimeMs: number;
+    /** Suma de tiempos de respuesta (para la media). */
+    answerTimeSumMs: number;
+    /** Mejor combo histórico de todo el juego. */
+    bestComboEver: number;
+    /** Número de formatos distintos probados (juegos únicos jugados). */
+    uniqueGames: string[];
   };
   streak: {
     current: number;
@@ -403,10 +540,27 @@ export interface PlayerProfile {
   avatar: string;
   goal: string;
   experience: "principiante" | "intermedio" | "avanzado";
+  /** Género elegido para el tratamiento (rangos, saludos). */
+  gender: "m" | "f" | "x";
+  /** Descripción personal (bio, máx. 160 caracteres). */
+  bio: string;
+  /** Banner del perfil: id predefinido («preset:aurora») o data-URL propia. */
+  banner: string;
+  /** Foto del avatar: data-URL propia o «» para usar la predeterminada. */
+  photo: string;
   createdAt: number;
   onboarded: boolean;
   placementDone: boolean;
 }
+
+/** Identificadores de paleta de color (tema). */
+export type ThemeColorId =
+  | "aurora"
+  | "coral"
+  | "miel"
+  | "lavanda"
+  | "oceano"
+  | "magenta";
 
 export interface GameSettings {
   reduceMotion: boolean;
@@ -421,6 +575,14 @@ export interface GameSettings {
   offlineMode: boolean;
   /** Modo lectura nocturna: paleta cálida y tenue (Etapa 2). */
   nightMode: boolean;
+  /** Paleta de color de la interfaz (Etapa 3). */
+  themeColor: ThemeColorId;
+  /** ¿Suena la música ambiental dentro de las partidas? */
+  musicInGames: boolean;
+  /** Volumen de la estación de música del jugador (0-1). */
+  stationVolume: number;
+  /** ¿La estación sigue sonando durante las partidas? */
+  stationInGames: boolean;
 }
 
 /* ============================== Misiones / logros ============================== */
@@ -481,4 +643,5 @@ export type Screen =
   | { name: "errors" }
   | { name: "missions" }
   | { name: "settings" }
+  | { name: "music" }
   | { name: "library" };

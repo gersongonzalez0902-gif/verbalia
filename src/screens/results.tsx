@@ -12,8 +12,8 @@ import { levelProgress, rankForLevel } from "@/engine/xp";
 import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { GAMES } from "@/data/games";
 import { Confetti, LevelBadge, ProgressRing, XpBar } from "@/components/game/widgets";
-import { TintaBubble } from "@/components/game/tinta";
-import { tintaResultQuip } from "@/data/companion";
+import { LexicoBubble } from "@/components/game/lexico";
+import { lexicoResultQuip } from "@/data/companion";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trophy, Sparkles, Flame, Shield, Zap, Award } from "lucide-react";
@@ -56,7 +56,7 @@ export function ResultsScreen() {
   }
 
   const accuracyPct = result.accuracy !== null ? Math.round(result.accuracy * 100) : null;
-  const quip = tintaResultQuip(result.accuracy, result.record.mode);
+  const quip = lexicoResultQuip(result.accuracy, result.record.mode);
   const minutes = Math.max(1, Math.round(result.record.durationMs / 60000));
 
   return (
@@ -186,8 +186,8 @@ export function ResultsScreen() {
         </p>
       )}
 
-      {/* Tinta comenta */}
-      <TintaBubble text={quip} className="mt-6" />
+      {/* Léxico comenta */}
+      <LexicoBubble text={quip} mood={result.accuracy !== null && result.accuracy >= 0.8 ? "cheer" : "oops"} className="mt-6" />
 
       {/* Repaso de explicaciones */}
       {result.answers.length > 0 && (

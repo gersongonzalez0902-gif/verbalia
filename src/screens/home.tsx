@@ -9,27 +9,31 @@ import { useMemo } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
-import { levelProgress, rankForLevel } from "@/engine/xp";
+import { levelProgress, rankForLevel, rankName } from "@/engine/xp";
 import { dailyProgress, dateKey } from "@/engine/missions";
 import { REGIONS } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { SRS_WORDS } from "@/data/words-srs";
 import { dueCards } from "@/engine/session";
 import { ProgressRing, XpBar, LevelBadge, StreakBadge } from "@/components/game/widgets";
-import { TintaBubble } from "@/components/game/tinta";
-import { TINTA_GREETINGS, TINTA_TIPS } from "@/data/companion";
+import { LexicoBubble } from "@/components/game/lexico";
+import { LEXICO_GREETINGS, LEXICO_TIPS } from "@/data/companion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createRng } from "@/engine/rng";
+import { FraseCard } from "@/components/game/frase-card";
+import { useMusicStore } from "@/services/music-station";
 import {
   BookOpen,
+  ChartColumn,
   ChevronRight,
   Library,
+  ListMusic,
   NotebookPen,
   Play,
+  Quote,
   Settings as SettingsIcon,
   Sprout,
-  ChartColumn,
 } from "lucide-react";
 import { getIcon } from "@/components/game/icons";
 
@@ -47,6 +51,8 @@ export function HomeScreen() {
 
   const missions = useMemo(() => dailyProgress(core, today), [core, today]);
 
+  const stationCount = useMusicStore((s) => s.tracks.length);
+
   const greeting = useMemo(() => {
     const ctx = {
       streak: core.streak.current,
@@ -55,17 +61,28 @@ export function HomeScreen() {
       hasErrors: core.errors.length,
       dueCards: due.length,
     };
-    return TINTA_GREETINGS.find((g) => g.condition(ctx)) ?? TINTA_GREETINGS[TINTA_GREETINGS.length - 1];
+    return LEXICO_GREETINGS.find((g) => g.condition(ctx)) ?? LEXICO_GREETINGS[LEXICO_GREETINGS.length - 1];
   }, [core, xpToday, settings.dailyGoalXp, due.length]);
 
-  // Consejo de Tinta: uno al día, determinista.
+  // Consejo de Léxico: uno al día, determinista.
   const dailyTip = useMemo(() => {
     const rng = createRng(`tip-${today}`);
-    const idx = Math.floor(rng() * TINTA_TIPS.length);
-    return TINTA_TIPS[idx];
+    const idx = Math.floor(rng() * LEXICO_TIPS.length);
+    return LEXICO_TIPS[idx];
   }, [today]);
 
   const unlockedRegions = REGIONS.filter((r) => r.games.length > 0 && level >= r.unlockLevel);
+
+  /** Región dueña de cada minijuego (para respetar la progresión). */
+  const gameRegion = useMemo(() => {
+    const map = new Map<string, { name: string; unlockLevel: number }>();
+    for (const r of REGIONS) for (const g of r.games) map.set(g, { name: r.name, unlockLevel: r.unlockLevel });
+    return map;
+  }, []);
+  const unlockedGameIds = useMemo(
+    () => GAME_IDS.filter((g) => (gameRegion.get(g)?.unlockLevel ?? 99) <= level),
+    [GAME_IDS, gameRegion, level],
+  );
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 pb-8 pt-4 lg:pt-6">
@@ -73,7 +90,7 @@ export function HomeScreen() {
       <header className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            {rank.name}
+            {rankName(rank, profile.gender)}
           </p>
           <h1 className="font-display truncate text-2xl font-bold leading-tight title-sheen">
             ¡Hola, {profile.name}!
@@ -99,8 +116,8 @@ export function HomeScreen() {
         </span>
       </div>
 
-      {/* ===== Tinta ===== */}
-      <TintaBubble text={greeting.text({ name: profile.name, streak: core.streak.current, dueCards: due.length })} className="mt-4" />
+      {/* ===== Léxico ===== */}
+      <LexicoBubble mood={xpToday >= settings.dailyGoalXp ? "happy" : "idle"} text={greeting.text({ name: profile.name, streak: core.streak.current, dueCards: due.length })} className="mt-4" />
 
       {/* ===== Objetivo diario + sesión recomendada ===== */}
       <section className="card-aurora mt-4 grid gap-4 rounded-3xl border bg-card p-4 sm:grid-cols-[auto_1fr]" aria-labelledby="goal-title">
@@ -202,7 +219,7 @@ export function HomeScreen() {
           </button>
         </div>
         <div className="stagger grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {REGIONS.filter((r) => r.stage === 1).map((r) => {
+          {REGIONS.map((r) => {
             const Icon = getIcon(r.icon);
             const unlocked = level >= r.unlockLevel;
             return (
@@ -247,9 +264,12 @@ export function HomeScreen() {
       <section className="mt-6" aria-labelledby="training-title">
         <h2 id="training-title" className="font-display mb-2.5 text-lg font-bold">
           Entrenamiento rápido
+          <span className="ml-2 text-xs font-semibold text-muted-foreground">
+            {unlockedGameIds.length}/{GAME_IDS.length} desbloqueados
+          </span>
         </h2>
         <ul className="scroll-soft -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1.5" aria-label="Entrenamientos rápidos">
-          {GAME_IDS.map((gid) => {
+          {unlockedGameIds.map((gid) => {
             const g = GAMES[gid];
             const Icon = getIcon(g.icon, Play);
             return (
@@ -276,10 +296,15 @@ export function HomeScreen() {
         <QuickLink icon={NotebookPen} label="Errores" onClick={() => { sfx.click(); navigate({ name: "errors" }); }} hint={`${core.errors.length} pendientes`} />
         <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS.length}`} />
         <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => { sfx.click(); navigate({ name: "stats" }); }} hint={`${core.stats.totalSessions} sesiones`} />
+        <QuickLink icon={ListMusic} label="Estación" onClick={() => { sfx.click(); navigate({ name: "music" }); }} hint={`${stationCount} canciones`} />
+        <QuickLink icon={Quote} label="Frase" onClick={() => { sfx.tap(); navigate({ name: "map" }); }} hint="del día" />
       </section>
 
       {/* Consejo diario */}
-      <TintaBubble text={`Consejo de Tinta: ${dailyTip.text}`} compact className="mt-6 opacity-90" />
+      <LexicoBubble text={`Consejo de Léxico: ${dailyTip.text}`} compact className="mt-6 opacity-90" />
+
+      {/* ===== Frase del día (rota con cada navegación) ===== */}
+      <FraseCard className="mt-5" />
 
       {/* Enlace a biblioteca (móvil no tiene en nav inferior) */}
       <button

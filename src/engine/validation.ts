@@ -209,3 +209,90 @@ export function toAnswerRecord(
 ): AnswerRecord {
   return { ...base, ...validation };
 }
+
+/* ============================ Etapa 3 · nuevos formatos ============================ */
+
+/** El Intruso: índice de la palabra intrusa. */
+export function checkIntruso(exercise: any, chosenIndex: number): ValidationResult {
+  const correct = chosenIndex === exercise.answerIndex;
+  return {
+    correct,
+    userAnswer: exercise.options[chosenIndex] ?? "—",
+    correctAnswer: exercise.options[exercise.answerIndex],
+  };
+}
+
+/** Clasifica (sortea): índice del cubo elegido. */
+export function checkSortea(exercise: any, bucketIndex: number): ValidationResult {
+  const correct = bucketIndex === exercise.answerIndex;
+  return {
+    correct,
+    userAnswer: exercise.buckets[bucketIndex] ?? "—",
+    correctAnswer: exercise.buckets[exercise.answerIndex],
+  };
+}
+
+/** Verdadero o falso: booleano directo. */
+export function checkVf(exercise: any, chosen: boolean): ValidationResult {
+  return {
+    correct: chosen === exercise.answer,
+    userAnswer: chosen ? "Verdadero" : "Falso",
+    correctAnswer: exercise.answer ? "Verdadero" : "Falso",
+  };
+}
+
+/** Normalización para escribir: minúsculas, espacios y puntuación final fuera. */
+function normalizeEscribe(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!?…]+$/, "");
+}
+
+/**
+ * Escribe la palabra: estricta con tildes y eñes en la Fortaleza
+ * (el juego es ortográfico); tolerante con tildes en el resto (la
+ * palabra correcta se acepta aunque falte el acento escrito).
+ */
+export function checkEscribe(exercise: any, typed: string): ValidationResult {
+  const target = exercise.word as string;
+  const norm = normalizeEscribe(typed);
+  const strict = norm === normalizeEscribe(target);
+  const loose = norm.normalize("NFD").replace(/\p{Diacritic}/gu, "") ===
+    normalizeEscribe(target).normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  const isOrtografia = (exercise.type as string).startsWith("escribe-fortaleza");
+  const correct = isOrtografia ? strict : strict || loose;
+  return {
+    correct,
+    userAnswer: typed.trim() || "—",
+    correctAnswer: target,
+  };
+}
+
+/** Oye: la escritura elegida (cadena) frente a la palabra correcta. */
+export function checkOye(exercise: any, chosen: string): ValidationResult {
+  return {
+    correct: chosen === exercise.word,
+    userAnswer: chosen,
+    correctAnswer: exercise.word,
+  };
+}
+
+/**
+ * Memoria de pares: cooperativo (siempre se resuelve); registra los
+ * intentos. El decaimiento anti-farmeo del motor se ocupa de las
+ * repeticiones de un mismo tablero.
+ */
+export function checkMemoria(exercise: any, attempts: number): ValidationResult {
+  return {
+    correct: true,
+    userAnswer: `${attempts} intentos`,
+    correctAnswer: `${exercise.pairs.length} pares`,
+  };
+}
+
+/** Conecta: cooperativo; registra los fallos de conexión. */
+export function checkConecta(exercise: any, mistakes: number): ValidationResult {
+  return {
+    correct: true,
+    userAnswer: mistakes === 0 ? "sin fallos" : `${mistakes} fallo${mistakes === 1 ? "" : "s"}`,
+    correctAnswer: `${exercise.pairs.length} pares`,
+  };
+}

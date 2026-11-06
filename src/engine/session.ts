@@ -149,6 +149,18 @@ const TRAINING_SIZES: Partial<Record<GameId, number>> = {
   historias: 2,
   refranes: 10,
   minuto: 1,
+  // Etapa 3: los tableros largos llevan sesiones más cortas.
+  "memoria-bosque": 4,
+  "memoria-fortaleza": 4,
+  "memoria-biblioteca": 4,
+  "memoria-torre": 4,
+  "memoria-observatorio": 4,
+  "conecta-ciudad": 6,
+  "conecta-biblioteca": 5,
+  "conecta-puerto": 6,
+  "conecta-torre": 6,
+  "conecta-observatorio": 6,
+  "escribe-ciudad": 8,
 };
 
 export function buildMissionSession(
@@ -190,6 +202,13 @@ export function buildMissionSession(
     items.push(...selectExercises("parrafos", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("cloze", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("lectura", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+  } else if (regionId === "observatorio") {
+    // Observatorio: los cinco formatos de cultura lingüística, mezclados.
+    items.push(...selectExercises("vf-observatorio", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("conecta-observatorio", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("sortea-observatorio", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("memoria-observatorio", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("intruso-observatorio", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
   } else {
     // Resto de regiones: mezcla alternada de sus dos juegos.
     const per = Math.ceil(MISSION_SIZE / games.length);
@@ -258,6 +277,49 @@ function inferSkill(gameId: GameId): SkillId {
     case "refranes":
     case "minuto":
       return "expresion";
+    // ---- Etapa 3 ----
+    case "memoria-bosque":
+    case "intruso-bosque":
+    case "escribe-bosque":
+    case "vf-bosque":
+    case "oye-bosque":
+      return "vocabulario";
+    case "sortea-ciudad":
+    case "vf-ciudad":
+    case "conecta-ciudad":
+    case "intruso-ciudad":
+    case "escribe-ciudad":
+      return "gramatica";
+    case "sortea-fortaleza":
+    case "vf-fortaleza":
+    case "escribe-fortaleza":
+    case "oye-fortaleza":
+    case "memoria-fortaleza":
+      return "ortografia";
+    case "conecta-biblioteca":
+    case "vf-biblioteca":
+    case "intruso-biblioteca":
+    case "memoria-biblioteca":
+    case "sortea-biblioteca":
+      return "lectura";
+    case "oye-puerto":
+    case "memoria-puerto":
+    case "vf-puerto":
+    case "conecta-puerto":
+    case "sortea-puerto":
+      return "audicion";
+    case "vf-torre":
+    case "conecta-torre":
+    case "sortea-torre":
+    case "escribe-torre":
+    case "memoria-torre":
+      return "expresion";
+    case "vf-observatorio":
+    case "conecta-observatorio":
+    case "sortea-observatorio":
+    case "memoria-observatorio":
+    case "intruso-observatorio":
+      return "cultura";
   }
 }
 

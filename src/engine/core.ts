@@ -27,6 +27,7 @@ export const SKILL_IDS: SkillId[] = [
   "lectura",
   "audicion",
   "expresion",
+  "cultura",
 ];
 
 const MAX_ERRORS = 120;
@@ -57,6 +58,10 @@ export function createCore(now = Date.now()): GameCore {
       comboByDay: {},
       activeDays: [],
       startedAt: now,
+      totalTimeMs: 0,
+      answerTimeSumMs: 0,
+      bestComboEver: 0,
+      uniqueGames: [],
     },
     streak: { current: 0, best: 0, lastActiveDay: null, shields: 0 },
     missions: {
@@ -97,6 +102,7 @@ export function reduceSessionComplete(
   const wKey = weekKey(now);
 
   // ---------- Copia estructural superficial del núcleo ----------
+  const prevStats = core.stats;
   const next: GameCore = {
     ...core,
     skills: { ...core.skills },
@@ -113,6 +119,11 @@ export function reduceSessionComplete(
       srsReviewsByDay: { ...core.stats.srsReviewsByDay },
       comboByDay: { ...core.stats.comboByDay },
       activeDays: [...core.stats.activeDays],
+      // Etapa 3 · métricas acumuladas (compatibles con partidas viejas).
+      totalTimeMs: prevStats.totalTimeMs ?? 0,
+      answerTimeSumMs: prevStats.answerTimeSumMs ?? 0,
+      bestComboEver: prevStats.bestComboEver ?? 0,
+      uniqueGames: [...(prevStats.uniqueGames ?? [])],
     },
     streak: { ...core.streak },
     missions: {
@@ -196,6 +207,8 @@ export function reduceSessionComplete(
     if (spec.mode !== "placement") {
       bumpMap(next.stats.gamesByDay, dayKey, a.gameId);
     }
+    // Etapa 3 · tiempo de respuesta acumulado para la media global.
+    next.stats.answerTimeSumMs += a.timeMs;
   }
 
   const bestCombo = bestComboFrom(answers);
@@ -224,6 +237,8 @@ export function reduceSessionComplete(
   if (spec.mode !== "placement") {
     next.xp += xpTotal;
     xpToday += xpTotal;
+    next.stats.totalTimeMs += durationMs;
+    next.stats.bestComboEver = Math.max(next.stats.bestComboEver, bestCombo);
     next.stats.xpByDay[dayKey] = xpToday;
     next.stats.sessionsByDay[dayKey] = (next.stats.sessionsByDay[dayKey] ?? 0) + 1;
     next.stats.comboByDay[dayKey] = Math.max(next.stats.comboByDay[dayKey] ?? 0, bestCombo);
@@ -237,6 +252,7 @@ export function reduceSessionComplete(
     for (const g of gamesInSession) {
       const entry = (next.stats.byGame[g] ||= { plays: 0, answers: 0, correct: 0, bestCombo: 0 });
       entry.plays += 1;
+      if (!next.stats.uniqueGames.includes(g)) next.stats.uniqueGames.push(g);
     }
     if (spec.mode === "review") {
       const entry = (next.stats.byGame["review"] ||= { plays: 0, answers: 0, correct: 0, bestCombo: 0 });

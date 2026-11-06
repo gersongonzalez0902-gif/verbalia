@@ -53,14 +53,14 @@ export function MapScreen() {
 
   return (
     <div>
-      <ScreenHeader title="El Archipiélago de las Palabras" subtitle="Seis regiones, seis habilidades" backTo={{ name: "home" }} />
+      <ScreenHeader title="El Archipiélago de las Palabras" subtitle="Siete regiones, siete habilidades" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-4xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-4xl px-4 pb-28">
         {/* ===== Escena del mapa ===== */}
         <div
           className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md sm:aspect-[16/10]"
           role="img"
-          aria-label="Mapa del Archipiélago de las Palabras con seis regiones"
+          aria-label="Mapa del Archipiélago de las Palabras con siete regiones"
         >
           <IslandScene />
 
@@ -105,7 +105,10 @@ export function MapScreen() {
                 >
                   <Icon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden />
                   {!unlocked && (
-                    <Lock className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-card p-0.5 text-foreground shadow" aria-hidden />
+                    <span className="absolute -bottom-1.5 -right-2 flex items-center gap-0.5 rounded-full bg-card px-1 py-0.5 text-[9px] font-black shadow" aria-hidden>
+                      <Lock className="h-3 w-3" />
+                      <span className="numeric text-foreground">{r.unlockLevel}</span>
+                    </span>
                   )}
                 </span>
                 <span
@@ -114,7 +117,7 @@ export function MapScreen() {
                     unlocked ? "bg-card text-foreground" : "bg-muted text-muted-foreground",
                   )}
                 >
-                  {r.name.replace(" del ", " · ").replace(" de la ", " · ").replace("Infinita", "Infinita")}
+                  {r.name.replace(" de la ", " · ").replace(" del ", " · ")}
                 </span>
               </button>
             );

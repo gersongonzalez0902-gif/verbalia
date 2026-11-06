@@ -18,7 +18,7 @@ export interface RegionInfo {
   /** Icono lucide. */
   icon: string;
   colorVar: string;
-  /** Frase de Tinta al llegar. */
+  /** Frase de Léxico al llegar. */
   tip: string;
 }
 
@@ -32,7 +32,7 @@ export const REGIONS: RegionInfo[] = [
     skill: "vocabulario",
     unlockLevel: 1,
     stage: 1,
-    games: ["srs", "trivia", "sprint", "sinonimos"],
+    games: ["srs", "trivia", "sprint", "sinonimos", "memoria-bosque", "intruso-bosque", "escribe-bosque", "vf-bosque", "oye-bosque"],
     map: { x: 18, y: 26 },
     icon: "TreePine",
     colorVar: "--region-bosque",
@@ -47,7 +47,7 @@ export const REGIONS: RegionInfo[] = [
     skill: "gramatica",
     unlockLevel: 2,
     stage: 1,
-    games: ["puzzle", "cloze"],
+    games: ["puzzle", "cloze", "sortea-ciudad", "vf-ciudad", "conecta-ciudad", "intruso-ciudad", "escribe-ciudad"],
     map: { x: 45, y: 14 },
     icon: "Building2",
     colorVar: "--region-ciudad",
@@ -62,7 +62,7 @@ export const REGIONS: RegionInfo[] = [
     skill: "ortografia",
     unlockLevel: 3,
     stage: 1,
-    games: ["errores", "tildes"],
+    games: ["errores", "tildes", "sortea-fortaleza", "vf-fortaleza", "escribe-fortaleza", "oye-fortaleza", "memoria-fortaleza"],
     map: { x: 74, y: 24 },
     icon: "Castle",
     colorVar: "--region-fortaleza",
@@ -77,7 +77,7 @@ export const REGIONS: RegionInfo[] = [
     skill: "lectura",
     unlockLevel: 4,
     stage: 1,
-    games: ["parrafos", "cloze", "lectura"],
+    games: ["parrafos", "cloze", "lectura", "conecta-biblioteca", "vf-biblioteca", "intruso-biblioteca", "memoria-biblioteca", "sortea-biblioteca"],
     map: { x: 32, y: 55 },
     icon: "Library",
     colorVar: "--region-biblioteca",
@@ -92,7 +92,7 @@ export const REGIONS: RegionInfo[] = [
     skill: "audicion",
     unlockLevel: 5,
     stage: 2,
-    games: ["dictado", "matices"],
+    games: ["dictado", "matices", "oye-puerto", "memoria-puerto", "vf-puerto", "conecta-puerto", "sortea-puerto"],
     map: { x: 63, y: 48 },
     icon: "Anchor",
     colorVar: "--region-puerto",
@@ -107,11 +107,26 @@ export const REGIONS: RegionInfo[] = [
     skill: "expresion",
     unlockLevel: 6,
     stage: 2,
-    games: ["historias", "refranes", "minuto"],
+    games: ["historias", "refranes", "minuto", "vf-torre", "conecta-torre", "sortea-torre", "escribe-torre", "memoria-torre"],
     map: { x: 84, y: 68 },
     icon: "TowerControl",
     colorVar: "--region-torre",
     tip: "En la torre nadie te corrige a mitad de frase: primero escribe, después mira tu texto con ojos amables.",
+  },
+  {
+    id: "observatorio",
+    name: "Observatorio de la Palabra",
+    subtitle: "Etimologías, regionalismos y cultura",
+    description:
+      "La cúpula de cristal más alta del Archipiélago. Su telescopio no mira las estrellas: mira el viaje de las palabras, desde el latín y el árabe hasta el náhuatl y el quechua.",
+    skill: "cultura",
+    unlockLevel: 7,
+    stage: 2,
+    games: ["vf-observatorio", "conecta-observatorio", "sortea-observatorio", "memoria-observatorio", "intruso-observatorio"],
+    map: { x: 12, y: 76 },
+    icon: "Telescope",
+    colorVar: "--region-observatorio",
+    tip: "Cada palabra llegó aquí en un barco distinto. Descubre de dónde viene la tuya: el Observatorio guarda los mapas de esos viajes.",
   },
 ];
 
@@ -131,6 +146,7 @@ export const SKILL_LABELS: Record<SkillId, string> = {
   lectura: "Lectura",
   audicion: "Audición",
   expresion: "Expresión",
+  cultura: "Cultura lingüística",
 };
 
 /** Colores (variables CSS) por habilidad, para gráficos. */
@@ -141,4 +157,5 @@ export const SKILL_COLORS: Record<SkillId, string> = {
   lectura: "var(--region-biblioteca)",
   audicion: "var(--region-puerto)",
   expresion: "var(--region-torre)",
+  cultura: "var(--region-observatorio)",
 };

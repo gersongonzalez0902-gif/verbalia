@@ -1,0 +1,901 @@
+     1→@import "tailwindcss";
+     2→@import "tw-animate-css";
+     3→
+     4→@custom-variant dark (&:is(.dark *));
+     5→
+     6→@theme inline {
+     7→  --color-background: var(--background);
+     8→  --color-foreground: var(--foreground);
+     9→  --font-sans: var(--font-body);
+    10→  --font-mono: var(--font-geist-mono);
+    11→  --color-sidebar-ring: var(--sidebar-ring);
+    12→  --color-sidebar-border: var(--sidebar-border);
+    13→  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    14→  --color-sidebar-accent: var(--sidebar-accent);
+    15→  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    16→  --color-sidebar-primary: var(--sidebar-primary);
+    17→  --color-sidebar-foreground: var(--sidebar-foreground);
+    18→  --color-sidebar: var(--sidebar);
+    19→  --color-chart-5: var(--chart-5);
+    20→  --color-chart-4: var(--chart-4);
+    21→  --color-chart-3: var(--chart-3);
+    22→  --color-chart-2: var(--chart-2);
+    23→  --color-chart-1: var(--chart-1);
+    24→  --color-ring: var(--ring);
+    25→  --color-input: var(--input);
+    26→  --color-border: var(--border);
+    27→  --color-destructive: var(--destructive);
+    28→  --color-destructive-foreground: var(--destructive-foreground);
+    29→  --color-success: var(--success);
+    30→  --color-success-foreground: var(--success-foreground);
+    31→  --color-accent-foreground: var(--accent-foreground);
+    32→  --color-accent: var(--accent);
+    33→  --color-muted-foreground: var(--muted-foreground);
+    34→  --color-muted: var(--muted);
+    35→  --color-secondary-foreground: var(--secondary-foreground);
+    36→  --color-secondary: var(--secondary);
+    37→  --color-primary-foreground: var(--primary-foreground);
+    38→  --color-primary: var(--primary);
+    39→  --color-popover-foreground: var(--popover-foreground);
+    40→  --color-popover: var(--popover);
+    41→  --color-card-foreground: var(--card-foreground);
+    42→  --color-card: var(--card);
+    43→  --color-xp: var(--xp);
+    44→  --color-xp-foreground: var(--xp-foreground);
+    45→  --color-region-bosque: var(--region-bosque);
+    46→  --color-region-ciudad: var(--region-ciudad);
+    47→  --color-region-fortaleza: var(--region-fortaleza);
+    48→  --color-region-biblioteca: var(--region-biblioteca);
+    49→  --color-region-puerto: var(--region-puerto);
+    50→  --color-region-torre: var(--region-torre);
+    51→  --color-surface-glass: var(--surface-glass);
+    52→  --radius-sm: calc(var(--radius) - 4px);
+    53→  --radius-md: calc(var(--radius) - 2px);
+    54→  --radius-lg: var(--radius);
+    55→  --radius-xl: calc(var(--radius) + 4px);
+    56→}
+    57→
+    58→/* ============================================================
+    59→   VERBALIA · Sistema de diseño
+    60→   Paleta: verde profundo, crema cálido, dorado de XP,
+    61→   superficies oscuras elegantes en modo noche.
+    62→   ============================================================ */
+    63→
+    64→:root {
+    65→  --radius: 0.875rem;
+    66→
+    67→  /* Modo claro: papel cálido sobre tinta verde */
+    68→  --background: oklch(0.972 0.014 110);
+    69→  --foreground: oklch(0.245 0.035 160);
+    70→  --card: oklch(0.99 0.007 110);
+    71→  --card-foreground: oklch(0.245 0.035 160);
+    72→  --popover: oklch(0.99 0.007 110);
+    73→  --popover-foreground: oklch(0.245 0.035 160);
+    74→
+    75→  --primary: oklch(0.51 0.11 156);
+    76→  --primary-foreground: oklch(0.985 0.01 110);
+    77→  --secondary: oklch(0.935 0.025 145);
+    78→  --secondary-foreground: oklch(0.32 0.05 160);
+    79→  --muted: oklch(0.94 0.016 125);
+    80→  --muted-foreground: oklch(0.49 0.032 155);
+    81→  --accent: oklch(0.82 0.135 85);
+    82→  --accent-foreground: oklch(0.3 0.06 85);
+    83→
+    84→  --destructive: oklch(0.577 0.18 30);
+    85→  --destructive-foreground: oklch(0.99 0.005 90);
+    86→  --success: oklch(0.55 0.13 152);
+    87→  --success-foreground: oklch(0.985 0.01 110);
+    88→
+    89→  --border: oklch(0.885 0.022 142);
+    90→  --input: oklch(0.885 0.022 142);
+    91→  --ring: oklch(0.51 0.11 156);
+    92→
+    93→  --chart-1: oklch(0.55 0.13 152);
+    94→  --chart-2: oklch(0.75 0.14 80);
+    95→  --chart-3: oklch(0.6 0.1 195);
+    96→  --chart-4: oklch(0.55 0.15 320);
+    97→  --chart-5: oklch(0.6 0.15 20);
+    98→
+    99→  --sidebar: oklch(0.955 0.02 130);
+   100→  --sidebar-foreground: oklch(0.245 0.035 160);
+   101→  --sidebar-primary: oklch(0.51 0.11 156);
+   102→  --sidebar-primary-foreground: oklch(0.985 0.01 110);
+   103→  --sidebar-accent: oklch(0.9 0.03 145);
+   104→  --sidebar-accent-foreground: oklch(0.32 0.05 160);
+   105→  --sidebar-border: oklch(0.885 0.022 142);
+   106→  --sidebar-ring: oklch(0.51 0.11 156);
+   107→
+   108→  /* XP y regiones (modo claro) */
+   109→  --xp: oklch(0.73 0.15 82);
+   110→  --xp-foreground: oklch(0.25 0.05 80);
+   111→  --region-bosque: oklch(0.52 0.13 150);
+   112→  --region-ciudad: oklch(0.6 0.125 72);
+   113→  --region-fortaleza: oklch(0.5 0.06 65);
+   114→  --region-biblioteca: oklch(0.5 0.15 322);
+   115→  --region-puerto: oklch(0.52 0.09 200);
+   116→  --region-torre: oklch(0.56 0.15 22);
+   117→
+   118→  --surface-glass: oklch(1 0 0 / 62%);
+   119→}
+   120→
+   121→.dark {
+   122→  /* Modo noche: superficies oscuras con brillo esmeralda */
+   123→  --background: oklch(0.185 0.024 165);
+   124→  --foreground: oklch(0.93 0.014 125);
+   125→  --card: oklch(0.225 0.028 165);
+   126→  --card-foreground: oklch(0.93 0.014 125);
+   127→  --popover: oklch(0.235 0.028 165);
+   128→  --popover-foreground: oklch(0.93 0.014 125);
+   129→
+   130→  --primary: oklch(0.76 0.14 158);
+   131→  --primary-foreground: oklch(0.2 0.045 160);
+   132→  --secondary: oklch(0.275 0.03 165);
+   133→  --secondary-foreground: oklch(0.91 0.012 125);
+   134→  --muted: oklch(0.27 0.026 165);
+   135→  --muted-foreground: oklch(0.69 0.025 150);
+   136→  --accent: oklch(0.8 0.14 85);
+   137→  --accent-foreground: oklch(0.24 0.05 80);
+   138→
+   139→  --destructive: oklch(0.67 0.17 28);
+   140→  --destructive-foreground: oklch(0.16 0.02 30);
+   141→  --success: oklch(0.72 0.14 156);
+   142→  --success-foreground: oklch(0.18 0.04 158);
+   143→
+   144→  --border: oklch(1 0 0 / 12%);
+   145→  --input: oklch(1 0 0 / 17%);
+   146→  --ring: oklch(0.76 0.14 158);
+   147→
+   148→  --chart-1: oklch(0.72 0.14 156);
+   149→  --chart-2: oklch(0.8 0.14 85);
+   150→  --chart-3: oklch(0.7 0.1 195);
+   151→  --chart-4: oklch(0.66 0.15 322);
+   152→  --chart-5: oklch(0.7 0.14 20);
+   153→
+   154→  --sidebar: oklch(0.21 0.026 165);
+   155→  --sidebar-foreground: oklch(0.93 0.014 125);
+   156→  --sidebar-primary: oklch(0.76 0.14 158);
+   157→  --sidebar-primary-foreground: oklch(0.2 0.045 160);
+   158→  --sidebar-accent: oklch(0.27 0.03 165);
+   159→  --sidebar-accent-foreground: oklch(0.91 0.012 125);
+   160→  --sidebar-border: oklch(1 0 0 / 12%);
+   161→  --sidebar-ring: oklch(0.76 0.14 158);
+   162→
+   163→  --xp: oklch(0.8 0.15 84);
+   164→  --xp-foreground: oklch(0.24 0.05 80);
+   165→  --region-bosque: oklch(0.72 0.15 152);
+   166→  --region-ciudad: oklch(0.78 0.13 80);
+   167→  --region-fortaleza: oklch(0.7 0.055 70);
+   168→  --region-biblioteca: oklch(0.68 0.15 324);
+   169→  --region-puerto: oklch(0.7 0.1 198);
+   170→  --region-torre: oklch(0.7 0.15 20);
+   171→
+   172→  --surface-glass: oklch(0.2 0.03 165 / 72%);
+   173→}
+   174→
+   175→/* Modo lectura nocturna: superficies cálidas, oscuras y amables con
+   176→   la vista (contraste AA mantenido: texto ~11:1, primario ~5.4:1). */
+   177→html.night {
+   178→  --background: oklch(0.21 0.028 75);
+   179→  --foreground: oklch(0.92 0.022 90);
+   180→  --card: oklch(0.25 0.032 75);
+   181→  --card-foreground: oklch(0.92 0.022 90);
+   182→  --popover: oklch(0.26 0.032 75);
+   183→  --popover-foreground: oklch(0.92 0.022 90);
+   184→
+   185→  --primary: oklch(0.82 0.115 95);
+   186→  --primary-foreground: oklch(0.24 0.05 80);
+   187→  --secondary: oklch(0.3 0.034 75);
+   188→  --secondary-foreground: oklch(0.9 0.02 90);
+   189→  --muted: oklch(0.29 0.03 75);
+   190→  --muted-foreground: oklch(0.75 0.03 90);
+   191→  --accent: oklch(0.8 0.12 85);
+   192→  --accent-foreground: oklch(0.24 0.05 80);
+   193→
+   194→  --destructive: oklch(0.7 0.15 30);
+   195→  --destructive-foreground: oklch(0.16 0.03 30);
+   196→  --success: oklch(0.78 0.12 150);
+   197→  --success-foreground: oklch(0.2 0.05 150);
+   198→
+   199→  --border: oklch(0.95 0.02 90 / 16%);
+   200→  --input: oklch(0.95 0.02 90 / 20%);
+   201→  --ring: oklch(0.82 0.115 95);
+   202→
+   203→  --sidebar: oklch(0.23 0.03 75);
+   204→  --sidebar-foreground: oklch(0.92 0.022 90);
+   205→  --sidebar-primary: oklch(0.82 0.115 95);
+   206→  --sidebar-primary-foreground: oklch(0.24 0.05 80);
+   207→  --sidebar-accent: oklch(0.3 0.034 75);
+   208→  --sidebar-accent-foreground: oklch(0.9 0.02 90);
+   209→  --sidebar-border: oklch(0.95 0.02 90 / 16%);
+   210→  --sidebar-ring: oklch(0.82 0.115 95);
+   211→
+   212→  --xp: oklch(0.85 0.13 88);
+   213→  --xp-foreground: oklch(0.24 0.05 80);
+   214→  --region-bosque: oklch(0.76 0.13 145);
+   215→  --region-ciudad: oklch(0.8 0.12 82);
+   216→  --region-fortaleza: oklch(0.72 0.05 68);
+   217→  --region-biblioteca: oklch(0.7 0.13 320);
+   218→  --region-puerto: oklch(0.7 0.09 198);
+   219→  --region-torre: oklch(0.68 0.13 22);
+   220→
+   221→  --surface-glass: oklch(0.22 0.032 75 / 74%);
+   222→}
+   223→
+   224→html.night .paper-texture {
+   225→  /* El papel también se dora de noche. */
+   226→  background-image: radial-gradient(
+   227→      ellipse at 18% 8%,
+   228→      oklch(0.32 0.04 78 / 55%),
+   229→      transparent 55%
+   230→    ),
+   231→    linear-gradient(160deg, oklch(0.97 0.03 95 / 5%), transparent 45%);
+   232→}
+   233→
+   234→/* Tamaño de texto configurable (accesibilidad) */
+   235→html {
+   236→  font-size: 100%;
+   237→}
+   238→html[data-text-size="lg"] {
+   239→  font-size: 112.5%;
+   240→}
+   241→html[data-text-size="xl"] {
+   242→  font-size: 125%;
+   243→}
+   244→
+   245→@layer base {
+   246→  * {
+   247→    @apply border-border outline-ring/50;
+   248→  }
+   249→  body {
+   250→    @apply bg-background text-foreground;
+   251→    font-feature-settings: "kern";
+   252→    -webkit-tap-highlight-color: transparent;
+   253→  }
+   254→  ::selection {
+   255→    background: color-mix(in oklch, var(--primary) 28%, transparent);
+   256→  }
+   257→  h1, h2, h3, h4 {
+   258→    font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+   259→    letter-spacing: -0.01em;
+   260→  }
+   261→}
+   262→
+   263→/* Tipografía de videojuego para títulos y cifras */
+   264→.font-display {
+   265→  font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+   266→}
+   267→.numeric {
+   268→  font-variant-numeric: tabular-nums;
+   269→}
+   270→
+   271→/* ============================ Animaciones ============================ */
+   272→@keyframes float-soft {
+   273→  0%, 100% { transform: translateY(0); }
+   274→  50% { transform: translateY(-8px); }
+   275→}
+   276→@keyframes bob {
+   277→  0%, 100% { transform: translateY(0) rotate(0deg); }
+   278→  50% { transform: translateY(-3px) rotate(-1.2deg); }
+   279→}
+   280→@keyframes blink {
+   281→  0%, 92%, 100% { transform: scaleY(0); }
+   282→  94%, 98% { transform: scaleY(1); }
+   283→}
+   284→@keyframes pop-in {
+   285→  0% { transform: scale(0.86); opacity: 0; }
+   286→  70% { transform: scale(1.04); opacity: 1; }
+   287→  100% { transform: scale(1); opacity: 1; }
+   288→}
+   289→@keyframes fade-slide-up {
+   290→  from { transform: translateY(14px); opacity: 0; }
+   291→  to { transform: translateY(0); opacity: 1; }
+   292→}
+   293→@keyframes shake-gentle {
+   294→  0%, 100% { transform: translateX(0); }
+   295→  25% { transform: translateX(-5px); }
+   296→  50% { transform: translateX(4px); }
+   297→  75% { transform: translateX(-2px); }
+   298→}
+   299→@keyframes glow-pulse {
+   300→  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 45%, transparent); }
+   301→  50% { box-shadow: 0 0 0 12px color-mix(in oklch, var(--primary) 0%, transparent); }
+   302→}
+   303→@keyframes xp-fly {
+   304→  0% { transform: translateY(0) scale(0.9); opacity: 0; }
+   305→  20% { opacity: 1; }
+   306→  100% { transform: translateY(-34px) scale(1.05); opacity: 0; }
+   307→}
+   308→@keyframes confetti-fall {
+   309→  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+   310→  100% { transform: translateY(85vh) rotate(620deg); opacity: 0; }
+   311→}
+   312→@keyframes wave-drift {
+   313→  0%, 100% { transform: translateX(0); }
+   314→  50% { transform: translateX(14px); }
+   315→}
+   316→@keyframes flame-dance {
+   317→  0%, 100% { transform: scale(1) rotate(-2deg); }
+   318→  50% { transform: scale(1.08) rotate(2.5deg); }
+   319→}
+   320→@keyframes ring-fill {
+   321→  from { stroke-dashoffset: var(--ring-from, 300); }
+   322→}
+   323→@keyframes sound-bar {
+   324→  0%, 100% { transform: scaleY(0.45); }
+   325→  50% { transform: scaleY(1); }
+   326→}
+   327→
+   328→/* ============ Ambientación del Archipiélago ============ */
+   329→@keyframes blob-breathe {
+   330→  0%, 100% { transform: translate(0, 0) scale(1); }
+   331→  33% { transform: translate(4%, -5%) scale(1.07); }
+   332→  66% { transform: translate(-4%, 4%) scale(0.95); }
+   333→}
+   334→@keyframes dust-rise {
+   335→  0% { transform: translateY(0) translateX(0); opacity: 0; }
+   336→  12% { opacity: 0.85; }
+   337→  85% { opacity: 0.5; }
+   338→  100% { transform: translateY(-88vh) translateX(var(--drift, 0px)); opacity: 0; }
+   339→}
+   340→@keyframes tide-drift {
+   341→  0% { transform: translateX(0); }
+   342→  100% { transform: translateX(-240px); }
+   343→}
+   344→@keyframes screen-in {
+   345→  from { opacity: 0; transform: translateY(10px) scale(0.995); }
+   346→  to { opacity: 1; transform: translateY(0) scale(1); }
+   347→}
+   348→@keyframes dash-drift {
+   349→  to { stroke-dashoffset: -140; }
+   350→}
+   351→@keyframes xp-shimmer {
+   352→  0% { background-position: -60% 0; }
+   353→  100% { background-position: 160% 0; }
+   354→}
+   355→
+   356→.ambient-blob {
+   357→  position: absolute;
+   358→  border-radius: 9999px;
+   359→  filter: blur(64px);
+   360→  animation: blob-breathe 18s ease-in-out infinite;
+   361→  will-change: transform;
+   362→}
+   363→.ambient-dust {
+   364→  position: absolute;
+   365→  bottom: -12px;
+   366→  border-radius: 9999px;
+   367→  opacity: 0;
+   368→  animation: dust-rise 18s linear infinite;
+   369→  will-change: transform, opacity;
+   370→}
+   371→.ambient-tide {
+   372→  position: absolute;
+   373→  bottom: -6px;
+   374→  left: 0;
+   375→  width: calc(100% + 240px);
+   376→  height: 120px;
+   377→  animation: tide-drift 26s linear infinite;
+   378→}
+   379→.anim-screen {
+   380→  animation: screen-in 0.3s ease-out both;
+   381→}
+   382→.route-flow {
+   383→  animation: dash-drift 6s linear infinite;
+   384→}
+   385→.xp-shimmer {
+   386→  background-image: linear-gradient(
+   387→    100deg,
+   388→    transparent 20%,
+   389→    color-mix(in oklch, white 45%, transparent) 50%,
+   390→    transparent 80%
+   391→  );
+   392→  background-size: 60% 100%;
+   393→  background-repeat: no-repeat;
+   394→  animation: xp-shimmer 2.4s ease-in-out infinite;
+   395→}
+   396→
+   397→.anim-float { animation: float-soft 5s ease-in-out infinite; }
+   398→.anim-bob { animation: bob 3.2s ease-in-out infinite; }
+   399→.anim-pop { animation: pop-in 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+   400→.anim-slide-up { animation: fade-slide-up 0.34s ease-out both; }
+   401→.anim-shake { animation: shake-gentle 0.4s ease-in-out; }
+   402→.anim-glow { animation: glow-pulse 1.8s ease-out infinite; }
+   403→.anim-flame { animation: flame-dance 1.6s ease-in-out infinite; }
+   404→.anim-sound-bar { animation: sound-bar 0.9s ease-in-out infinite; transform-origin: bottom; }
+   405→.anim-xp { animation: xp-fly 1.1s ease-out both; }
+   406→
+   407→/* Partículas de celebración (level up / logros) */
+   408→.confetti-piece {
+   409→  position: fixed;
+   410→  top: 0;
+   411→  width: 9px;
+   412→  height: 14px;
+   413→  border-radius: 3px;
+   414→  animation: confetti-fall 2.6s ease-in forwards;
+   415→  pointer-events: none;
+   416→  z-index: 90;
+   417→}
+   418→
+   419→/* Línea de ondas del mapa */
+   420→.wave-line {
+   421→  animation: wave-drift 7s ease-in-out infinite;
+   422→}
+   423→
+   424→/* ================== Repertorio ampliado de dinamismo ================== */
+   425→@keyframes sway {
+   426→  0%, 100% { transform: rotate(-4deg) translateY(0); }
+   427→  50% { transform: rotate(4deg) translateY(-4px); }
+   428→}
+   429→@keyframes wiggle {
+   430→  0%, 100% { transform: rotate(-2.5deg); }
+   431→  30% { transform: rotate(3deg); }
+   432→  65% { transform: rotate(-1.5deg); }
+   433→}
+   434→@keyframes spin-slow {
+   435→  to { transform: rotate(360deg); }
+   436→}
+   437→@keyframes pulse-ring {
+   438→  0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 40%, transparent); }
+   439→  70% { box-shadow: 0 0 0 16px color-mix(in oklch, var(--primary) 0%, transparent); }
+   440→  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent); }
+   441→}
+   442→@keyframes shimmer-slide {
+   443→  0% { background-position: -80% 0; }
+   444→  100% { background-position: 180% 0; }
+   445→}
+   446→@keyframes rise-in {
+   447→  from { transform: translateY(18px) scale(0.97); opacity: 0; }
+   448→  to { transform: translateY(0) scale(1); opacity: 1; }
+   449→}
+   450→@keyframes hue-drift {
+   451→  0%, 100% { filter: hue-rotate(0deg); }
+   452→  50% { filter: hue-rotate(14deg); }
+   453→}
+   454→@keyframes nudge {
+   455→  0%, 100% { transform: translateX(0); }
+   456→  20% { transform: translateX(2.5px); }
+   457→  40% { transform: translateX(-2px); }
+   458→  60% { transform: translateX(1.5px); }
+   459→}
+   460→@keyframes flame-flicker {
+   461→  0%, 100% { opacity: 0.75; transform: scale(1); }
+   462→  45% { opacity: 1; transform: scale(1.12); }
+   463→  70% { opacity: 0.85; transform: scale(0.94); }
+   464→}
+   465→@keyframes float-diag {
+   466→  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+   467→  33% { transform: translate(10px, -14px) rotate(8deg); }
+   468→  66% { transform: translate(-8px, 8px) rotate(-6deg); }
+   469→}
+   470→@keyframes bubble-rise {
+   471→  0% { transform: translateY(10vh) scale(0.8); opacity: 0; }
+   472→  15% { opacity: 0.7; }
+   473→  100% { transform: translateY(-95vh) scale(1.15); opacity: 0; }
+   474→}
+   475→@keyframes gear-turn {
+   476→  to { transform: rotate(360deg); }
+   477→}
+   478→@keyframes twinkle {
+   479→  0%, 100% { opacity: 0.25; transform: scale(0.85); }
+   480→  50% { opacity: 1; transform: scale(1.1); }
+   481→}
+   482→@keyframes note-drift {
+   483→  0% { transform: translate(0, 0) rotate(-8deg); opacity: 0; }
+   484→  20% { opacity: 0.8; }
+   485→  100% { transform: translate(60px, -70px) rotate(14deg); opacity: 0; }
+   486→}
+   487→@keyframes tilt-card {
+   488→  0%, 100% { transform: rotate(0deg) translateY(0); }
+   489→  50% { transform: rotate(1.6deg) translateY(-3px); }
+   490→}
+   491→
+   492→/* Entrada escalonada: listas y rejillas que cobran vida por filas */
+   493→.stagger > * {
+   494→  animation: rise-in 0.44s cubic-bezier(0.22, 0.9, 0.34, 1.12) both;
+   495→}
+   496→.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+   497→.stagger > *:nth-child(2) { animation-delay: 0.07s; }
+   498→.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+   499→.stagger > *:nth-child(4) { animation-delay: 0.17s; }
+   500→.stagger > *:nth-child(5) { animation-delay: 0.22s; }
+   501→.stagger > *:nth-child(6) { animation-delay: 0.27s; }
+   502→.stagger > *:nth-child(7) { animation-delay: 0.32s; }
+   503→.stagger > *:nth-child(8) { animation-delay: 0.37s; }
+   504→.stagger > *:nth-child(n+9) { animation-delay: 0.42s; }
+   505→
+   506→/* Brillo que recorre botones protagonistas */
+   507→.btn-shine {
+   508→  position: relative;
+   509→  overflow: hidden;
+   510→}
+   511→.btn-shine::after {
+   512→  content: "";
+   513→  position: absolute;
+   514→  inset: 0;
+   515→  pointer-events: none;
+   516→  background: linear-gradient(
+   517→    105deg,
+   518→    transparent 30%,
+   519→    color-mix(in oklch, white 38%, transparent) 50%,
+   520→    transparent 70%
+   521→  );
+   522→  background-size: 220% 100%;
+   523→  background-position: -80% 0;
+   524→  animation: shimmer-slide 3.4s ease-in-out infinite;
+   525→}
+   526→
+   527→/* Barra de progreso con alma: destello continuo */
+   528→.bar-shimmer {
+   529→  position: relative;
+   530→  overflow: hidden;
+   531→}
+   532→.bar-shimmer::after {
+   533→  content: "";
+   534→  position: absolute;
+   535→  inset: 0;
+   536→  pointer-events: none;
+   537→  background: linear-gradient(
+   538→    100deg,
+   539→    transparent 25%,
+   540→    color-mix(in oklch, white 55%, transparent) 50%,
+   541→    transparent 75%
+   542→  );
+   543→  background-size: 200% 100%;
+   544→  animation: shimmer-slide 2.1s linear infinite;
+   545→}
+   546→
+   547→.anim-sway { animation: sway 4.5s ease-in-out infinite; }
+   548→.anim-wiggle { animation: wiggle 3.6s ease-in-out infinite; }
+   549→.anim-spin-slow { animation: spin-slow 22s linear infinite; }
+   550→.anim-pulse-ring { animation: pulse-ring 2.2s ease-out infinite; }
+   551→.anim-nudge { animation: nudge 0.5s ease-in-out; }
+   552→.anim-flicker { animation: flame-flicker 1.4s ease-in-out infinite; }
+   553→.anim-hue { animation: hue-drift 9s ease-in-out infinite; }
+   554→.anim-float-diag { animation: float-diag 12s ease-in-out infinite; }
+   555→.anim-tilt-card { animation: tilt-card 6s ease-in-out infinite; }
+   556→.anim-twinkle { animation: twinkle 3.2s ease-in-out infinite; }
+   557→.anim-rise { animation: rise-in 0.4s cubic-bezier(0.22, 0.9, 0.34, 1.12) both; }
+   558→
+   559→/* Efecto de onda al tocar (microinteracción táctil) */
+   560→.tap-ripple {
+   561→  position: relative;
+   562→  overflow: hidden;
+   563→  touch-action: manipulation;
+   564→}
+   565→.tap-ripple::before {
+   566→  content: "";
+   567→  position: absolute;
+   568→  inset: 0;
+   569→  pointer-events: none;
+   570→  opacity: 0;
+   571→  background: radial-gradient(
+   572→    circle at center,
+   573→    color-mix(in oklch, var(--primary) 30%, transparent) 0%,
+   574→    transparent 65%
+   575→  );
+   576→  transition: opacity 0.35s ease;
+   577→}
+   578→.tap-ripple:active::before {
+   579→  opacity: 1;
+   580→  transition: none;
+   581→}
+   582→
+   583→/* ================== Ornamentos de escena (por data-scene) ================== */
+   584→.ornament {
+   585→  position: absolute;
+   586→  pointer-events: none;
+   587→  color: color-mix(in oklch, var(--primary) 55%, transparent);
+   588→  will-change: transform, opacity;
+   589→}
+   590→.ornament-gear { animation: gear-turn 26s linear infinite; }
+   591→.ornament-gear-rev { animation: gear-turn 34s linear infinite reverse; }
+   592→.ornament-leaf { animation: sway 7s ease-in-out infinite; transform-origin: bottom center; }
+   593→.ornament-spark { animation: twinkle 2.8s ease-in-out infinite; }
+   594→.ornament-star { animation: twinkle 3.6s ease-in-out infinite; }
+   595→.ornament-bubble {
+   596→  animation: bubble-rise 14s linear infinite;
+   597→  opacity: 0;
+   598→}
+   599→.ornament-ember {
+   600→  animation: dust-rise 9s linear infinite;
+   601→  opacity: 0;
+   602→  filter: blur(0.5px);
+   603→}
+   604→.ornament-confetti { animation: float-diag 8s ease-in-out infinite; }
+   605→.ornament-note { animation: note-drift 7s ease-in-out infinite; opacity: 0; }
+   606→.ornament-page { animation: sway 8s ease-in-out infinite; }
+   607→
+   608→/* Encabezados de escena con gradiente vivo de dos colores */
+   609→.scene-header-tint {
+   610→  background: linear-gradient(
+   611→    135deg,
+   612→    color-mix(in oklch, var(--primary) 14%, transparent),
+   613→    color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 10%, transparent) 55%,
+   614→    transparent
+   615→  );
+   616→}
+   617→/* Borde superior bicolor por región (tarjetas y secciones) */
+   618→.region-edge {
+   619→  position: relative;
+   620→  border-top: 3px solid transparent;
+   621→  border-image: linear-gradient(
+   622→    90deg,
+   623→    var(--primary),
+   624→    color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 75%, transparent)
+   625→  ) 1;
+   626→}
+   627→
+   628→/* Respeto total a la preferencia y al ajuste del usuario */
+   629→@media (prefers-reduced-motion: reduce) {
+   630→  *, *::before, *::after {
+   631→    animation-duration: 0.01ms !important;
+   632→    animation-iteration-count: 1 !important;
+   633→    transition-duration: 0.01ms !important;
+   634→    scroll-behavior: auto !important;
+   635→  }
+   636→}
+   637→html.reduce-motion *,
+   638→html.reduce-motion *::before,
+   639→html.reduce-motion *::after {
+   640→  animation-duration: 0.01ms !important;
+   641→  animation-iteration-count: 1 !important;
+   642→  transition-duration: 0.01ms !important;
+   643→  scroll-behavior: auto !important;
+   644→}
+   645→
+   646→/* ============================ Utilidades ============================ */
+   647→/* Scrollbar elegante para listas largas */
+   648→.scroll-soft::-webkit-scrollbar { width: 8px; height: 8px; }
+   649→.scroll-soft::-webkit-scrollbar-track { background: transparent; }
+   650→.scroll-soft::-webkit-scrollbar-thumb {
+   651→  background: color-mix(in oklch, var(--foreground) 22%, transparent);
+   652→  border-radius: 99px;
+   653→}
+   654→.scroll-soft::-webkit-scrollbar-thumb:hover {
+   655→  background: color-mix(in oklch, var(--foreground) 34%, transparent);
+   656→}
+   657→
+   658→/* Zona segura inferior en móviles con gesto */
+   659→.safe-bottom {
+   660→  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+   661→}
+   662→.safe-top {
+   663→  padding-top: max(env(safe-area-inset-top), 0px);
+   664→}
+   665→
+   666→/* Superficies de cristal para HUD y solapados */
+   667→.surface-glass {
+   668→  background: var(--surface-glass);
+   669→  backdrop-filter: blur(14px);
+   670→  -webkit-backdrop-filter: blur(14px);
+   671→}
+   672→
+   673→/* Textura sutil de papel para fondos clave */
+   674→.paper-texture {
+   675→  background-image:
+   676→    radial-gradient(color-mix(in oklch, var(--foreground) 5%, transparent) 1px, transparent 1px);
+   677→  background-size: 22px 22px;
+   678→}
+   679→
+   680→/* Botones táctiles cómodos (mínimo 44px) */
+   681→.tap-target {
+   682→  min-height: 44px;
+   683→  min-width: 44px;
+   684→}
+   685→
+   686→/* Anillo de progreso animado */
+   687→.ring-anim circle.progress {
+   688→  stroke-dashoffset: var(--ring-offset, 999);
+   689→  transition: stroke-dashoffset 0.9s cubic-bezier(0.3, 0.9, 0.4, 1);
+   690→}
+   691→
+   692→/* ============================================================
+   693→   v3 · RENOVACIÓN DEL ARCHIPIÉLAGO · lenguaje unificado
+   694→   ------------------------------------------------------------
+   695→   Botones de juguete con canto sólido que se hunde al pulsar,
+   696→   tarjetas aurora con brillo de escena, barras en surco,
+   697→   iconos en relief y muelle flotante para la navegación.
+   698→   Todo comparte la misma voz visual en las 6 regiones.
+   699→   ============================================================ */
+   700→
+   701→/* ---------- Botón de juguete: canto inferior 3D ---------- */
+   702→.btn-3d {
+   703→  --btn-edge: color-mix(in oklch, var(--primary) 55%, #000 30%);
+   704→  position: relative;
+   705→  transform: translateY(0);
+   706→  box-shadow:
+   707→    0 4px 0 0 var(--btn-edge),
+   708→    0 10px 18px -10px color-mix(in oklch, var(--btn-edge) 60%, transparent);
+   709→  transition:
+   710→    transform 0.13s cubic-bezier(0.3, 0.9, 0.4, 1),
+   711→    box-shadow 0.13s ease,
+   712→    filter 0.18s ease;
+   713→}
+   714→.btn-3d:hover:not(:disabled) { filter: brightness(1.06) saturate(1.04); }
+   715→.btn-3d:active:not(:disabled) {
+   716→  transform: translateY(3px);
+   717→  box-shadow:
+   718→    0 1px 0 0 var(--btn-edge),
+   719→    0 4px 8px -6px color-mix(in oklch, var(--btn-edge) 70%, transparent);
+   720→}
+   721→.btn-3d:disabled {
+   722→  box-shadow: 0 2px 0 0 color-mix(in oklch, var(--foreground) 12%, transparent);
+   723→  transform: none;
+   724→  filter: saturate(0.55);
+   725→}
+   726→.btn-3d-sm { --btn-edge-gap: 3px; }
+   727→.btn-3d-secondary { --btn-edge: color-mix(in oklch, var(--secondary-foreground) 18%, var(--secondary) 70%); }
+   728→.btn-3d-destructive { --btn-edge: color-mix(in oklch, var(--destructive) 50%, #000 32%); }
+   729→.btn-3d-xp { --btn-edge: color-mix(in oklch, var(--xp) 52%, #000 30%); }
+   730→.btn-3d-outline { --btn-edge: color-mix(in oklch, var(--border) 55%, #000 20%); }
+   731→/* Brillo de porcelana en la cara superior del botón
+   732→   (solo el 30 % superior: nunca toca el texto) */
+   733→.btn-3d::after {
+   734→  content: "";
+   735→  position: absolute;
+   736→  inset: 1.5px 1.5px 70% 1.5px;
+   737→  border-radius: inherit;
+   738→  background: linear-gradient(180deg, oklch(1 0 0 / 30%), oklch(1 0 0 / 0%));
+   739→  pointer-events: none;
+   740→  opacity: 0.9;
+   741→}
+   742→html.dark .btn-3d::after { opacity: 0.4; }
+   743→
+   744→/* ---------- Tarjeta aurora: tinte de escena + halo ----------
+   745→   (solo background-image: respeta cualquier bg-* que herede) */
+   746→.card-aurora {
+   747→  position: relative;
+   748→  background-image:
+   749→    radial-gradient(130% 100% at 12% 0%, color-mix(in oklch, var(--primary) 8%, transparent) 0%, transparent 52%),
+   750→    radial-gradient(120% 100% at 90% 0%, color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 6%, transparent) 0%, transparent 56%);
+   751→  box-shadow:
+   752→    inset 0 1px 0 color-mix(in oklch, var(--primary) 16%, transparent),
+   753→    0 10px 26px -16px color-mix(in oklch, var(--primary) 45%, transparent);
+   754→}
+   755→
+   756→/* ---------- Tarjeta pulsable (opciones de juego, regiones) ---------- */
+   757→.tap-3d {
+   758→  box-shadow:
+   759→    0 3px 0 0 color-mix(in oklch, var(--border) 62%, #000 14%),
+   760→    0 8px 16px -12px color-mix(in oklch, var(--primary) 40%, transparent);
+   761→  transition: transform 0.13s cubic-bezier(0.3, 0.9, 0.4, 1), box-shadow 0.13s ease, filter 0.18s ease, border-color 0.15s ease;
+   762→}
+   763→.tap-3d:hover:not(:disabled) {
+   764→  transform: translateY(-2px);
+   765→  filter: brightness(1.02);
+   766→  border-color: color-mix(in oklch, var(--primary) 42%, transparent);
+   767→  box-shadow:
+   768→    0 5px 0 0 color-mix(in oklch, var(--border) 62%, #000 14%),
+   769→    0 12px 20px -12px color-mix(in oklch, var(--primary) 48%, transparent);
+   770→}
+   771→.tap-3d:active:not(:disabled) {
+   772→  transform: translateY(2px);
+   773→  box-shadow: 0 1px 0 0 color-mix(in oklch, var(--border) 62%, #000 14%);
+   774→}
+   775→
+   776→/* ---------- Barra en surco (pistas de progreso) ---------- */
+   777→.groove {
+   778→  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+   779→  box-shadow:
+   780→    inset 0 2px 3px color-mix(in oklch, #000 20%, transparent),
+   781→    inset 0 -1px 0 color-mix(in oklch, white 10%, transparent);
+   782→}
+   783→
+   784→/* ---------- Banda héroe de pantalla ---------- */
+   785→.hero-band {
+   786→  background-image:
+   787→    radial-gradient(100% 150% at 10% 0%, color-mix(in oklch, var(--primary) 17%, transparent) 0%, transparent 58%),
+   788→    radial-gradient(80% 130% at 92% 0%, color-mix(in oklch, var(--xp, oklch(0.75 0.15 85)) 13%, transparent) 0%, transparent 55%);
+   789→}
+   790→
+   791→/* ---------- Icono en relief (chips de sección) ---------- */
+   792→.chip-icon {
+   793→  color: var(--primary-foreground);
+   794→  background: linear-gradient(
+   795→    150deg,
+   796→    color-mix(in oklch, var(--primary) 82%, white 16%),
+   797→    var(--primary) 62%,
+   798→    color-mix(in oklch, var(--primary) 88%, #000 10%)
+   799→  );
+   800→  box-shadow:
+   801→    0 3px 0 0 color-mix(in oklch, var(--primary) 55%, #000 28%),
+   802→    inset 0 1px 0 oklch(1 0 0 / 30%);
+   803→  transition: transform 0.13s cubic-bezier(0.3, 0.9, 0.4, 1), box-shadow 0.13s ease;
+   804→}
+   805→.chip-icon:active { transform: translateY(2px); box-shadow: 0 1px 0 0 color-mix(in oklch, var(--primary) 55%, #000 28%); }
+   806→
+   807→/* ---------- Brillo de porcelana para insignias ---------- */
+   808→.gloss { position: relative; overflow: hidden; }
+   809→.gloss::before {
+   810→  content: "";
+   811→  position: absolute;
+   812→  inset: 0;
+   813→  border-radius: inherit;
+   814→  background: linear-gradient(180deg, oklch(1 0 0 / 32%), oklch(1 0 0 / 4%) 42%, oklch(1 0 0 / 0%) 60%);
+   815→  pointer-events: none;
+   816→}
+   817→html.dark .gloss::before { background: linear-gradient(180deg, oklch(1 0 0 / 14%), oklch(1 0 0 / 0%) 55%); }
+   818→
+   819→/* ---------- Muelle flotante de navegación (móvil) ---------- */
+   820→.dock {
+   821→  border-radius: 1.65rem;
+   822→  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+   823→  background: var(--surface-glass);
+   824→  backdrop-filter: blur(18px) saturate(1.3);
+   825→  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+   826→  box-shadow:
+   827→    0 12px 32px -14px color-mix(in oklch, #000 45%, transparent),
+   828→    inset 0 1px 0 oklch(1 0 0 / 22%);
+   829→}
+   830→.dock-item {
+   831→  position: relative;
+   832→  transition: transform 0.16s cubic-bezier(0.34, 1.4, 0.64, 1), color 0.2s ease;
+   833→}
+   834→.dock-item:active { transform: scale(0.88); }
+   835→.dock-pill {
+   836→  background: color-mix(in oklch, var(--primary) 14%, transparent);
+   837→  box-shadow:
+   838→    inset 0 1px 0 oklch(1 0 0 / 25%),
+   839→    0 2px 8px -2px color-mix(in oklch, var(--primary) 40%, transparent);
+   840→}
+   841→
+   842→/* ---------- Dinámica nueva: brillos y entradas ---------- */
+   843→@keyframes hero-sheen {
+   844→  0% { transform: translateX(-120%) skewX(-18deg); }
+   845→  55%, 100% { transform: translateX(240%) skewX(-18deg); }
+   846→}
+   847→@keyframes dock-bob {
+   848→  0%, 100% { transform: translateY(0); }
+   849→  50% { transform: translateY(-3px); }
+   850→}
+   851→@keyframes pop-3d {
+   852→  0% { transform: scale(0.92) translateY(4px); opacity: 0; }
+   853→  60% { transform: scale(1.03) translateY(-1px); opacity: 1; }
+   854→  100% { transform: scale(1) translateY(0); opacity: 1; }
+   855→}
+   856→@keyframes slide-chip {
+   857→  0% { transform: translateX(-14px) scale(0.9); opacity: 0; }
+   858→  100% { transform: translateX(0) scale(1); opacity: 1; }
+   859→}
+   860→.anim-pop-3d { animation: pop-3d 0.34s cubic-bezier(0.3, 1.2, 0.5, 1) both; }
+   861→.anim-slide-chip { animation: slide-chip 0.32s cubic-bezier(0.25, 1.1, 0.4, 1) both; }
+   862→
+   863→/* Pulso de atención que no pisa el canto 3D (solo transform/filter) */
+   864→@keyframes attention-pulse {
+   865→  0%, 100% { transform: scale(1); filter: brightness(1); }
+   866→  50% { transform: scale(1.04); filter: brightness(1.14); }
+   867→}
+   868→.anim-attention { animation: attention-pulse 1.35s ease-in-out infinite; }
+   869→.hero-sheen {
+   870→  position: absolute;
+   871→  top: 0;
+   872→  bottom: 0;
+   873→  width: 34%;
+   874→  pointer-events: none;
+   875→  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 14%) 50%, transparent);
+   876→  animation: hero-sheen 7s ease-in-out infinite;
+   877→}
+   878→html.dark .hero-sheen { background: linear-gradient(100deg, transparent, oklch(1 0 0 / 7%) 50%, transparent); }
+   879→
+   880→/* ---------- Título de sección con degradado vivo ---------- */
+   881→.title-sheen {
+   882→  background: linear-gradient(
+   883→    92deg,
+   884→    var(--foreground) 0%,
+   885→    color-mix(in oklch, var(--primary) 65%, var(--foreground)) 45%,
+   886→    var(--foreground) 100%
+   887→  );
+   888→  background-size: 220% 100%;
+   889→  -webkit-background-clip: text;
+   890→  background-clip: text;
+   891→  color: transparent;
+   892→  animation: shimmer-slide 8s ease-in-out infinite;
+   893→}
+   894→
+   895→/* ---------- Fila de ajuste unificada (listas de pantallas) ---------- */
+   896→.row-soft {
+   897→  transition: transform 0.13s ease, background-color 0.2s ease, border-color 0.2s ease;
+   898→}
+   899→.row-soft:hover { transform: translateX(3px); }
+   900→.row-soft:active { transform: translateX(1px) scale(0.99); }
+   901→

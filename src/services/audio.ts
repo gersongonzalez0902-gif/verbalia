@@ -343,7 +343,7 @@ const SCENES: Record<string, SceneMusic> = {
   /* Resultados: fanfarria cálida, mayor y luminosa */
   results: {
     root: 293.66,
-    scale: [0, 2, 4, 5, 7, 9, 11, 12],
+    scale: [0, 2, 4, 5, 7, 9, 11, 12, 14, 16],
     bpm: 62,
     chords: [
       [0, 2, 4],
@@ -377,7 +377,7 @@ const SCENES: Record<string, SceneMusic> = {
   /* Misiones: fanfarria dorada en La, chispa de confeti */
   missions: {
     root: 220,
-    scale: [0, 2, 4, 7, 9, 11, 12],
+    scale: [0, 2, 4, 7, 9, 11, 12, 14, 16],
     bpm: 66,
     chords: [
       [0, 2, 4],
@@ -411,7 +411,7 @@ const SCENES: Record<string, SceneMusic> = {
   /* Cuaderno de errores: introspección en Re menor, zumbido de estudio */
   errors: {
     root: 146.83,
-    scale: [0, 2, 3, 5, 7, 8, 10, 12],
+    scale: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15],
     bpm: 50,
     chords: [
       [0, 2, 4],
@@ -445,7 +445,7 @@ const SCENES: Record<string, SceneMusic> = {
   /* Perfil: mixolidio brillante en Do#, viento cálido */
   profile: {
     root: 138.59,
-    scale: [0, 2, 4, 5, 7, 9, 10, 12],
+    scale: [0, 2, 4, 5, 7, 9, 10, 12, 14, 16],
     bpm: 62,
     chords: [
       [0, 2, 4],
@@ -527,6 +527,40 @@ const SCENES: Record<string, SceneMusic> = {
     pluckType: "triangle",
     bass: true,
   },
+  /* Estación del jugador: lo-fi cálido de Rece (la radio de la isla) */
+  station: {
+    root: 174.61,
+    scale: [0, 3, 5, 7, 10, 12, 14, 17],
+    bpm: 66,
+    chords: [
+      [0, 2, 4],
+      [3, 4, 6],
+      [1, 3, 5],
+      [0, 2, 4],
+    ],
+    pluck: 0.7,
+    texture: "crackle",
+    textureLevel: 0.02,
+    pluckType: "sine",
+    bass: true,
+  },
+  /* Observatorio: lidio celeste de Mi, noche estrellada y silencio de cúpula */
+  observatorio: {
+    root: 329.63,
+    scale: [0, 2, 4, 6, 7, 9, 11, 12, 16],
+    bpm: 40,
+    chords: [
+      [0, 2, 4],
+      [2, 4, 6],
+      [1, 3, 5],
+      [0, 3, 5],
+    ],
+    pluck: 0.55,
+    texture: "air",
+    textureLevel: 0.04,
+    pluckType: "sine",
+    bass: true,
+  },
 };
 
 /* ======================= secuenciador generativo ======================= */
@@ -549,6 +583,8 @@ function startScene(sceneId: string) {
   if (!ac || !enabled) return;
   const scene = SCENES[sceneId] ?? SCENES.home;
   currentScene = sceneId;
+  // Si la escena anterior se silenció (stopSceneMusic), recupera el volumen.
+  if (musicBus) musicBus.gain.setTargetAtTime(musicVolume, ac.currentTime, 0.5);
   stopTexture();
   startTexture(scene);
   // Acorde de bienvenida
@@ -569,6 +605,18 @@ export function setSceneMusic(sceneId: string | null) {
     return;
   }
   startScene(sceneId);
+}
+
+/** Silencia la escena actual con fundido (partidas sin música de menú). */
+export function stopSceneMusic() {
+  currentScene = null;
+  stopTexture();
+  if (schedulerId) {
+    clearInterval(schedulerId);
+    schedulerId = null;
+  }
+  if (!ctx) return;
+  musicBus?.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.35);
 }
 
 function stopTexture() {
@@ -739,7 +787,7 @@ function scheduleAhead() {
     if (beatInBar === 0) {
       const chord = scene.chords[barIndex % scene.chords.length];
       chord.forEach((d) =>
-        padNote(semitone(scene.root * 2, scene.scale[d]), start, beatDur * 4.2, 0.035),
+        padNote(semitone(scene.root * 2, scene.scale[d % scene.scale.length]), start, beatDur * 4.2, 0.035),
       );
       if (scene.bass) padNote(scene.root / 2, start, beatDur * 4, 0.05);
     }
@@ -958,7 +1006,7 @@ export const sfx = {
     if (!enabled) return;
     noiseBurst(0, 0.16, 3800, 0.035, "bandpass", 0.8);
   },
-  /** Tinta habla: blip suave y curioso. */
+  /** Léxico habla: blip suave y curioso. */
   tinta() {
     if (!enabled) return;
     tone(vary(620), 0, 0.05, 0.04, "sine");

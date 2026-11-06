@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * Carcasa común de partida: HUD superior (salir, progreso, combo, XP vivo)
- * y solapado de retroalimentación con explicación pedagógica.
+ * Carcasa común de partida: HUD superior (salir, progreso, combo, XP vivo,
+ * Léxico reaccionando) y solapado de retroalimentación con explicación
+ * pedagógica y la mascota celebrando o consolando.
  */
 
 import { useEffect, useState } from "react";
@@ -19,6 +20,7 @@ import {
 import { CheckCircle2, Info, XCircle, Zap } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { useGameStore } from "@/store/game-store";
+import { LexicoMini, type LexicoMood } from "@/components/game/lexico";
 
 export function GameHud({
   title,
@@ -27,6 +29,7 @@ export function GameHud({
   combo,
   sessionXp,
   onExit,
+  mood,
 }: {
   title: string;
   current: number;
@@ -34,16 +37,19 @@ export function GameHud({
   combo: number;
   sessionXp: number;
   onExit: () => void;
+  /** Estado de ánimo de Léxico en vivo (reacciona al combo y a los fallos). */
+  mood?: LexicoMood;
 }) {
   const pct = total > 0 ? (current / total) * 100 : 0;
   return (
     <header className="hero-band safe-top sticky top-0 z-30 overflow-hidden border-b bg-[var(--surface-glass)] backdrop-blur-lg">
       <span className="hero-sheen" aria-hidden />
-      <div className="relative mx-auto flex max-w-3xl items-center gap-3 px-4 py-2.5">
+      <div className="relative mx-auto flex max-w-3xl items-center gap-2.5 px-4 py-2.5">
+        <LexicoMini mood={mood} className="tap-target -ml-1 rounded-full transition-transform" />
         <button
           onClick={onExit}
           aria-label="Abandonar sesión"
-          className="tap-3d tap-target flex h-9 w-9 items-center justify-center rounded-xl border bg-card text-muted-foreground transition hover:text-foreground"
+          className="tap-3d tap-target flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border bg-card text-muted-foreground transition hover:text-foreground"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
             <path d="M18 6 6 18M6 6l12 12" />
@@ -51,7 +57,7 @@ export function GameHud({
         </button>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <p className="truncate text-xs font-bold uppercase tracking-wide text-muted-foreground">{title}</p>
+            <p className="line-clamp-2 text-xs font-bold leading-tight uppercase tracking-wide text-muted-foreground">{title}</p>
             <p className="numeric shrink-0 text-xs font-bold text-muted-foreground" aria-live="off">
               {Math.min(current + 1, total)} / {total}
             </p>
@@ -150,12 +156,11 @@ export function FeedbackOverlay({
             isCorrect ? "bg-success/10" : "bg-destructive/10",
           )}
         >
-          {isCorrect ? (
-            <CheckCircle2 className="h-9 w-9 shrink-0 text-success" aria-hidden />
-          ) : (
-            <XCircle className="anim-shake h-9 w-9 shrink-0 text-destructive" aria-hidden />
-          )}
-          <div className="min-w-0">
+          <LexicoMini
+            mood={isCorrect ? "cheer" : "oops"}
+            className="shrink-0"
+          />
+          <div className="min-w-0 flex-1">
             <p className="font-display text-lg font-bold leading-tight">
               {isCorrect ? "¡Muy bien!" : feedback.title}
             </p>
@@ -166,6 +171,11 @@ export function FeedbackOverlay({
               </p>
             )}
           </div>
+          {isCorrect ? (
+            <CheckCircle2 className="h-7 w-7 shrink-0 text-success" aria-hidden />
+          ) : (
+            <XCircle className="anim-shake h-7 w-7 shrink-0 text-destructive" aria-hidden />
+          )}
         </div>
         <div className="flex items-start gap-2.5 border-t bg-muted/40 px-5 py-4">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />

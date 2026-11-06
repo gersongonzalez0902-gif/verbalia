@@ -67,7 +67,7 @@ export function MissionsScreen() {
       {justClaimed && <Confetti pieces={24} />}
       <ScreenHeader title="Misiones y logros" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
         <Tabs value={tab} onValueChange={(v) => { sfx.tap(); setTab(v); }} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="misiones" className="font-bold">
@@ -249,7 +249,7 @@ function MissionRow({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold leading-snug">{title}</p>
-          <p className="truncate text-xs text-muted-foreground">{description}</p>
+          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{description}</p>
         </div>
         <span
           className={cn(

@@ -14,6 +14,24 @@ import { HISTORIAS_PACK } from "./historias";
 import { REFRANES_PACK } from "./refranes";
 import { MINUTO_PACK } from "./minuto";
 import { SRS_WORDS } from "./words-srs";
+// ---- Etapa 3 · duplicación de variedad (packs ampliados) ----
+import { TRIVIA_PACK_X } from "./gen/trivia-x";
+import { CLOZE_PACK_X } from "./gen/cloze-x";
+import { DICTADO_PACK_X } from "./gen/dictado-x";
+import { ERRORS_PACK_X } from "./gen/errors-hunt-x";
+import { MATICES_PACK_X } from "./gen/matices-x";
+import { LECTURA_PACK_X } from "./gen/lectura-x";
+import { MINUTO_PACK_X } from "./gen/minuto-x";
+import { SINONIMOS_PACK_X } from "./gen/sinonimos-x";
+import { HISTORIAS_PACK_X } from "./gen/historias-x";
+// ---- Etapa 3 · nuevos formatos (memoria, intruso, sortea, vf, escribe, oye, conecta) ----
+import { MEMORIA_PACKS } from "./formats/memoria";
+import { INTRUSO_PACKS } from "./formats/intruso";
+import { SORTEA_PACKS } from "./formats/sortea";
+import { VF_PACKS } from "./formats/verdadero-falso";
+import { ESCRIBE_PACKS } from "./formats/escribe";
+import { OYE_PACKS } from "./formats/oye";
+import { CONECTA_PACKS } from "./formats/conecta";
 
 /**
  * Registro central de contenido: agrupa todos los paquetes,
@@ -22,21 +40,29 @@ import { SRS_WORDS } from "./words-srs";
  */
 
 export const ALL_EXERCISES: Exercise[] = [
-  ...TRIVIA_PACK,
+  ...TRIVIA_PACK, ...TRIVIA_PACK_X,
   ...PUZZLE_PACK,
-  ...CLOZE_PACK,
-  ...ERRORS_PACK,
+  ...CLOZE_PACK, ...CLOZE_PACK_X,
+  ...ERRORS_PACK, ...ERRORS_PACK_X,
   ...TILDES_PACK,
   ...PARAGRAPHS_PACK,
   // ---- Etapa 2 ----
-  ...DICTADO_PACK,
-  ...MATICES_PACK,
-  ...LECTURA_PACK,
+  ...DICTADO_PACK, ...DICTADO_PACK_X,
+  ...MATICES_PACK, ...MATICES_PACK_X,
+  ...LECTURA_PACK, ...LECTURA_PACK_X,
   ...SPRINT_PACK,
-  ...SINONIMOS_PACK,
-  ...HISTORIAS_PACK,
+  ...SINONIMOS_PACK, ...SINONIMOS_PACK_X,
+  ...HISTORIAS_PACK, ...HISTORIAS_PACK_X,
   ...REFRANES_PACK,
-  ...MINUTO_PACK,
+  ...MINUTO_PACK, ...MINUTO_PACK_X,
+  // ---- Etapa 3 · cinco nuevos por ciudad ----
+  ...MEMORIA_PACKS,
+  ...INTRUSO_PACKS,
+  ...SORTEA_PACKS,
+  ...VF_PACKS,
+  ...ESCRIBE_PACKS,
+  ...OYE_PACKS,
+  ...CONECTA_PACKS,
 ];
 
 export const EXERCISES_BY_ID: Record<string, Exercise> = ALL_EXERCISES.reduce(

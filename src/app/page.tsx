@@ -24,10 +24,11 @@ import { ErrorReviewScreen } from "@/screens/error-review";
 import { MissionsScreen } from "@/screens/missions";
 import { SettingsScreen } from "@/screens/settings";
 import { LibraryScreen } from "@/screens/library";
+import { MusicStationScreen } from "@/screens/music-station";
 import { PwaRegistration } from "@/components/game/pwa";
 import { useSceneSystem } from "@/hooks/use-scene";
 import { Loader2 } from "lucide-react";
-import { TintaOwl } from "@/components/game/tinta";
+import { LexicoMascot } from "@/components/game/lexico";
 
 export default function Page() {
   const hydrated = useGameStore((s) => s.hydrated);
@@ -43,11 +44,11 @@ export default function Page() {
   // Escena sensorial: paleta + banda sonora de la pantalla activa.
   useSceneSystem();
 
-  // Mientras carga el estado local: pantalla de carga con Tinta.
+  // Mientras carga el estado local: pantalla de carga con Léxico.
   if (!hydrated) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4" role="status" aria-live="polite">
-        <TintaOwl size={96} />
+        <LexicoMascot size={96} />
         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           Desplegando el mapa del Archipiélago…
@@ -103,6 +104,8 @@ export default function Page() {
         return <MissionsScreen />;
       case "settings":
         return <SettingsScreen />;
+      case "music":
+        return <MusicStationScreen />;
       case "library":
         return <LibraryScreen />;
       case "home":

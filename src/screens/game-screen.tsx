@@ -26,6 +26,8 @@ import type {
   SrsWord,
 } from "@/types";
 import { GameHud, FeedbackOverlay, ExitConfirmDialog, type FeedbackPayload } from "@/components/game/game-shell";
+import { LexicoMascot, type LexicoMood } from "@/components/game/lexico";
+import { useMusicStore } from "@/services/music-station";
 import { useSoundEffects } from "@/components/game/game-shell";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,12 @@ import { BatallaSinonimos } from "@/games/sinonimos-batalla";
 import { HistoriasRamificadas } from "@/games/historias-ramificadas";
 import { SabiduriaPopular } from "@/games/refranes-sabiduria";
 import { RetoMinuto } from "@/games/minuto-reto";
+import { VfGame, IntrusoGame } from "@/games/formats/vf-intruso";
+import { SorteaGame } from "@/games/formats/sortea-game";
+import { EscribeGame } from "@/games/formats/escribe-game";
+import { OyeGame } from "@/games/formats/oye-game";
+import { MemoriaGame } from "@/games/formats/memoria-game";
+import { ConectaGame } from "@/games/formats/conecta-game";
 import { itemXp } from "@/engine/scoring";
 import { levelFromXp } from "@/engine/xp";
 import { dateKey } from "@/engine/missions";
@@ -63,8 +71,33 @@ export function GameScreen() {
   const [liveXp, setLiveXp] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackPayload | null>(null);
   const [exitOpen, setExitOpen] = useState(false);
+  const stationInGames = useGameStore((s) => s.settings.stationInGames);
+  const [lexicoMood, setLexicoMood] = useState<LexicoMood>("idle");
+  const [lexicoNudge, setLexicoNudge] = useState<string | null>(null);
+  const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrongStreak = useRef(0);
+
+  const flashMood = (mood: LexicoMood, quip: string | null) => {
+    setLexicoMood(mood);
+    setLexicoNudge(quip);
+    if (moodTimer.current) clearTimeout(moodTimer.current);
+    if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
+    moodTimer.current = setTimeout(() => {
+      setLexicoMood("idle");
+      setLexicoNudge(null);
+    }, quip ? 2600 : 1700);
+  };
   const startedAt = useRef(Date.now());
   const itemStart = useRef(Date.now());
+
+  /* La estación del jugador se pausa al entrar a jugar si así lo pide el ajuste. */
+  useEffect(() => {
+    if (!stationInGames) {
+      const station = useMusicStore.getState();
+      if (station.playing) station.toggle();
+    }
+  }, [stationInGames]);
 
   /* ---------------- Construcción de la sesión ---------------- */
   useEffect(() => {
@@ -96,7 +129,11 @@ export function GameScreen() {
       setAnswers([]);
       setCombo(0);
       setLiveXp(0);
+      setFeedback(null);
+      setLexicoMood("idle");
+      setLexicoNudge(null);
       startedAt.current = Date.now();
+      itemStart.current = Date.now();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error inesperado al preparar la sesión.");
     }
@@ -153,6 +190,29 @@ export function GameScreen() {
         if (nextCombo >= 3) sounds.combo(nextCombo);
       } else {
         sounds.wrong();
+      }
+
+      // Léxico reacciona en vivo: celebra los combos y consuela las rachas malas.
+      if (answer.correct === false) {
+        wrongStreak.current += 1;
+        const quip =
+          wrongStreak.current >= 3
+            ? "Respira: los errores también enseñan. Vamos a por la siguiente."
+            : answer.gameId === "memoria-bosque"
+              ? null
+              : null;
+        flashMood("oops", quip);
+      } else {
+        wrongStreak.current = 0;
+        if (nextCombo >= 3) {
+          const quips: Record<number, string> = {
+            3: "¡Ese es el rumbo!",
+            5: "¡Viento en popa, navegante!",
+            8: "¡Imparable! El faro entero te mira.",
+            12: "¡Nivel leyenda del Archipiélago!",
+          };
+          flashMood("cheer", quips[nextCombo] ?? null);
+        }
       }
 
       // XP en vivo (estimación con el motor real de puntuación)
@@ -276,6 +336,49 @@ export function GameScreen() {
         return <SabiduriaPopular item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       case "minuto":
         return <RetoMinuto item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      /* ---- Etapa 3 · motores de formatos nuevos ---- */
+      case "memoria-bosque":
+      case "memoria-fortaleza":
+      case "memoria-biblioteca":
+      case "memoria-puerto":
+      case "memoria-torre":
+      case "memoria-observatorio":
+        return <MemoriaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "intruso-bosque":
+      case "intruso-ciudad":
+      case "intruso-biblioteca":
+      case "intruso-observatorio":
+        return <IntrusoGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "sortea-ciudad":
+      case "sortea-fortaleza":
+      case "sortea-biblioteca":
+      case "sortea-puerto":
+      case "sortea-torre":
+      case "sortea-observatorio":
+        return <SorteaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "vf-bosque":
+      case "vf-ciudad":
+      case "vf-fortaleza":
+      case "vf-biblioteca":
+      case "vf-puerto":
+      case "vf-torre":
+      case "vf-observatorio":
+        return <VfGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "escribe-bosque":
+      case "escribe-ciudad":
+      case "escribe-fortaleza":
+      case "escribe-torre":
+        return <EscribeGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "oye-bosque":
+      case "oye-fortaleza":
+      case "oye-puerto":
+        return <OyeGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "conecta-ciudad":
+      case "conecta-biblioteca":
+      case "conecta-puerto":
+      case "conecta-torre":
+      case "conecta-observatorio":
+        return <ConectaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       default:
         return null;
     }
@@ -290,7 +393,17 @@ export function GameScreen() {
         combo={combo}
         sessionXp={liveXp}
         onExit={() => setExitOpen(true)}
+        mood={lexicoMood}
       />
+
+      {/* Susurro de Léxico: nunca bloquea, se desvanece solo. */}
+      {lexicoNudge && (
+        <div className="pointer-events-none fixed left-0 right-0 top-16 z-40 flex justify-center px-4" aria-hidden>
+          <p className="anim-slide-up max-w-sm rounded-full border border-primary/25 bg-card/90 px-4 py-1.5 text-center text-xs font-bold text-foreground shadow-md backdrop-blur">
+            {lexicoNudge}
+          </p>
+        </div>
+      )}
 
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-4 py-6" aria-live="polite">
         <div key={`${index}-${item.kind === "srs" ? item.word.id : item.exercise.id}`} className="anim-slide-up">

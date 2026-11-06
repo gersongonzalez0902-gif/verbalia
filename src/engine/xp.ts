@@ -42,17 +42,35 @@ export interface RankInfo {
   minLevel: number;
   name: string;
   description: string;
+  /** Variantes por género para el tratamiento elegido (m/f/x). */
+  names?: { m: string; f: string; x: string };
 }
 
 export const RANKS: RankInfo[] = [
   { minLevel: 1, name: "Aprendiz de Palabras", description: "Recién llegad@ al Archipiélago." },
-  { minLevel: 3, name: "Explorador·ra del Archipiélago", description: "Ya lees el mapa sin ayuda." },
+  {
+    minLevel: 3,
+    name: "Explorador del Archipiélago",
+    description: "Ya lees el mapa sin ayuda.",
+    names: { m: "Explorador del Archipiélago", f: "Exploradora del Archipiélago", x: "Explorador·a del Archipiélago" },
+  },
   { minLevel: 6, name: "Navegante de Historias", description: "Las corrientes del lenguaje te son favorables." },
-  { minLevel: 10, name: "Guardián·na de las Palabras", description: "El vocabulario te obedece (casi) siempre." },
+  {
+    minLevel: 10,
+    name: "Guardián de las Palabras",
+    description: "El vocabulario te obedece (casi) siempre.",
+    names: { m: "Guardián de las Palabras", f: "Guardiana de las Palabras", x: "Guardian·a de las Palabras" },
+  },
   { minLevel: 15, name: "Cronista del Archipiélago", description: "Tus frases ya tienen mareas propias." },
   { minLevel: 20, name: "Maestre del Lenguaje", description: "Dominio, oficio y una pizca de garbo." },
   { minLevel: 25, name: "Leyenda de VerbalIA", description: "Tu nombre está tallado en el faro principal." },
 ];
+
+/** Nombre del rango adaptado al género elegido por el jugador. */
+export function rankName(rank: RankInfo, gender?: "m" | "f" | "x"): string {
+  if (rank.names && gender) return rank.names[gender];
+  return rank.name;
+}
 
 export function rankForLevel(level: number): RankInfo {
   let rank = RANKS[0];

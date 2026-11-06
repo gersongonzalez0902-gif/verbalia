@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
 import { ShieldCheck, Sparkles, WifiOff } from "lucide-react";
-import { TintaOwl } from "@/components/game/tinta";
+import { LexicoMascot } from "@/components/game/lexico";
 
 export function WelcomeScreen() {
   const navigate = useUiStore((s) => s.navigate);
@@ -56,7 +56,7 @@ export function WelcomeScreen() {
         </p>
 
         <div className="w-full max-w-sm">
-          <TintaOwl size={110} className="mx-auto" />
+          <LexicoMascot size={110} mood="happy" className="mx-auto" />
         </div>
 
         <Button

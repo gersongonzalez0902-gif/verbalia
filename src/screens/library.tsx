@@ -42,7 +42,7 @@ export function LibraryScreen() {
     <div>
       <ScreenHeader title="Biblioteca de contenidos" subtitle="Qué hay hoy y qué está de camino" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-3xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-3xl px-4 pb-28">
         <Tabs defaultValue="contenido" onValueChange={() => sfx.tap()} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="contenido" className="font-bold">
@@ -71,7 +71,7 @@ export function LibraryScreen() {
                       </span>
                       <div className="min-w-0">
                         <p className="font-display text-base font-bold leading-tight">{g.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{g.tagline}</p>
+                        <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{g.tagline}</p>
                       </div>
                     </div>
 

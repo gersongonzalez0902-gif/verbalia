@@ -1,23 +1,24 @@
 /**
- * Tinta, la lechuza bibliotecaria · Repertorio de intervenciones breves.
+ * Léxico, el búho bibliotecario · Repertorio de intervenciones breves.
  * Solo aparece en momentos clave y nunca interrumpe una partida.
  */
 
 export const TINTA = {
-  name: "Tinta",
-  role: "lechuza bibliotecaria del Archipiélago",
+  name: "Léxico",
+  role: "búho bibliotecario del Archipiélago",
 };
 
-export interface TintaLine {
+export interface LexicoLine {
   id: string;
   text: string;
 }
 
 /** Bienvenida en el onboarding (paso a paso). */
-export const TINTA_ONBOARDING: Record<string, string> = {
+export const LEXICO_ONBOARDING: Record<string, string> = {
   welcome:
-    "¡Bienvenido al Archipiélago de las Palabras! Yo soy Tinta, guardiana de este mapa. Aterrizar aquí ya te hace explorador.",
+    "¡Bienvenido al Archipiélago de las Palabras! Yo soy Léxico, guardián de este mapa. Aterrizar aquí ya te hace explorador.",
   name: "Los mapas antiguos dicen que cada explorador merece un nombre. ¿Cómo te llamamos en la bitácora?",
+  gender: "Los rangos del viaje se escriben de mil maneras: dime cómo prefieres el tuyo y afino la bitácora.",
   avatar: "Elige la compañía de tu viaje. Yo ya tengo plumas de sobra.",
   goal: "Todo viaje tiene rumbo. El tuyo nos ayudará a recomendarte sesiones.",
   experience: "Sin trampas: no pasa nada por empezar desde la orilla. Adaptaremos la dificultad a tu ritmo.",
@@ -27,7 +28,7 @@ export const TINTA_ONBOARDING: Record<string, string> = {
 };
 
 /** Saludos del dashboard según el estado del jugador. */
-export const TINTA_GREETINGS: {
+export const LEXICO_GREETINGS: {
   id: string;
   condition: (ctx: { streak: number; xpToday: number; dailyGoal: number; hasErrors: number; dueCards: number }) => boolean;
   text: (ctx: { name: string; streak: number; dueCards: number }) => string;
@@ -163,13 +164,13 @@ export const TINTA_GREETINGS: {
   },
 ];
 
-/** Comentarios de Tinta en la pantalla de resultados. Cada franja tiene un
+/** Comentarios de Léxico en la pantalla de resultados. Cada franja tiene un
  * repertorio: la misma exactitud nunca cansa con la misma frase. */
 function pick<T>(pool: T[]): T {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function tintaResultQuip(accuracy: number | null, mode: string): string {
+export function lexicoResultQuip(accuracy: number | null, mode: string): string {
   if (mode === "review") {
     return accuracy !== null && accuracy >= 0.8
       ? pick([
@@ -284,7 +285,7 @@ export function tintaResultQuip(accuracy: number | null, mode: string): string {
 }
 
 /** Consejos puntuales (se muestran como máximo una vez al día). */
-export const TINTA_TIPS: TintaLine[] = [
+export const LEXICO_TIPS: LexicoLine[] = [
   { id: "tip-srs", text: "Truco de bibliotecaria: en el jardín, sé sincero al valorarte. Fin de cuento." },
   { id: "tip-combo", text: "Los combos suben el XP, pero un error no rompe nada importante. Arriesgar es gratis aquí." },
   { id: "tip-errors", text: "Todo lo que fallas va a tu cuaderno de errores. Reintentarlo vale XP casi completo." },
@@ -359,7 +360,7 @@ export const TINTA_TIPS: TintaLine[] = [
   { id: "tip-marea-postre", text: "Si solo te quedan dos minutos, riega tres tarjetas: el postre también cuenta como navegación." },
 ];
 
-/** Frases de Tinta al llegar a cada región (una se elige al azar).
+/** Frases de Léxico al llegar a cada región (una se elige al azar).
  * Claves = ids de región (ver `RegionId` en types). Listas para rotar sin repetir. */
 export const TINTA_REGION_ARRIVALS: Record<string, string[]> = {
   bosque: [
@@ -400,7 +401,7 @@ export const TINTA_REGION_ARRIVALS: Record<string, string[]> = {
   ],
 };
 
-/** Ánimos de Tinta para momentos señalados (nivel, rachas, misiones…).
+/** Ánimos de Léxico para momentos señalados (nivel, rachas, misiones…).
  * Claves estables de evento; el consumidor elige una al azar o rota. */
 export const TINTA_MILESTONES: Record<string, string[]> = {
   "level-up": [

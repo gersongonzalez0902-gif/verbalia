@@ -33,7 +33,7 @@ export function ErrorReviewScreen() {
     <div>
       <ScreenHeader title="Cuaderno de errores" subtitle={`${errors.length} ejercicios para repasar`} backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
         {errors.length === 0 ? (
           <div className="mt-6">
             <EmptyState

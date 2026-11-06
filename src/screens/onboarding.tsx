@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Onboarding · Cuatro pasos rápidos: nombre, avatar, objetivo y
- * experiencia previa. El tema se gestiona en Ajustes (y aquí se
- * preseleccióna claro/oscuro según el sistema).
+ * Onboarding · Cinco pasos rápidos: nombre, género de tratamiento,
+ * avatar, objetivo y experiencia previa. El tema se gestiona en
+ * Ajustes (y aquí se preseleccióna claro/oscuro según el sistema).
  */
 
 import { useState } from "react";
@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUiStore } from "@/store/ui-store";
 import { useGameStore } from "@/store/game-store";
-import { TintaBubble } from "@/components/game/tinta";
-import { TINTA_ONBOARDING } from "@/data/companion";
+import { LexicoBubble } from "@/components/game/lexico";
+import { LEXICO_ONBOARDING } from "@/data/companion";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Briefcase, GraduationCap, Map as MapIcon, PenLine, Plane, BookOpen } from "lucide-react";
@@ -41,7 +41,13 @@ const EXPERIENCES: { id: PlayerProfile["experience"]; label: string; desc: strin
   { id: "avanzado", label: "Avanzado", desc: "Busco afinar el rumbo" },
 ];
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
+
+const GENDERS: { id: PlayerProfile["gender"]; label: string; desc: string }[] = [
+  { id: "f", label: "Femenino", desc: "«Exploradora», «Guardiana»…" },
+  { id: "m", label: "Masculino", desc: "«Explorador», «Guardián»…" },
+  { id: "x", label: "Neutro / otro", desc: "«Explorador·a», trato inclusivo" },
+];
 
 export function OnboardingScreen() {
   const navigate = useUiStore((s) => s.navigate);
@@ -52,16 +58,21 @@ export function OnboardingScreen() {
   const [avatar, setAvatar] = useState("buho");
   const [goal, setGoal] = useState("leer");
   const [experience, setExperience] = useState<PlayerProfile["experience"]>("principiante");
+  const [gender, setGender] = useState<PlayerProfile["gender"]>("x");
 
   const canContinue =
     step === 0 ? name.trim().length > 0 && name.trim().length <= 20 : true;
 
   const finish = () => {
     finishOnboarding({
-      name: name.trim() || "Explorador·ra",
+      name: name.trim() || "Explorador·a",
       avatar,
       goal,
       experience,
+      gender,
+      bio: "",
+      banner: "preset:aurora",
+      photo: "",
     });
     navigate({ name: "placement" });
   };
@@ -87,10 +98,10 @@ export function OnboardingScreen() {
         ))}
       </div>
 
-      <TintaBubble
+      <LexicoBubble
         text={
-          [TINTA_ONBOARDING.name, TINTA_ONBOARDING.avatar, TINTA_ONBOARDING.goal, TINTA_ONBOARDING.experience][step] ??
-          TINTA_ONBOARDING.welcome
+          [LEXICO_ONBOARDING.name, LEXICO_ONBOARDING.gender, LEXICO_ONBOARDING.avatar, LEXICO_ONBOARDING.goal, LEXICO_ONBOARDING.experience][step] ??
+          LEXICO_ONBOARDING.welcome
         }
         className="mb-5"
       />
@@ -120,6 +131,41 @@ export function OnboardingScreen() {
 
         {step === 1 && (
           <section className="anim-slide-up space-y-4">
+            <h1 className="font-display text-2xl font-bold">¿Cómo prefieres que te llamemos?</h1>
+            <p className="text-sm text-muted-foreground">
+              Solo afecta a los títulos del viaje (rangos y logros). Puedes cambiarlo cuando quieras.
+            </p>
+            <div className="space-y-2.5">
+              {GENDERS.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => { sfx.tap(); setGender(g.id); }}
+                  aria-pressed={gender === g.id}
+                  className={cn(
+                    "tap-3d tap-target flex w-full items-center justify-between gap-3 rounded-2xl border-2 bg-card p-4 text-left",
+                    gender === g.id ? "border-primary" : "border-border",
+                  )}
+                >
+                  <span>
+                    <span className="block font-bold">{g.label}</span>
+                    <span className="block text-xs text-muted-foreground">{g.desc}</span>
+                  </span>
+                  <span
+                    className={cn(
+                      "h-5 w-5 shrink-0 rounded-full border-2",
+                      gender === g.id ? "border-primary bg-primary shadow-[inset_0_0_0_3px_var(--card)]" : "border-border",
+                    )}
+                    aria-hidden
+                  />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {step === 2 && (
+          <section className="anim-slide-up space-y-4">
             <h1 className="font-display text-2xl font-bold">Elige tu compañía</h1>
             <p className="text-sm text-muted-foreground">Tu avatar te acompañará en el mapa.</p>
             <div className="grid grid-cols-3 gap-3">
@@ -143,7 +189,7 @@ export function OnboardingScreen() {
           </section>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <section className="anim-slide-up space-y-4">
             <h1 className="font-display text-2xl font-bold">¿Cuál es tu rumbo?</h1>
             <p className="text-sm text-muted-foreground">Nos ayuda a recomendarte sesiones y contenidos.</p>
@@ -175,7 +221,7 @@ export function OnboardingScreen() {
           </section>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <section className="anim-slide-up space-y-4">
             <h1 className="font-display text-2xl font-bold">¿Cuánta experiencia tienes?</h1>
             <p className="text-sm text-muted-foreground">

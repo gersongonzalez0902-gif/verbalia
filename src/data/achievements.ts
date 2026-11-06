@@ -215,20 +215,38 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: "ac-explorador-total",
-    name: "Explorador de las seis islas",
-    description: "Completa misiones en las 6 regiones del Archipiélago.",
+    name: "Explorador de las siete islas",
+    description: "Completa misiones en las 7 regiones del Archipiélago.",
     icon: "MapPin",
     xpReward: 150,
     check: (c) => {
       const regions = new Set<string>();
       for (const list of Object.values(c.stats.regionsByDay)) for (const r of list) regions.add(r);
-      return ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre"].every((r) => regions.has(r));
+      return ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre", "observatorio"].every((r) => regions.has(r));
     },
     progress: (c) => {
       const regions = new Set<string>();
       for (const list of Object.values(c.stats.regionsByDay)) for (const r of list) regions.add(r);
-      return regions.size / 6;
+      return regions.size / 7;
     },
+  },
+  {
+    id: "ac-coleccionista-formatos",
+    name: "Coleccionista de formatos",
+    description: "Prueba 20 minijuegos distintos.",
+    icon: "Layers",
+    xpReward: 80,
+    check: (c) => (c.stats.uniqueGames ?? []).length >= 20,
+    progress: (c) => Math.min(1, (c.stats.uniqueGames ?? []).length / 20),
+  },
+  {
+    id: "ac-etimologo",
+    name: "Etimólogo del telescopio",
+    description: "Alcanza nivel 4 de cultura lingüística.",
+    icon: "Telescope",
+    xpReward: 90,
+    check: (c) => c.skills.cultura >= 4,
+    progress: (c) => c.skills.cultura / 4,
   },
 ];
 

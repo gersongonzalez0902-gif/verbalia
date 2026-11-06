@@ -17,12 +17,12 @@ import { useEffect } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { applySceneTheme, themeForScreen } from "@/lib/scene-theme";
-import { initAudioUnlock, setSceneMusic, setMusicVolume, setSfxVolume } from "@/services/audio";
+import { initAudioUnlock, setSceneMusic, stopSceneMusic, setMusicVolume, setSfxVolume } from "@/services/audio";
 import { levelFromXp } from "@/engine/xp";
 import type { Screen } from "@/types";
 
 /** Regiones con identidad musical propia. */
-const MUSIC_REGIONS = ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre"];
+const MUSIC_REGIONS = ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre", "observatorio"];
 
 /** Traduce la pantalla activa a la escena musical que le corresponde. */
 export function musicSceneFor(screen: Screen, level: number): string {
@@ -61,6 +61,8 @@ export function musicSceneFor(screen: Screen, level: number): string {
       return "library";
     case "settings":
       return "settings";
+    case "music":
+      return "station";
     default:
       return activeRegion;
   }
@@ -78,6 +80,8 @@ export function useSceneSystem() {
   const level = useGameStore((s) => levelFromXp(s.core.xp));
   const musicVolume = useGameStore((s) => s.settings.musicVolume);
   const sfxVolume = useGameStore((s) => s.settings.sfxVolume);
+  const musicInGames = useGameStore((s) => s.settings.musicInGames);
+  const stationPlaying = useUiStore((s) => s.stationPlaying);
 
   // Desbloqueo del AudioContext con el primer gesto del jugador.
   useEffect(() => {
@@ -97,6 +101,14 @@ export function useSceneSystem() {
     const regionId = screen.name === "game" ? screen.regionId : undefined;
     const { scene, hue } = themeForScreen(screen.name, level, regionId);
     applySceneTheme(scene, hue);
-    setSceneMusic(musicSceneFor(screen, level));
-  }, [screen, level]);
+    // En partida: la música del menú se calla (salvo que el jugador la quiera).
+    // Con la estación sonando: manda la música del jugador.
+    const silenceScene =
+      (screen.name === "game" && !musicInGames) || stationPlaying || screen.name === "music";
+    if (silenceScene) {
+      stopSceneMusic();
+    } else {
+      setSceneMusic(musicSceneFor(screen, level));
+    }
+  }, [screen, level, musicInGames, stationPlaying]);
 }

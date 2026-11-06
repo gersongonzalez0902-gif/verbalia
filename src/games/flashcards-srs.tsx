@@ -1,12 +1,13 @@
 "use client";
 
 /**
- * Jardín de Tarjetas (SRS) · Mostrar palabra → valorarse con sinceridad.
- * La calificación alimenta el motor de repetición espaciada en el acto.
- * Botón opcional de lectura en voz alta según disponibilidad del navegador.
+ * Jardín de Tarjetas (SRS) · Tarjeta volteable 3D (Etapa 3).
+ * Toca la tarjeta y se voltea sola para revelar el significado:
+ * sin botones intermedios, con física de papel. La calificación
+ * alimenta el motor de repetición espaciada en el acto.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { SrsWord } from "@/types";
 import { speak, ttsAvailable, sfx } from "@/services/audio";
@@ -29,17 +30,24 @@ export function FlashcardsSrs(props: useGameProps<SrsWord>) {
   const [revealed, setRevealed] = useState(false);
   const [ttsOk] = useState(() => ttsAvailable());
   const rateCard = useGameStore((s) => s.rateCard);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const difficultyColor = useMemo(
     () => ({
-      1: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300",
-      2: "bg-lime-100 text-lime-800 dark:bg-lime-900/50 dark:text-lime-300",
+      1: "bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300",
+      2: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-300",
       3: "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300",
       4: "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300",
       5: "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300",
     })[word.difficulty],
     [word.difficulty],
   );
+
+  const flipCard = () => {
+    if (disabled || revealed) return;
+    sfx.flip();
+    setRevealed(true);
+  };
 
   const handleGrade = (grade: Grade) => {
     // La voz del recuerdo: cada juicio suena distinto.
@@ -57,63 +65,95 @@ export function FlashcardsSrs(props: useGameProps<SrsWord>) {
 
   return (
     <div className="flex flex-col items-center gap-5">
-      {/* Tarjeta */}
+      {/* Tarjeta volteable */}
       <div
-        className={cn(
-          "relative w-full max-w-lg rounded-3xl border-2 border-primary/25 bg-card p-6 text-center shadow-lg transition-shadow",
-          revealed && "shadow-xl",
-        )}
+        ref={cardRef}
+        className="flip-scene flip-scene-tall w-full max-w-lg cursor-pointer select-none focus:outline-none"
+        onClick={flipCard}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            flipCard();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={
+          revealed
+            ? `Significado de ${word.word}`
+            : `Tarjeta de ${word.word}: toca para voltearla y ver su significado`
+        }
+        aria-pressed={revealed}
       >
-        <div className="flex items-center justify-between gap-2" aria-hidden>
-          <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide", difficultyColor)}>
-            {word.cefr}
-          </span>
-          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{word.pos}</span>
-        </div>
+        <div className={cn("flip-card w-full", revealed && "is-flipped")}>
+          {/* ===== Cara anterior: la palabra ===== */}
+          <div className="flip-face flex-col rounded-3xl border-2 border-primary/30 bg-card px-6 py-6 text-center shadow-lg">
+            <div className="flex w-full items-center justify-between gap-2" aria-hidden>
+              <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide", difficultyColor)}>
+                {word.cefr}
+              </span>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{word.pos}</span>
+            </div>
 
-        <p className="font-display mt-4 text-4xl font-bold tracking-tight sm:text-5xl">{word.word}</p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-3">
+              <p className="font-display text-4xl font-bold tracking-tight sm:text-5xl">{word.word}</p>
+              {ttsOk && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    speak(word.word);
+                  }}
+                  aria-label={`Escuchar la palabra ${word.word} (síntesis de voz del navegador)`}
+                >
+                  <Volume2 className="mr-1.5 h-4 w-4" aria-hidden />
+                  Escuchar
+                </Button>
+              )}
+            </div>
 
-        {ttsOk && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-2 text-muted-foreground"
-            onClick={() => speak(word.word)}
-            aria-label={`Escuchar la palabra ${word.word} (síntesis de voz del navegador)`}
-          >
-            <Volume2 className="mr-1.5 h-4 w-4" aria-hidden />
-            Escuchar
-          </Button>
-        )}
-
-        {revealed ? (
-          <div className="anim-pop mt-5 space-y-3 border-t pt-5">
-            <p className="text-base leading-relaxed sm:text-lg">{word.definition}</p>
-            <p className="rounded-2xl bg-secondary px-4 py-3 text-sm italic leading-relaxed text-secondary-foreground">
-              «{word.example}»
-            </p>
-            {word.tags.length > 0 && (
-              <p className="flex flex-wrap items-center justify-center gap-1.5">
-                {word.tags.map((t) => (
-                  <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                    {t}
-                  </span>
-                ))}
+            {!revealed && (
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground" aria-hidden>
+                <VolumeX className="h-3.5 w-3.5 opacity-50" />
+                Toca la tarjeta para voltearla
+                <VolumeX className="h-3.5 w-3.5 opacity-50" />
               </p>
             )}
           </div>
-        ) : (
-          <div className="mt-5 flex flex-col items-center gap-2 text-muted-foreground">
-            <VolumeX className="h-5 w-5 opacity-40" aria-hidden />
-            <p className="text-sm">Piensa en su significado y compruébalo.</p>
+
+          {/* ===== Cara posterior: el significado ===== */}
+          <div className="flip-face flip-face-back flex-col rounded-3xl border-2 border-primary/45 bg-card px-6 py-6 text-center shadow-xl">
+            <div className="flex w-full items-center justify-between gap-2" aria-hidden>
+              <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide", difficultyColor)}>
+                {word.cefr}
+              </span>
+              <span className="font-display text-sm font-bold text-primary/80">{word.word}</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 overflow-y-auto">
+              <p className="text-base leading-relaxed sm:text-lg">{word.definition}</p>
+              <p className="rounded-2xl bg-secondary px-4 py-3 text-sm italic leading-relaxed text-secondary-foreground">
+                «{word.example}»
+              </p>
+              {word.tags.length > 0 && (
+                <p className="flex flex-wrap items-center justify-center gap-1.5">
+                  {word.tags.map((t) => (
+                    <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                      {t}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Acciones */}
       {!revealed ? (
-        <Button size="lg" className="w-full max-w-lg font-bold shadow-md" onClick={() => setRevealed(true)}>
-          Mostrar significado
+        <Button size="lg" className="w-full max-w-lg font-bold shadow-md" onClick={flipCard}>
+          Voltear tarjeta
         </Button>
       ) : (
         <div className="anim-slide-up w-full max-w-lg">

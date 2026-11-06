@@ -50,7 +50,7 @@ export function CollectionScreen() {
     <div>
       <ScreenHeader title="Colección de palabras" subtitle={`${learned} de ${SRS_WORDS.length} aprendidas`} backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
         {/* Progreso global */}
         <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4">
           <span aria-hidden className="anim-float absolute -right-2 -top-3 text-5xl opacity-25 select-none">🌿</span>

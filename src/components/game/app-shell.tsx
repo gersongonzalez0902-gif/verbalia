@@ -21,6 +21,7 @@ import {
   Home,
   Library,
   ListChecks,
+  ListMusic,
   Map as MapIcon,
   NotebookPen,
   Settings,
@@ -58,6 +59,7 @@ const SIDEBAR_NAV: { section: string; items: { screen: Screen; label: string; ic
   {
     section: "Más",
     items: [
+      { screen: { name: "music" }, label: "Estación de música", icon: ListMusic },
       { screen: { name: "library" }, label: "Biblioteca y hoja de ruta", icon: Library },
       { screen: { name: "settings" }, label: "Ajustes", icon: Settings },
     ],

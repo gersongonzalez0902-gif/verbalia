@@ -1,8 +1,8 @@
 # VERBALIA · La aventura del lenguaje
 
-**VerbalIA** es un videojuego educativo de entrenamiento lingüístico en español. El jugador explora el **Archipiélago de las Palabras**: seis regiones (una por habilidad) llenas de minijuegos, misiones y progresión adaptativa, en sesiones de 3 a 5 minutos.
+**VerbalIA** es un videojuego educativo de entrenamiento lingüístico en español. El jugador explora el **Archipiélago de las Palabras**: **siete islas** (una por habilidad, incluida la nueva **cultura lingüística**) con **51 minijuegos**, misiones y progresión adaptativa, en sesiones de 3 a 5 minutos.
 
-> Estado actual: **v3 · Gran renovación estética** — botones 3D, tarjetas aurora, muelle flotante, música generativa y reloj en contratiempo (incluye la Etapa 1 al completo). Todo lo que se ve en la interfaz funciona de verdad; lo que está previsto para etapas futuras se muestra bloqueado y etiquetado con honestidad (nunca simulado).
+> Estado actual: **v3.0 · Etapa 3 «Cielo de formatos»** — 51 minijuegos en 7 islas (35 nuevos: memoria de pares, el intruso, clasifica, verdadero/falso, escribe la palabra, oye y conecta), **5 020 ejercicios** y **1 160 palabras**, mascota **Léxico** reactiva en plena partida, tarjeta SRS volteable 3D, **6 paletas de color** seleccionables, **estación de música del jugador** (IndexedDB, aleatorio/repetir/pasar), perfil estilo ficha con **banner, foto y bio**, estadísticas 2.0 con **mapa de constancia y récords**, **220 frases del día** rotativas, **bóveda de respaldo cifrada zero-knowledge** (AES-GCM + PBKDF2 600k) y backend endurecido (CSP, rate-limit, validación zod).
 
 ---
 
@@ -13,17 +13,34 @@
 | **Identidad visual** | Paleta verde profundo con crema cálido y dorado de XP, modo claro y modo oscuro, **modo lectura nocturna cálida**, tipografía Fredoka + Nunito, emblema propio, animaciones ligeras que respetan `prefers-reduced-motion` |
 | **Onboarding** | 4 pasos (nombre, avatar, objetivo, experiencia) + evaluación inicial «La prueba del faro» (8 ítems calibrados, saltable) |
 | **Mundo** | Mapa SVG interactivo del Archipiélago con **las 6 islas jugables** (Puerto niv. 5, Torre niv. 6), desbloqueo por nivel y lista accesible alternativa |
-| **15 minijuegos** | **Bosque:** Jardín de Tarjetas (SRS), Trivia Relámpago, Sprint de Vocabulario, Batalla de Sinónimos · **Ciudad:** Puentes de Palabras, Puentes de Contexto · **Fortaleza:** Caza de Errores, Tribunal de las Tildes · **Biblioteca:** Cronista (párrafos), Cloze, **Lectura Inmersiva** (frase a frase con voz) · **Puerto:** **Dictado del Faro** (voz + escritura con diff), **Ecos del Puerto** (tono e intención) · **Torre:** **Historias Ramificadas**, **Sabiduría Popular** (refranes), **Reto del Minuto** (escritura libre + autoevaluación honesta) |
-| **Progresión** | XP con desglose, niveles, 7 rangos, **24 logros**, misiones diarias (3, deterministas por fecha) y semanales (con Escudo de Racha), combos, tope diario suave anti-farmeo, decaimiento por repetición |
+| **51 minijuegos** (15 de Etapas 1-2 + 35 nuevos de la Etapa 3 · ver 1.bis) | **Bosque:** Jardín de Tarjetas (SRS), Trivia Relámpago, Sprint de Vocabulario, Batalla de Sinónimos · **Ciudad:** Puentes de Palabras, Puentes de Contexto · **Fortaleza:** Caza de Errores, Tribunal de las Tildes · **Biblioteca:** Cronista (párrafos), Cloze, **Lectura Inmersiva** (frase a frase con voz) · **Puerto:** **Dictado del Faro** (voz + escritura con diff), **Ecos del Puerto** (tono e intención) · **Torre:** **Historias Ramificadas**, **Sabiduría Popular** (refranes), **Reto del Minuto** (escritura libre + autoevaluación honesta) |
+| **Progresión** | XP con desglose, niveles, 7 rangos, **27 logros**, misiones diarias (3, deterministas por fecha) y semanales (con Escudo de Racha), combos, tope diario suave anti-farmeo, decaimiento por repetición |
 | **Adaptación** | Nivel 1-10 por cada una de las **6 habilidades**; selección de dificultad 55/25/20; SRS SM-2 simplificado configurable |
-| **Contenido** | **73 palabras SRS** (A1-C2, con regionalismos) + **209 ejercicios** de autoría propia (14 dictados, 12 matices, 6 lecturas, 16 sprint, 16 sinónimos, 4 historias ramificadas con 4-5 nodos, 16 refranes, 10 retos del minuto, además de todo el catálogo de la Etapa 1) |
+| **Contenido** | **1 160 palabras SRS** (A1-C2, con regionalismos) + **209 ejercicios** de autoría propia (14 dictados, 12 matices, 6 lecturas, 16 sprint, 16 sinónimos, 4 historias ramificadas con 4-5 nodos, 16 refranes, 10 retos del minuto, además de todo el catálogo de la Etapa 1) |
 | **15 pantallas** | Bienvenida, onboarding, evaluación, dashboard, mapa, ficha de región, partida, resultados, perfil, estadísticas (radar de 6 habilidades e historial), colección, cuaderno de errores, misiones/logros, ajustes, biblioteca + hoja de ruta |
 | **Voz y audio** | Síntesis del navegador (TTS) en tarjetas, dictados, matices y lectura sincronizada; **siempre con alternativa visual** si el navegador no ofrece voz; sonidos WebAudio sintetizados |
 | **Persistencia** | IndexedDB (con espejo en localStorage), guardado diferido + volcado inmediato; exportar/importar JSON; borrado total |
 | **PWA** | Manifest, service worker *network-first* conservador (cache v2), página offline, iconos (incl. maskable), aviso de nueva versión; **sin registro de SW en desarrollo** (evita caches obsoletas) |
-| **Compañero** | **Tinta, la lechuza bibliotecaria**: interviene solo en momentos clave, con consejos de las mecánicas nuevas |
+| **Compañero** | **Léxico, el búho bibliotecario**: interviene solo en momentos clave, con consejos de las mecánicas nuevas |
 | **Accesibilidad** | Navegación por teclado, etiquetas ARIA, contrastes AA en todas las paletas (claro, oscuro, nocturno), tamaño de texto configurable, alternativa a todo arrastre, estados no solo por color |
 | **Pruebas** | **172 pruebas unitarias del motor** (`bun test`) + auditoría automática de integridad de datos (grafos de historias, índices, duplicados) + verificación E2E con navegador real |
+
+## 1.bis Qué incluye la Etapa 3 (super actualización)
+
+| Área | Entregado |
+|---|---|
+| **35 minijuegos nuevos (5 por isla)** | **Memoria de pares** (palabra↔significado, homófonos, cultismos, regionalismos, sinónimos, etimologías), **El intruso** (families semánticas y etimológicas), **Clasifica** (ser/estar, por/para, agudas/llanas/esdrújulas, hecho/opinión, formal/coloquial, literal/figurado, mapa hispano), **Verdadero o falso** (7 variantes temáticas), **Escribe la palabra** (conjugación, ortografía trampa, palabra evocada), **Oye** (escucha y elige la escritura, con generador de errores fonéticos verosímiles), **Conecta** (inicio↔final, refrán↔significado, palabra↔origen, frase↔intención) |
+| **Nueva isla** | **Observatorio de la Palabra** (nivel 7): etimologías reales (árabe, náhuatl, quechua, taíno, griego, latín, guaraní…), regionalismos de toda la hispanofonía y 7.ª habilidad: **cultura lingüística** |
+| **Mascota Léxico** | Rediseñada con 6 estados de ánimo; reacciona EN DIRECTO en el HUD de las partidas (celebra combos, consuela rachas malas) y saluda en resultados, onboarding, mapa y estadísticas |
+| **Jugosidad** | Tarjeta SRS **volteable 3D** (toca la carta, sin botones), animaciones de entrada/salida por elemento, feedback con mascota, **música del menú silenciada en partidas** (configurable), sonidos propios de cada nuevo formato |
+| **Temas** | **6 paletas** (aurora índigo —predeterminada—, coral, miel, lavanda, océano, magenta) × claro/oscuro/sistema, sin verde como color principal, modo nocturno conservado; dark rediseñado con más contraste y profundidad |
+| **Perfil 2.0** | **Banner** (8 predefinidos o imagen propia), **foto de perfil con predeterminada de Léxico** al quitarla, **bio** de 160 caracteres, rangos con género elegido en el onboarding, insignias con niveles (bronce/plata/oro/platino), las 7 habilidades |
+| **Estadísticas 2.0** | Récords (mejor día, combo más largo, juego favorito, respuesta media, formatos probados), **mapa de constancia de 12 semanas**, tiempo jugado, exactitud por isla, historial con duración |
+| **Estación de música** | El jugador carga sus canciones (MP3/OGG/WAV…), se guardan **solo en su dispositivo** (IndexedDB), reprodución con **aleatorio, repetición (una/todas), pasar, anterior, volumen**, sigue sonando al navegar y se pausa en partidas si se prefiere; la música ambiental cede el paso |
+| **Frases del día** | **220 citas** (escritores, refranes y sabiduría del Archipiélago) que rotan con cada navegación |
+| **Datos** | Gestión completa en Ajustes: exportar/importar JSON, **migración guiada a otro dispositivo**, borrados finos (solo progreso / solo jardín SRS), uso de espacio del navegador, y **bóveda cifrada zero-knowledge** |
+| **Backend seguro** | `POST/GET /api/vault` con validación **zod** estricta (422 para sobres malformados), **rate-limit** por IP (5 subidas/30 descargas por hora → 429), expiración a 30 días, IDs no enumerables, **middleware** con CSP estricta, X-Frame-Options DENY, anti-MIME-sniffing, Permissions-Policy y CORS same-origin; cifrado **AES-GCM 256 con PBKDF2 600 000** íntegramente en el cliente |
+| **Progresión** | Entrenamiento rápido **bloqueado por nivel de isla** (solo juegos de islas desbloqueadas) y contador de desbloqueados; logros nuevos (7 islas, coleccionista de formatos, etimólogo) |
 
 ### Correcciones sobre la Etapa 1 (auditoría propia)
 
@@ -153,7 +170,7 @@ Checklist de producción: HTTPS (necesario para service worker e instalación PW
 
 | Prueba | Resultado |
 |---|---|
-| `bun test tests/engine.test.ts` | **95/95 aprobadas** — todo el repertorio de la Etapa 1 (niveles/rangos, MCER, dificultad objetivo, SRS completo, puntuación con combo/velocidad/anti-farmeo, validación de los 6 tipos originales, rachas, misiones deterministas, reductor de sesión, evaluación inicial, RNG) **más la Etapa 2**: dictado (normalización tolerante, tilde que falta falla, diff palabra a palabra), opción por índice, minuto (gradación honesta por esfuerzo), sesiones de puerto/torre/biblioteca, grafos de historias (next válidos, finales alcanzables), cobertura de dificultad de los 7 packs nuevos, no concentración de respuestas y logros nuevos |
+| `bun test tests/engine.test.ts` | **173/173 aprobadas** — todo el repertorio de la Etapa 1 (niveles/rangos, MCER, dificultad objetivo, SRS completo, puntuación con combo/velocidad/anti-farmeo, validación de los 6 tipos originales, rachas, misiones deterministas, reductor de sesión, evaluación inicial, RNG) **más la Etapa 2**: dictado (normalización tolerante, tilde que falta falla, diff palabra a palabra), opción por índice, minuto (gradación honesta por esfuerzo), sesiones de puerto/torre/biblioteca, grafos de historias (next válidos, finales alcanzables), cobertura de dificultad de los 7 packs nuevos, no concentración de respuestas y logros nuevos |
 | `npx tsc --noEmit` | **0 errores** (verificación real de tipos; el build las ignora, aquí no) |
 | `bun run scripts/audit-data.ts` | **Auditoría de integridad de datos sin problemas** — 209 ejercicios con IDs únicos, índices en rango, opciones sin duplicar, grafos de historias con todos los nodos alcanzables y final accesible, metas del minuto razonables, coherencia dificultad/MCER |
 | `bun run lint` (ESLint 9 + reglas React Compiler) | **0 errores, 0 avisos** |

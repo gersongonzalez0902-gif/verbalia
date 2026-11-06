@@ -30,6 +30,8 @@ function hashToScreen(hash: string): Screen {
     errores: "errors",
     misiones: "missions",
     ajustes: "settings",
+    musica: "music",
+    estacion: "music",
     biblioteca: "library",
     resultados: "results",
     bienvenida: "welcome",
@@ -46,7 +48,7 @@ function hashToScreen(hash: string): Screen {
   }
   const known = [
     "welcome", "onboarding", "placement", "home", "map", "results",
-    "profile", "stats", "collection", "errors", "missions", "settings", "library",
+    "profile", "stats", "collection", "errors", "missions", "settings", "music", "library",
   ];
   if (head && (known as string[]).includes(head)) {
     return { name: head } as Screen;
@@ -56,6 +58,10 @@ function hashToScreen(hash: string): Screen {
 
 interface UiStore {
   screen: Screen;
+  /** ¿Está sonando la estación de música del jugador? (silencia la música generativa) */
+  stationPlaying: boolean;
+  /** Contador de navegaciones: rota la frase del día en cada salto. */
+  navCount: number;
   /** ID de desbloqueo/región abierta en el mapa (hoja lateral). */
   mapSheetRegion: string | null;
   /** Navega a una pantalla (apila en el historial del navegador). */
@@ -64,10 +70,13 @@ interface UiStore {
   back: () => void;
   syncFromHash: () => void;
   setMapSheetRegion: (id: string | null) => void;
+  setStationPlaying: (v: boolean) => void;
 }
 
 export const useUiStore = create<UiStore>((set, get) => ({
   screen: { name: "home" },
+  stationPlaying: false,
+  navCount: 0,
   mapSheetRegion: null,
 
   navigate(screen) {
@@ -75,7 +84,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
     if (typeof window !== "undefined" && window.location.hash !== hash) {
       window.location.hash = hash; // dispara hashchange → syncFromHash
     } else {
-      set({ screen });
+      set((s) => ({ screen, navCount: s.navCount + 1 }));
     }
   },
 
@@ -87,11 +96,15 @@ export const useUiStore = create<UiStore>((set, get) => ({
   },
 
   syncFromHash() {
-    set({ screen: hashToScreen(window.location.hash) });
+    set((s) => ({ screen: hashToScreen(window.location.hash), navCount: s.navCount + 1 }));
   },
 
   setMapSheetRegion(id) {
     set({ mapSheetRegion: id });
+  },
+
+  setStationPlaying(v) {
+    set({ stationPlaying: v });
   },
 }));
 

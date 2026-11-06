@@ -1,11 +1,11 @@
 import type { SrsWord } from "@/types";
+import { SRS_WORDS_X } from "./gen/words-srs-x";
 
 /**
  * Paquete SRS · Vocabulario progresivo A1-C2.
  * Incluye registro formal, coloquial y regionalismos del mundo hispanohablante.
- * 640 palabras (49 originales + 24 de Etapa 2 + 87 de la primera ampliación
- * + 480 nuevas en la ampliación del jardín): dificultad progresiva A1-C2 con
- * registro formal, coloquial y regionalismos.
+ * 1160 palabras (640 del jardín + 520 de la ampliación del viaje): dificultad
+ * progresiva A1-C2 con registro formal, coloquial y regionalismos.
  */
 export const SRS_WORDS: SrsWord[] = [
   // ---------- A1 ----------
@@ -706,8 +706,8 @@ export const SRS_WORDS: SrsWord[] = [
   { id: "w-acendrado", word: "acendrado", pos: "adjetivo", definition: "Puro, probado e intenso.", example: "Un cariño acendrado sobrevivió a la distancia y a los años.", difficulty: 5, cefr: "C2", tags: ["literario", "emociones"] },
   { id: "w-insomne", word: "insomne", pos: "adjetivo", definition: "Que no puede dormir o padece insomnio.", example: "Pasó la noche insomne contando oleajes.", difficulty: 5, cefr: "C2", tags: ["literario"] },
   { id: "w-epifania", word: "epifanía", pos: "sustantivo", definition: "Comprensión repentina y reveladora de algo; también, manifestación.", example: "Tuvo una epifanía al leer la dedicatoria del libro.", difficulty: 5, cefr: "C2", tags: ["culto", "abstracto"] },
+  ...SRS_WORDS_X,
 ];
-
 export const SRS_WORDS_BY_ID: Record<string, SrsWord> = SRS_WORDS.reduce(
   (acc, w) => {
     acc[w.id] = w;

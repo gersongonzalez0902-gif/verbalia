@@ -22,6 +22,7 @@ import { checkTrivia, checkPuzzle, checkCloze, checkErrorHunt, checkTildes, chec
 import { updateStreak, grantShield, MAX_SHIELDS } from "@/engine/streak";
 import { dateKey, weekKey, dailyMissions, weeklyMissions, metricValue, dailyProgress } from "@/engine/missions";
 import { createCore, reduceSessionComplete, computePlacement, experiencePrior } from "@/engine/core";
+import { REGIONS as REGIONS_ALL } from "@/data/regions";
 import { createRng, shuffle } from "@/engine/rng";
 import type { AnswerRecord, GameCore, SessionSpec, SrsCard } from "@/types";
 
@@ -760,8 +761,16 @@ describe("paquetes de la Etapa 2: cobertura de dificultad", () => {
     expect(firstRatio(SPRINT_PACK)).toBeLessThan(0.5);
     expect(firstRatio(MATICES_PACK)).toBeLessThan(0.5);
   });
-  test("el jardín se amplió a 640 palabras", () => {
-    expect(SRS_WORDS.length).toBe(640);
+  test("el jardín se amplió a 1160 palabras (x2 variedad)", () => {
+    expect(SRS_WORDS.length).toBe(1160);
+  });
+  test("las 7 regiones tienen sus cinco juegos nuevos", () => {
+    for (const r of REGIONS_ALL) {
+      expect(r.games.length).toBeGreaterThanOrEqual(5);
+      const nuevos = r.games.filter((g) => g.includes("-"));
+      expect(nuevos.length).toBeGreaterThanOrEqual(5); // 5 formatos nuevos por ciudad
+    }
+    expect(REGIONS_ALL.length).toBe(7); // 6 clásicas + Observatorio
   });
 });
 
@@ -778,12 +787,12 @@ describe("logros de la Etapa 2", () => {
     const def = ACHIEVEMENTS.find((a) => a.id === "ac-oido-marino")!;
     expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
   });
-  test("explorador de las seis islas exige las 6 regiones", () => {
+  test("explorador de las siete islas exige las 7 regiones", () => {
     const core = createCore();
-    core.stats.regionsByDay["2026-01-05"] = ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto"];
+    core.stats.regionsByDay["2026-01-05"] = ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre"];
     const def = ACHIEVEMENTS.find((a) => a.id === "ac-explorador-total")!;
     expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(false);
-    core.stats.regionsByDay["2026-01-06"] = ["torre"];
+    core.stats.regionsByDay["2026-01-06"] = ["observatorio"];
     expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
   });
 });

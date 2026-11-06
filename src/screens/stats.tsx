@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * Estadísticas y evolución · XP por día, radar de habilidades,
- * distribución de juegos y fichas de sesión (historial completo).
+ * Estadísticas y evolución 2.0 · Resumen con récords, XP por día,
+ * mapa de calor de constancia, radar de las 7 habilidades, exactitud
+ * por isla, actividad por minijuego e historial de sesiones.
  */
 
 import { useMemo, useState } from "react";
@@ -10,23 +11,30 @@ import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { EmptyState } from "@/components/game/widgets";
 import { cefrFromSkill } from "@/engine/xp";
-import { SKILL_LABELS } from "@/data/regions";
+import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { dateKey } from "@/engine/missions";
 import { getIcon } from "@/components/game/icons";
+import { LexicoBubble } from "@/components/game/lexico";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChartColumn, History, Play } from "lucide-react";
+import { Award, ChartColumn, Flame, History, Play, Timer, TrendingUp, Zap } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
+import { formatPlaytime } from "@/lib/format-time";
+import type { GameId, SkillId } from "@/types";
 
 const DAY_MS = 86_400_000;
+
+/** Habilidad de cada juego (para exactitud por isla). */
+const SKILL_OF_GAME = (g: GameId): SkillId => GAMES[g].skill;
 
 export function StatsScreen() {
   const core = useGameStore((s) => s.core);
   const [tab, setTab] = useState("resumen");
 
-  // XP de los últimos 14 días (incluye días sin actividad).
+  /* ---------- series y derivados ---------- */
+
   const xpData = useMemo(() => {
     const days: { dia: string; xp: number }[] = [];
     for (let i = 13; i >= 0; i--) {
@@ -39,10 +47,9 @@ export function StatsScreen() {
 
   const radarData = useMemo(
     () =>
-      (["vocabulario", "gramatica", "ortografia", "lectura", "audicion", "expresion"] as const).map((s) => ({
+      (["vocabulario", "gramatica", "ortografia", "lectura", "audicion", "expresion", "cultura"] as const).map((s) => ({
         skill: SKILL_LABELS[s],
-        nivel: +core.skills[s].toFixed(1),
-        cefr: cefrFromSkill(core.skills[s]),
+        nivel: +(core.skills[s] ?? 2).toFixed(1),
       })),
     [core.skills],
   );
@@ -55,9 +62,48 @@ export function StatsScreen() {
         plays: core.stats.byGame[g]?.plays ?? 0,
         correct: core.stats.byGame[g]?.correct ?? 0,
         answers: core.stats.byGame[g]?.answers ?? 0,
-      })),
+      })).sort((a, b) => b.plays - a.plays),
     [core.stats.byGame],
   );
+
+  /** Mapa de calor: 12 semanas (7×12 celdas). */
+  const heatmap = useMemo(() => {
+    const cells: { key: string; xp: number; date: Date }[] = [];
+    const today = new Date();
+    const offsetToMonday = (today.getDay() + 6) % 7; // lunes = 0
+    for (let w = 11; w >= 0; w--) {
+      for (let dow = 0; dow < 7; dow++) {
+        const d = new Date(today.getTime() - (offsetToMonday + (w * 7) + (6 - dow)) * DAY_MS);
+        const key = dateKey(d);
+        cells.push({ key, xp: core.stats.xpByDay[key] ?? 0, date: d });
+      }
+    }
+    const maxXp = Math.max(30, ...cells.map((c) => c.xp));
+    return { cells, maxXp };
+  }, [core.stats.xpByDay]);
+
+  const records = useMemo(() => {
+    const byDay = Object.entries(core.stats.xpByDay);
+    const bestDay = byDay.sort((a, b) => b[1] - a[1])[0] ?? null;
+    const played = gameData.filter((g) => g.plays > 0);
+    const favorite = played[0] ?? null;
+    const hardest = played
+      .filter((g) => g.answers >= 8)
+      .sort((a, b) => a.correct / a.answers - b.correct / b.answers)[0] ?? null;
+    const avgResponse =
+      core.stats.totalAnswers > 0 && (core.stats.answerTimeSumMs ?? 0) > 0
+        ? core.stats.answerTimeSumMs / core.stats.totalAnswers / 1000
+        : null;
+    return {
+      bestDay: bestDay ? { date: bestDay[0], xp: bestDay[1] } : null,
+      bestComboEver: core.stats.bestComboEver ?? 0,
+      favorite,
+      hardest,
+      avgResponse,
+      uniqueGames: (core.stats.uniqueGames ?? []).length,
+      activeDays: core.stats.activeDays.length,
+    };
+  }, [core.stats, core.stats.byGame, gameData]);
 
   const hasData = core.stats.totalSessions > 0;
   const avgAccuracy =
@@ -65,31 +111,77 @@ export function StatsScreen() {
       ? Math.round((core.stats.totalCorrect / core.stats.totalAnswers) * 100)
       : null;
 
+  /** Exactitud por isla (agregada desde los juegos). */
+  const skillAccuracy = useMemo(() => {
+    const acc: Partial<Record<SkillId, { correct: number; answers: number }>> = {};
+    for (const g of gameData) {
+      if (g.answers === 0) continue;
+      const skill = SKILL_OF_GAME(g.id);
+      const cur = (acc[skill] ??= { correct: 0, answers: 0 });
+      cur.correct += g.correct;
+      cur.answers += g.answers;
+      acc[skill] = cur;
+    }
+    return (Object.keys(acc) as SkillId[])
+      .filter((s) => (acc[s]?.answers ?? 0) >= 6)
+      .map((s) => ({
+        skill: s,
+        label: SKILL_LABELS[s],
+        pct: Math.round((acc[s]!.correct / Math.max(1, acc[s]!.answers)) * 100),
+        color: SKILL_COLORS[s],
+      }))
+      .sort((a, b) => b.pct - a.pct);
+  }, [gameData]);
+
   return (
     <div>
       <ScreenHeader title="Estadísticas y evolución" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-10">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
         {!hasData ? (
           <div className="mt-6">
             <EmptyState
               icon={<ChartColumn />}
               title="Aún no hay datos"
-              description="Completa tu primera sesión y aquí verás tu evolución: XP por día, habilidades y todas tus partidas."
+              description="Tu evaluación ya suma XP, pero los gráficos necesitan partidas: juega una misión y aquí florecerá tu evolución completa."
             />
           </div>
         ) : (
           <>
             {/* Tarjetas resumen */}
-            <div className="mt-4 grid grid-cols-3 gap-2.5">
+            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               <SummaryCard value={`${core.xp}`} label="XP total" />
-              <SummaryCard value={`${core.stats.totalSessions}`} label="Sesiones" />
+              <SummaryCard value={formatPlaytime(core.stats.totalTimeMs ?? 0)} label="Tiempo jugado" />
               <SummaryCard value={avgAccuracy !== null ? `${avgAccuracy}%` : "—"} label="Exactitud global" />
+              <SummaryCard value={`${records.bestComboEver}`} label="Mejor combo" />
             </div>
 
+            {/* Récords */}
+            <section className="card-aurora mt-3 rounded-3xl border bg-card p-4" aria-labelledby="records-title">
+              <h3 id="records-title" className="font-display mb-3 flex items-center gap-2 text-base font-bold">
+                <Award className="h-4.5 w-4.5 text-[var(--xp)]" aria-hidden /> Récords del navegante
+              </h3>
+              <ul className="grid grid-cols-2 gap-2 text-sm">
+                <RecordRow icon={<Flame className="h-4 w-4" aria-hidden />} label="Mejor día" value={records.bestDay ? `${records.bestDay.xp} XP` : "—"} hint={records.bestDay ? records.bestDay.date : undefined} />
+                <RecordRow icon={<Zap className="h-4 w-4" aria-hidden />} label="Combo más largo" value={`${records.bestComboEver} seguidos`} hint="en una sola sesión" />
+                <RecordRow icon={<TrendingUp className="h-4 w-4" aria-hidden />} label="Juego favorito" value={records.favorite ? records.favorite.name : "—"} hint={records.favorite ? `${records.favorite.plays} partidas` : undefined} />
+                <RecordRow icon={<Timer className="h-4 w-4" aria-hidden />} label="Respuesta media" value={records.avgResponse ? `${records.avgResponse.toFixed(1)} s` : "—"} hint="por pregunta" />
+                <RecordRow icon={<Play className="h-4 w-4" aria-hidden />} label="Formatos probados" value={`${records.uniqueGames} / ${GAME_IDS.length}`} hint="minijuegos distintos" />
+                <RecordRow icon={<ChartColumn className="h-4 w-4" aria-hidden />} label="Días navegados" value={`${records.activeDays}`} hint="días con actividad" />
+              </ul>
+              {records.hardest && records.hardest.answers >= 8 && (
+                <p className="mt-3 rounded-2xl bg-secondary px-3.5 py-2 text-xs leading-relaxed text-secondary-foreground">
+                  Tu isla más empinada ahora es <strong>{records.hardest.name}</strong> (
+                  {Math.round((records.hardest.correct / Math.max(1, records.hardest.answers)) * 100)}% de acierto).
+                  ¿Le damos otra vuelta para ablandar la cuesta?
+                </p>
+              )}
+            </section>
+
             <Tabs value={tab} onValueChange={(v) => { sfx.tap(); setTab(v); }} className="mt-5">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="resumen" className="font-bold">Resumen</TabsTrigger>
+                <TabsTrigger value="constancia" className="font-bold">Constancia</TabsTrigger>
                 <TabsTrigger value="historial" className="font-bold">Historial</TabsTrigger>
               </TabsList>
 
@@ -121,16 +213,16 @@ export function StatsScreen() {
                   </div>
                 </section>
 
-                {/* Radar de habilidades */}
+                {/* Radar de habilidades (7 islas) */}
                 <section aria-labelledby="radar-title">
                   <h3 id="radar-title" className="font-display mb-2 text-base font-bold">
-                    Nivel por habilidad (de 10) · estimación orientativa
+                    Nivel por habilidad (de 10) · las 7 islas
                   </h3>
-                  <div className="card-aurora rounded-3xl border bg-card p-4" style={{ height: 230 }}>
+                  <div className="card-aurora rounded-3xl border bg-card p-4" style={{ height: 240 }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={radarData} outerRadius="72%">
+                      <RadarChart data={radarData} outerRadius="70%">
                         <PolarGrid stroke="var(--border)" />
-                        <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                        <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
                         <Radar dataKey="nivel" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
                         <Tooltip
                           contentStyle={{
@@ -146,14 +238,43 @@ export function StatsScreen() {
                   </div>
                 </section>
 
-                {/* Distribución por juego */}
+                {/* Exactitud por isla */}
+                {skillAccuracy.length > 0 && (
+                  <section aria-labelledby="acc-title">
+                    <h3 id="acc-title" className="font-display mb-2 text-base font-bold">
+                      Exactitud por isla
+                    </h3>
+                    <div className="space-y-2">
+                      {skillAccuracy.map((s) => (
+                        <div key={s.skill} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
+                          <span
+                            className="gloss h-3 w-3 shrink-0 rounded-full"
+                            style={{ background: s.color, boxShadow: `0 0 8px color-mix(in oklch, ${s.color} 60%, transparent)` }}
+                            aria-hidden
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline justify-between gap-2">
+                              <p className="truncate text-sm font-bold">{s.label}</p>
+                              <p className="numeric text-xs font-bold text-muted-foreground">{s.pct}%</p>
+                            </div>
+                            <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
+                              <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${s.pct}%`, background: s.color }} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Distribución por juego (top 10) */}
                 <section aria-labelledby="games-title">
                   <h3 id="games-title" className="font-display mb-2 text-base font-bold">
-                    Actividad por minijuego
+                    Minijuegos más jugados
                   </h3>
                   <div className="space-y-2">
-                    {gameData.map((g) => {
-                      const maxPlays = Math.max(1, ...gameData.map((x) => x.plays));
+                    {gameData.filter((g) => g.plays > 0).slice(0, 10).map((g) => {
+                      const maxPlays = Math.max(1, gameData[0].plays);
                       const Icon = getIcon(GAMES[g.id].icon);
                       return (
                         <div key={g.id} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
@@ -176,6 +297,64 @@ export function StatsScreen() {
                     })}
                   </div>
                 </section>
+              </TabsContent>
+
+              <TabsContent value="constancia" className="mt-4 space-y-4">
+                <section aria-labelledby="heatmap-title">
+                  <h3 id="heatmap-title" className="font-display mb-2 text-base font-bold">
+                    Mapa de constancia · 12 semanas
+                  </h3>
+                  <div className="card-aurora rounded-3xl border bg-card p-4">
+                    <div
+                      className="grid grid-flow-col grid-rows-7 gap-1"
+                      role="img"
+                      aria-label={`Mapa de calor de actividad: ${records.activeDays} días con juego en los últimos tres meses`}
+                    >
+                      {heatmap.cells.map((c) => {
+                        const intensity = c.xp / heatmap.maxXp;
+                        return (
+                          <span
+                            key={c.key}
+                            title={`${c.date.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}: ${c.xp} XP`}
+                            className="aspect-square w-full rounded-[3px]"
+                            style={{
+                              background:
+                                c.xp === 0
+                                  ? "color-mix(in oklch, var(--muted) 70%, transparent)"
+                                  : `color-mix(in oklch, var(--xp) ${Math.max(18, Math.round(18 + intensity * 72))}%, var(--muted))`,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                      <span>Hace 12 semanas</span>
+                      <span className="flex items-center gap-1">
+                        Menos
+                        {[0.2, 0.45, 0.7, 1].map((i) => (
+                          <span
+                            key={i}
+                            className="inline-block h-2.5 w-2.5 rounded-[3px]"
+                            style={{ background: `color-mix(in oklch, var(--xp) ${i * 100}%, var(--muted))` }}
+                            aria-hidden
+                          />
+                        ))}
+                        Más
+                      </span>
+                      <span>Esta semana</span>
+                    </div>
+                  </div>
+                </section>
+
+                <LexicoBubble
+                  compact
+                  mood={records.activeDays >= 10 ? "happy" : "idle"}
+                  text={
+                    records.activeDays >= 10
+                      ? "Doce semanas de mapa y sigues dejando huella: la constancia es tu segundo apellido."
+                      : "Cada celda encendida es un día que elegiste zarpar. Pinta el mapa a tu ritmo: el mar no tiene prisa."
+                  }
+                />
               </TabsContent>
 
               <TabsContent value="historial" className="mt-4">
@@ -211,6 +390,7 @@ export function StatsScreen() {
                               {new Date(s.at).toLocaleDateString("es-ES", { day: "numeric", month: "short" })} a las{" "}
                               {new Date(s.at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
                               {s.bestCombo >= 3 && ` · combo ${s.bestCombo}`}
+                              {` · ${formatPlaytime(s.durationMs)}`}
                             </p>
                           </div>
                           <span className="numeric shrink-0 text-sm font-bold text-[var(--xp)]">+{s.xpEarned} XP</span>
@@ -228,10 +408,26 @@ export function StatsScreen() {
   );
 }
 
+/* fin */
+function RecordRow({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+  return (
+    <li className="flex items-center gap-2.5 rounded-2xl bg-muted/50 px-3 py-2">
+      <span className="chip-icon flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-primary" aria-hidden>
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className="truncate text-sm font-bold">{value}</p>
+        {hint && <p className="truncate text-[10px] text-muted-foreground">{hint}</p>}
+      </div>
+    </li>
+  );
+}
+
 function SummaryCard({ value, label }: { value: string; label: string }) {
   return (
     <div className="gloss card-aurora rounded-2xl border bg-card p-3 text-center">
-      <p className="numeric font-display title-sheen text-xl font-bold">{value}</p>
+      <p className="numeric font-display title-sheen truncate text-lg font-bold">{value}</p>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );
