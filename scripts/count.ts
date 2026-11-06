@@ -1,0 +1,10 @@
+import { SRS_WORDS } from "../src/data/words-srs";
+import { SRS_WORDS_B } from "../src/data/words-srs-b";
+import { FRASES_A } from "../src/data/frases-a";
+import { FRASES_B } from "../src/data/frases-b";
+import { FRASES_C } from "../src/data/frases-c";
+import { ALL_EXERCISES } from "../src/data/content";
+console.log("SRS_WORDS:", SRS_WORDS.length);
+console.log("SRS_WORDS_B:", SRS_WORDS_B.length);
+console.log("FRASES_A:", FRASES_A.length, "B:", FRASES_B.length, "C:", FRASES_C.length);
+console.log("ALL_EXERCISES:", ALL_EXERCISES.length);

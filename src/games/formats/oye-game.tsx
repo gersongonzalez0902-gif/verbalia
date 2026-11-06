@@ -21,7 +21,8 @@ export function OyeGame(props: useGameProps<OyeExercise>) {
   const answeredRef = useRef(false);
 
   // Baraja estable: la correcta y las trampas, sin Math.random.
-  const options = useRef(
+  // useState perezoso: sin leer refs durante el render.
+  const [options] = useState(() =>
     shuffle([item.word, ...item.wrongs], createRng(`oye-${item.id}`)),
   );
 
@@ -65,7 +66,7 @@ export function OyeGame(props: useGameProps<OyeExercise>) {
 
       {/* Opciones de escritura */}
       <div className={cn("grid w-full max-w-xl gap-2.5", isPhrase ? "grid-cols-1" : "grid-cols-2")}>
-        {options.current.map((opt, i) => {
+        {options.map((opt, i) => {
           const isRight = opt === item.word;
           const state = answered ? (isRight ? "correct" : chosen === opt ? "wrong" : "idle") : "idle";
           return (

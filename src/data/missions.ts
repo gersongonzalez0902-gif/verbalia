@@ -271,6 +271,24 @@ export const DAILY_TEMPLATES: MissionTemplate[] = [
     xpReward: 50,
     description: () => "Día de manguera: tarjetas vencidas y nuevas, todas al agua.",
   },
+  {
+    id: "md-tinta",
+    icon: "Droplets",
+    title: (n) => `Llena ${n} de tinta del tintero`,
+    range: [8, 15],
+    metric: "tinta",
+    xpReward: 35,
+    description: () => "La tinta cae sola mientras juegas: el Bazar del Copista la acepta como moneda.",
+  },
+  {
+    id: "md-tinta-forja",
+    icon: "Flame",
+    title: (n) => `Roca el yunque y gana ${n} de tinta`,
+    range: [10, 18],
+    metric: "tinta",
+    xpReward: 45,
+    description: () => "Toda sesión genera tinta, pero las de la Forja la dejan bien negra.",
+  },
 ];
 
 export const WEEKLY_TEMPLATES: MissionTemplate[] = [
@@ -300,6 +318,15 @@ export const WEEKLY_TEMPLATES: MissionTemplate[] = [
     metric: "games",
     xpReward: 70,
     description: () => "Descubre los siete caminos del Archipiélago.",
+  },
+  {
+    id: "ms-tinta",
+    icon: "Droplets",
+    title: (n) => `Reúne ${n} de tinta esta semana`,
+    range: [40, 70],
+    metric: "tinta",
+    xpReward: 90,
+    description: () => "Una semana de navegación deja el tintero listo para el Bazar.",
   },
 ];
 

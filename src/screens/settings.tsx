@@ -326,6 +326,43 @@ export function SettingsScreen() {
                     aria-label="Volumen de efectos"
                   />
                 </div>
+
+                {/* Velocidad de la voz (Etapa 4) */}
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <Label className="text-sm font-bold">Velocidad de la voz del navegador</Label>
+                    <span className="numeric text-sm font-bold text-primary">×{settings.ttsRate.toFixed(2)}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Dictados, tarjetas y lectura inmersiva: ajusta el ritmo del faro a tu oído.
+                  </p>
+                  <Slider
+                    className="mt-3"
+                    value={[settings.ttsRate]}
+                    min={0.5}
+                    max={1.3}
+                    step={0.05}
+                    onValueChange={([v]) => updateSettings({ ttsRate: v })}
+                    onValueCommit={() => sfx.tap()}
+                    aria-label="Velocidad de la voz"
+                  />
+                </div>
+
+                {/* Vibración / háptics (Etapa 4) */}
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <Label htmlFor="haptics" className="text-sm font-bold">Vibración de aciertos</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Un toque físico en aciertos, combos y subidas de nivel (si tu aparato lo permite).
+                    </p>
+                  </div>
+                  <Switch
+                    id="haptics"
+                    checked={settings.haptics}
+                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ haptics: v }); }}
+                    aria-label="Vibración de aciertos"
+                  />
+                </div>
               </>
             )}
           </div>

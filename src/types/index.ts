@@ -15,7 +15,7 @@ export type SkillId =
   | "expresion"
   | "cultura"; // Observatorio de la Palabra (etimologías, regionalismos, historia)
 
-/** Minijuegos de los formatos nuevos (Etapa 3 · “cielo de formatos”). */
+/** Minijuegos de los formatos nuevos (Etapa 3 · «cielo de formatos»). */
 export type MemoriaGameId =
   | "memoria-bosque"
   | "memoria-fortaleza"
@@ -65,7 +65,15 @@ export type ConectaGameId =
   | "conecta-torre"
   | "conecta-observatorio";
 
-/** Identificadores de los minijuegos implementados (Etapas 1-3). */
+/** Minijuegos de la Forja del Escritor (Etapa 4 · «El Códice Infinito»). */
+export type ForjaGameId =
+  | "metaforas" // Forja de Metáforas: completa la imagen literaria
+  | "registro" // Registro Correcto: versión adecuada al contexto
+  | "conectores" // Taller de Conectores: enlace lógico exacto
+  | "ironia" // Detector de Ironía: tono literal vs. irónico
+  | "titulos"; // Censura del Editor: elimina la redundancia
+
+/** Identificadores de los minijuegos implementados (Etapas 1-4). */
 export type GameId =
   | "srs" // Repetición espaciada (Bosque)
   | "trivia" // Trivia Relámpago (Bosque)
@@ -90,7 +98,9 @@ export type GameId =
   | VfGameId
   | EscribeGameId
   | OyeGameId
-  | ConectaGameId;
+  | ConectaGameId
+  // ---- Etapa 4 · Forja del Escritor ----
+  | ForjaGameId;
 
 /** Identificadores de las regiones del Archipiélago. */
 export type RegionId =
@@ -100,7 +110,8 @@ export type RegionId =
   | "biblioteca"
   | "puerto"
   | "torre"
-  | "observatorio";
+  | "observatorio"
+  | "forja";
 
 /** Nivel MCER de referencia (orientativo, no certificativo). */
 export type Cefr = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
@@ -377,7 +388,66 @@ export type Exercise =
   | VfExercise
   | EscribeExercise
   | OyeExercise
-  | ConectaExercise;
+  | ConectaExercise
+  /* ---- Etapa 4 · Forja del Escritor ---- */
+  | MetaforasExercise
+  | RegistroExercise
+  | ConectoresExercise
+  | IroniaExercise
+  | TitulosExercise;
+
+/* ====================== Etapa 4 · Forja del Escritor ====================== */
+
+/** Forja de Metáforas: elige la imagen que completa la figura literaria. */
+export interface MetaforasExercise extends ExerciseBase {
+  type: "metaforas";
+  /** Frase incompleta con «___» donde va la imagen. */
+  stem: string;
+  options: string[];
+  answerIndex: number;
+}
+
+/** Registro Correcto: versión de la misma idea según la situación. */
+export interface RegistroExercise extends ExerciseBase {
+  type: "registro";
+  /** Situación comunicativa. */
+  context: string;
+  /** Registro que se pide. */
+  register: "formal" | "coloquial" | "neutro";
+  options: string[];
+  answerIndex: number;
+}
+
+/** Taller de Conectores: el conector lógico que encaja en el hueco. */
+export interface ConectoresExercise extends ExerciseBase {
+  type: "conectores";
+  /** Frase con «___» donde va el conector. */
+  sentence: string;
+  options: string[];
+  answerIndex: number;
+}
+
+/** Detector de Ironía: tono real de una frase con contexto. */
+export interface IroniaExercise extends ExerciseBase {
+  type: "ironia";
+  /** La frase que hay que interpretar. */
+  statement: string;
+  /** Contexto que desvela el tono. */
+  context: string;
+  /** Tono real del enunciado. */
+  answer: "literal" | "ironico";
+}
+
+/** Censura del Editor: tacha la palabra redundante del enunciado. */
+export interface TitulosExercise extends ExerciseBase {
+  type: "titulos";
+  /** Enunciado con una redundancia léxica escondida. */
+  sentence: string;
+  /** Palabras seleccionables. */
+  tokens: string[];
+  /** Índice del token redundante. */
+  answerIndex: number;
+}
 
 /* ============================== SRS ============================== */
 
@@ -462,6 +532,8 @@ export interface SessionResult {
   record: SessionRecord;
   xpTotal: number;
   xpBreakdown: { base: number; comboBonus: number; completionBonus: number; capped: number };
+  /** Tinta ganada en la sesión (1 por cada 10 XP). */
+  tintaEarned: number;
   correctCount: number;
   totalCount: number;
   accuracy: number | null;
@@ -522,6 +594,22 @@ export interface GameCore {
   /** Última vez que se vio cada ejercicio (para el decaimiento anti-farmeo). */
   seenExercises: Record<string, number>;
   sessions: SessionRecord[];
+  /** Economía del Bazar: tinta, cosméticos y mejoras (Etapa 4). */
+  wallet: Wallet;
+}
+
+/** Billetera del jugador: tinta ganada jugando y cosméticos comprados. */
+export interface Wallet {
+  /** Moneda de tinta (se gana 1 por cada 10 XP de sesión). */
+  tinta: number;
+  /** Ids de catálogo comprados (marcos, títulos… los escudos no se guardan aquí). */
+  owned: string[];
+  /** Marco de avatar equipado (id de catálogo o "frame-none"). */
+  frame: string;
+  /** Título equipado (id de catálogo o "title-none"). */
+  title: string;
+  /** Tinta gastada acumulada (para récords). */
+  spent: number;
 }
 
 export interface ErrorRecord {
@@ -548,6 +636,8 @@ export interface PlayerProfile {
   banner: string;
   /** Foto del avatar: data-URL propia o «» para usar la predeterminada. */
   photo: string;
+  /** Logro destacado en la ficha (id de logro o ""). */
+  featuredBadge: string;
   createdAt: number;
   onboarded: boolean;
   placementDone: boolean;
@@ -583,6 +673,10 @@ export interface GameSettings {
   stationVolume: number;
   /** ¿La estación sigue sonando durante las partidas? */
   stationInGames: boolean;
+  /** Velocidad de la voz del navegador TTS (0.5-1.3). */
+  ttsRate: number;
+  /** Vibración/háptics en aciertos y combos (si el dispositivo lo permite). */
+  haptics: boolean;
 }
 
 /* ============================== Misiones / logros ============================== */
@@ -595,7 +689,8 @@ export type MissionMetric =
   | "regions"
   | "combo"
   | "srsReviews"
-  | "activeDays";
+  | "activeDays"
+  | "tinta";
 
 export interface MissionDef {
   id: string;
@@ -644,4 +739,5 @@ export type Screen =
   | { name: "missions" }
   | { name: "settings" }
   | { name: "music" }
+  | { name: "shop" }
   | { name: "library" };

@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { EmptyState } from "@/components/game/widgets";
-import { cefrFromSkill } from "@/engine/xp";
+import { cefrFromSkill, levelProgress } from "@/engine/xp";
 import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { dateKey } from "@/engine/missions";
@@ -18,7 +18,7 @@ import { getIcon } from "@/components/game/icons";
 import { LexicoBubble } from "@/components/game/lexico";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Award, ChartColumn, Flame, History, Play, Timer, TrendingUp, Zap } from "lucide-react";
+import { Award, ChartColumn, Droplets, Flame, History, MapPin, Play, Timer, TrendingUp, Zap } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { formatPlaytime } from "@/lib/format-time";
@@ -66,12 +66,12 @@ export function StatsScreen() {
     [core.stats.byGame],
   );
 
-  /** Mapa de calor: 12 semanas (7×12 celdas). */
+  /** Mapa de calor: 16 semanas (7×16 celdas · Etapa 4). */
   const heatmap = useMemo(() => {
     const cells: { key: string; xp: number; date: Date }[] = [];
     const today = new Date();
     const offsetToMonday = (today.getDay() + 6) % 7; // lunes = 0
-    for (let w = 11; w >= 0; w--) {
+    for (let w = 15; w >= 0; w--) {
       for (let dow = 0; dow < 7; dow++) {
         const d = new Date(today.getTime() - (offsetToMonday + (w * 7) + (6 - dow)) * DAY_MS);
         const key = dateKey(d);
@@ -102,8 +102,22 @@ export function StatsScreen() {
       avgResponse,
       uniqueGames: (core.stats.uniqueGames ?? []).length,
       activeDays: core.stats.activeDays.length,
+      tinta: (core.wallet?.tinta ?? 0) + (core.wallet?.spent ?? 0),
+      tintaSpent: core.wallet?.spent ?? 0,
     };
-  }, [core.stats, core.stats.byGame, gameData]);
+  }, [core.stats, core.stats.byGame, gameData, core.wallet]);
+
+  /** Proyección de nivel: ritmo de XP diario (14 días) → días hasta el siguiente nivel. */
+  const levelProjection = useMemo(() => {
+    const { level: lvl, into, needed } = levelProgress(core.xp);
+    if (needed <= 0) return null;
+    const xp14 = xpData.reduce((acc, d) => acc + d.xp, 0);
+    const activeDays14 = xpData.filter((d) => d.xp > 0).length;
+    const perDay = activeDays14 > 0 ? xp14 / activeDays14 : 0;
+    if (perDay <= 0) return null;
+    const days = Math.ceil((needed - into) / perDay);
+    return { perDay: Math.round(perDay), days, level: lvl };
+  }, [core.xp, xpData]);
 
   const hasData = core.stats.totalSessions > 0;
   const avgAccuracy =
@@ -168,7 +182,21 @@ export function StatsScreen() {
                 <RecordRow icon={<Timer className="h-4 w-4" aria-hidden />} label="Respuesta media" value={records.avgResponse ? `${records.avgResponse.toFixed(1)} s` : "—"} hint="por pregunta" />
                 <RecordRow icon={<Play className="h-4 w-4" aria-hidden />} label="Formatos probados" value={`${records.uniqueGames} / ${GAME_IDS.length}`} hint="minijuegos distintos" />
                 <RecordRow icon={<ChartColumn className="h-4 w-4" aria-hidden />} label="Días navegados" value={`${records.activeDays}`} hint="días con actividad" />
+                <RecordRow icon={<Droplets className="h-4 w-4" aria-hidden />} label="Tinta ganada" value={`${records.tinta}`} hint={`${records.tintaSpent} gastada en el Bazar`} />
+                <RecordRow
+                  icon={<MapPin className="h-4 w-4" aria-hidden />}
+                  label="Isla más afilada"
+                  value={skillAccuracy.length > 0 ? skillAccuracy[0].label : "—"}
+                  hint={skillAccuracy.length > 0 ? `${skillAccuracy[0].pct}% de acierto` : undefined}
+                />
               </ul>
+              {levelProjection && (
+                <p className="mt-3 rounded-2xl bg-secondary px-3.5 py-2 text-xs leading-relaxed text-secondary-foreground">
+                  A tu ritmo actual ({levelProjection.perDay} XP por día activo), alcanzarás el nivel {levelProjection.level + 1} en
+                  unos <strong>{levelProjection.days} {levelProjection.days === 1 ? "día" : "días"}</strong>. El faro avisa: sin prisa,
+                  pero sin pausa.
+                </p>
+              )}
               {records.hardest && records.hardest.answers >= 8 && (
                 <p className="mt-3 rounded-2xl bg-secondary px-3.5 py-2 text-xs leading-relaxed text-secondary-foreground">
                   Tu isla más empinada ahora es <strong>{records.hardest.name}</strong> (
@@ -302,7 +330,7 @@ export function StatsScreen() {
               <TabsContent value="constancia" className="mt-4 space-y-4">
                 <section aria-labelledby="heatmap-title">
                   <h3 id="heatmap-title" className="font-display mb-2 text-base font-bold">
-                    Mapa de constancia · 12 semanas
+                    Mapa de constancia · 16 semanas
                   </h3>
                   <div className="card-aurora rounded-3xl border bg-card p-4">
                     <div
@@ -328,7 +356,7 @@ export function StatsScreen() {
                       })}
                     </div>
                     <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                      <span>Hace 12 semanas</span>
+                      <span>Hace 16 semanas</span>
                       <span className="flex items-center gap-1">
                         Menos
                         {[0.2, 0.45, 0.7, 1].map((i) => (
@@ -351,7 +379,7 @@ export function StatsScreen() {
                   mood={records.activeDays >= 10 ? "happy" : "idle"}
                   text={
                     records.activeDays >= 10
-                      ? "Doce semanas de mapa y sigues dejando huella: la constancia es tu segundo apellido."
+                      ? "Dieciséis semanas de mapa y sigues dejando huella: la constancia es tu segundo apellido."
                       : "Cada celda encendida es un día que elegiste zarpar. Pinta el mapa a tu ritmo: el mar no tiene prisa."
                   }
                 />

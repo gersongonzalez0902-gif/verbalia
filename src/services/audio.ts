@@ -853,6 +853,7 @@ export const sfx = {
   /* ------- acierto: tres niveles con brillo creciente ------- */
   correct(level = 0) {
     if (!enabled) return;
+    haptic(10 + level * 4);
     const base = [659, 880][Math.min(level, 1)];
     tone(vary(base), 0, 0.12, 0.075);
     tone(vary(base * 1.335), 0.08, 0.15, 0.06);
@@ -860,6 +861,7 @@ export const sfx = {
   },
   wrong(soft = false) {
     if (!enabled) return;
+    haptic([16, 30, 16]);
     if (soft) {
       tone(vary(240), 0, 0.14, 0.05, "triangle");
       tone(vary(180), 0.08, 0.18, 0.04, "triangle");
@@ -884,6 +886,7 @@ export const sfx = {
   },
   levelUp() {
     if (!enabled) return;
+    hapticFanfare();
     [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 0.22, 0.07));
     bell(1047, 0.36, 1.1, 0.045);
   },
@@ -1041,6 +1044,38 @@ export function ttsAvailable(): boolean {
   return true;
 }
 
+/** Velocidad global de la voz (configurable en Ajustes · Etapa 4). */
+let ttsRateGlobal = 1;
+
+/** Fija la velocidad global del TTS (0.5 - 1.3). */
+export function setTtsRate(v: number) {
+  ttsRateGlobal = Math.min(1.3, Math.max(0.5, v));
+}
+
+/** Háptics: vibración breve si el dispositivo la soporta (Etapa 4). */
+let hapticsEnabled = false;
+
+export function setHaptics(value: boolean) {
+  hapticsEnabled = value;
+}
+
+/** Vibra un patrón corto (aciertos y combos). Silencioso si no hay soporte. */
+export function haptic(pattern: number | number[] = 12) {
+  if (!hapticsEnabled) return;
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(pattern);
+    }
+  } catch {
+    /* sin soporte: silencio */
+  }
+}
+
+/** Vibra un patrón largo (subida de nivel). */
+export function hapticFanfare() {
+  haptic([28, 40, 28, 40, 60]);
+}
+
 /**
  * Lee un texto en voz alta (es-ES) si el navegador lo permite.
  * Devuelve false si no está disponible: la UI debe ofrecer siempre
@@ -1052,7 +1087,7 @@ export function speak(text: string, rate = 0.95): boolean {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "es-ES";
-    utter.rate = rate;
+    utter.rate = rate * ttsRateGlobal;
     window.speechSynthesis.speak(utter);
     return true;
   } catch {

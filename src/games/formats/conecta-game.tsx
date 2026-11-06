@@ -20,7 +20,8 @@ export function ConectaGame(props: useGameProps<ConectaExercise>) {
   const answeredRef = useRef(false);
 
   // Columna derecha barajada de forma determinista.
-  const rightOrder = useRef(
+  // useState perezoso: sin leer refs durante el render.
+  const [rightOrder] = useState(() =>
     shuffle(
       item.pairs.map((_, i) => i),
       createRng(`conecta-${item.id}`),
@@ -43,7 +44,7 @@ export function ConectaGame(props: useGameProps<ConectaExercise>) {
 
   const clickRight = (position: number) => {
     if (disabled || answeredRef.current) return;
-    const pairIndex = rightOrder.current[position];
+    const pairIndex = rightOrder[position];
     if (connected.has(pairIndex)) return;
     if (selectedLeft === null) {
       sfx.tap();
@@ -126,7 +127,7 @@ export function ConectaGame(props: useGameProps<ConectaExercise>) {
 
         {/* Columna derecha (barajada) */}
         <ul className="space-y-2.5">
-          {rightOrder.current.map((pairIndex, position) => {
+          {rightOrder.map((pairIndex, position) => {
             const isConnected = connected.has(pairIndex);
             const isWrong = wrongRight === position;
             return (

@@ -7,10 +7,11 @@
 
 import { FRASES_A, type FraseDelDia } from "./frases-a";
 import { FRASES_B } from "./frases-b";
+import { FRASES_C } from "./frases-c";
 
 export type { FraseDelDia };
 
-export const FRASES: FraseDelDia[] = [...FRASES_A, ...FRASES_B];
+export const FRASES: FraseDelDia[] = [...FRASES_A, ...FRASES_B, ...FRASES_C];
 
 /** Frase estable para un índice de rotación dado (módulo, sin azar). */
 export function frasePara(rotation: number): FraseDelDia {

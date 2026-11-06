@@ -16,7 +16,7 @@ import { LexicoBubble } from "@/components/game/lexico";
 import { lexicoResultQuip } from "@/data/companion";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Trophy, Sparkles, Flame, Shield, Zap, Award } from "lucide-react";
+import { Trophy, Sparkles, Flame, Shield, Zap, Award, Droplets } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sfx } from "@/services/audio";
 
@@ -99,6 +99,13 @@ export function ResultsScreen() {
           <Sparkles className="h-5 w-5 text-[var(--xp)]" aria-hidden />
           <span className="numeric font-display text-2xl font-bold text-[var(--xp)]">+{result.xpTotal} XP</span>
         </div>
+
+        {result.tintaEarned > 0 && (
+          <div className="anim-slide-up flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary">
+            <Droplets className="h-3.5 w-3.5" aria-hidden />
+            <span className="numeric">+{result.tintaEarned}</span> de tinta para el Bazar
+          </div>
+        )}
 
         {result.accuracy !== null && (
           <p className="text-sm text-muted-foreground">

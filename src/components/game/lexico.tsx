@@ -9,7 +9,7 @@
 
 import { cn } from "@/lib/utils";
 
-export type LexicoMood = "idle" | "happy" | "cheer" | "think" | "oops" | "wink";
+export type LexicoMood = "idle" | "happy" | "cheer" | "think" | "oops" | "wink" | "curioso" | "dormido";
 
 const MOOD_QUIRK: Record<LexicoMood, string> = {
   idle: "anim-bob",
@@ -18,6 +18,8 @@ const MOOD_QUIRK: Record<LexicoMood, string> = {
   think: "anim-float",
   oops: "anim-wiggle",
   wink: "anim-bob",
+  curioso: "anim-bob",
+  dormido: "anim-float",
 };
 
 export function LexicoMascot({
@@ -29,9 +31,10 @@ export function LexicoMascot({
   size?: number;
   mood?: LexicoMood;
 }) {
-  const closedEyes = mood === "happy" || mood === "cheer";
+  const closedEyes = mood === "happy" || mood === "cheer" || mood === "dormido";
   const wink = mood === "wink";
-  const wideEyes = mood === "oops";
+  const wideEyes = mood === "oops" || mood === "curioso";
+  const sleepy = mood === "dormido";
 
   return (
     <svg
@@ -149,6 +152,18 @@ export function LexicoMascot({
       {mood === "think" && (
         <text x="100" y="30" fontSize="16" fontWeight="bold" fill="#e8b64c" fontFamily="system-ui, sans-serif">
           ?
+        </text>
+      )}
+      {/* «¡eh!» al ponerse curioso (Etapa 4) */}
+      {mood === "curioso" && (
+        <text x="98" y="28" fontSize="15" fontWeight="bold" fill="#e89b3f" fontFamily="system-ui, sans-serif" className="anim-twinkle">
+          ¡!
+        </text>
+      )}
+      {/* zzz al dormirse (Etapa 4) */}
+      {sleepy && (
+        <text x="96" y="26" fontSize="12" fontWeight="bold" fill="#8a86b8" fontFamily="system-ui, sans-serif" className="anim-float">
+          z z z
         </text>
       )}
     </svg>

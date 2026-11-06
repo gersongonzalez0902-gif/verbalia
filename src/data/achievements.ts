@@ -43,6 +43,15 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: () => 0,
   },
   {
+    id: "ac-nivel-15",
+    name: "Leyenda del Códice",
+    description: "Alcanza el nivel 15 de jugador y entra en la leyenda del Archipiélago.",
+    icon: "Crown",
+    xpReward: 200,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
     id: "ac-xp-500",
     name: "Pluma de bronce",
     description: "Acumula 500 XP en total.",
@@ -248,6 +257,157 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (c) => c.skills.cultura >= 4,
     progress: (c) => c.skills.cultura / 4,
   },
+
+  /* ==================== Etapa 4 · Códice y Forja ==================== */
+  {
+    id: "ac-forja-1",
+    name: "Chispa de la Forja",
+    description: "Completa tu primera sesión en la Forja del Escritor.",
+    icon: "Flame",
+    xpReward: 40,
+    check: (c) =>
+      ["metaforas", "registro", "conectores", "ironia", "titulos"].some(
+        (g) => (c.stats.byGame[g]?.plays ?? 0) >= 1,
+      ),
+    progress: (c) =>
+      Math.min(
+        1,
+        ["metaforas", "registro", "conectores", "ironia", "titulos"].reduce(
+          (acc, g) => acc + Math.min(1, c.stats.byGame[g]?.plays ?? 0),
+          0,
+        ),
+      ),
+  },
+  {
+    id: "ac-forja-25",
+    name: "Herrero de palabras",
+    description: "Acierta 25 ejercicios entre los cinco formatos de la Forja.",
+    icon: "Hammer",
+    xpReward: 90,
+    check: (c) =>
+      ["metaforas", "registro", "conectores", "ironia", "titulos"].reduce(
+        (acc, g) => acc + (c.stats.byGame[g]?.correct ?? 0),
+        0,
+      ) >= 25,
+    progress: (c) =>
+      ["metaforas", "registro", "conectores", "ironia", "titulos"].reduce(
+        (acc, g) => acc + (c.stats.byGame[g]?.correct ?? 0),
+        0,
+      ) / 25,
+  },
+  {
+    id: "ac-forja-completa",
+    name: "Maestro de la Forja",
+    description: "Prueba los cinco minijuegos de la Forja del Escritor.",
+    icon: "FlameKindling",
+    xpReward: 150,
+    check: (c) =>
+      ["metaforas", "registro", "conectores", "ironia", "titulos"].every(
+        (g) => (c.stats.byGame[g]?.plays ?? 0) >= 1,
+      ),
+    progress: (c) =>
+      ["metaforas", "registro", "conectores", "ironia", "titulos"].filter(
+        (g) => (c.stats.byGame[g]?.plays ?? 0) >= 1,
+      ).length / 5,
+  },
+  {
+    id: "ac-tinta-100",
+    name: "Tintero lleno",
+    description: "Acumula 100 de tinta ganada en el Bazar.",
+    icon: "Droplets",
+    xpReward: 60,
+    check: (c) => (c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0) >= 100,
+    progress: (c) => ((c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0)) / 100,
+  },
+  {
+    id: "ac-tinta-500",
+    name: "Tinta en las venas",
+    description: "Acumula 500 de tinta ganada en total.",
+    icon: "Droplet",
+    xpReward: 120,
+    check: (c) => (c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0) >= 500,
+    progress: (c) => ((c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0)) / 500,
+  },
+  {
+    id: "ac-mecenas",
+    name: "Mecenas del Bazar",
+    description: "Compra 3 artículos en el Bazar del Copista.",
+    icon: "ShoppingBag",
+    xpReward: 80,
+    check: (c) => (c.wallet?.owned?.length ?? 0) >= 3,
+    progress: (c) => (c.wallet?.owned?.length ?? 0) / 3,
+  },
+  {
+    id: "ac-ocho-islas",
+    name: "Cartógrafo de las ocho islas",
+    description: "Completa misiones en las 8 regiones del Archipiélago.",
+    icon: "Map",
+    xpReward: 200,
+    check: (c) => {
+      const regions = new Set<string>();
+      for (const list of Object.values(c.stats.regionsByDay)) for (const r of list) regions.add(r);
+      return ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre", "observatorio", "forja"].every((r) => regions.has(r));
+    },
+    progress: (c) => {
+      const regions = new Set<string>();
+      for (const list of Object.values(c.stats.regionsByDay)) for (const r of list) regions.add(r);
+      return ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre", "observatorio", "forja"].filter((r) => regions.has(r)).length / 8;
+    },
+  },
+  {
+    id: "ac-palabras-75",
+    name: "Jardín frondoso",
+    description: "Aprende 75 palabras del jardín.",
+    icon: "Leaf",
+    xpReward: 70,
+    check: (_c, ctx) => ctx.learnedWords >= 75,
+    progress: (_c, ctx) => ctx.learnedWords / 75,
+  },
+  {
+    id: "ac-palabras-125",
+    name: "Bosque infinito",
+    description: "Aprende 125 palabras del jardín.",
+    icon: "TreePine",
+    xpReward: 130,
+    check: (_c, ctx) => ctx.learnedWords >= 125,
+    progress: (_c, ctx) => ctx.learnedWords / 125,
+  },
+  {
+    id: "ac-racha-30",
+    name: "Mes inquebrantable",
+    description: "Consigue una racha de 30 días.",
+    icon: "Flame",
+    xpReward: 250,
+    check: (c) => c.streak.best >= 30,
+    progress: (c) => c.streak.best / 30,
+  },
+  {
+    id: "ac-combo-15",
+    name: "Cadena de quince",
+    description: "Consigue un combo de 15 aciertos seguidos.",
+    icon: "Zap",
+    xpReward: 120,
+    check: (c) => (c.stats.bestComboEver ?? 0) >= 15,
+    progress: (c) => (c.stats.bestComboEver ?? 0) / 15,
+  },
+  {
+    id: "ac-tiempo-10h",
+    name: "Diez horas de navegación",
+    description: "Juega durante 10 horas acumuladas.",
+    icon: "Hourglass",
+    xpReward: 100,
+    check: (c) => (c.stats.totalTimeMs ?? 0) >= 10 * 3_600_000,
+    progress: (c) => (c.stats.totalTimeMs ?? 0) / (10 * 3_600_000),
+  },
+  {
+    id: "ac-sesiones-100",
+    name: "Cien sesiones a bordo",
+    description: "Completa 100 sesiones de juego.",
+    icon: "Flag",
+    xpReward: 120,
+    check: (c) => c.stats.totalSessions >= 100,
+    progress: (c) => c.stats.totalSessions / 100,
+  },
 ];
 
 /**
@@ -258,6 +418,7 @@ export const LEVEL_ACHIEVEMENTS: Record<string, number> = {
   "ac-nivel-3": 3,
   "ac-nivel-5": 5,
   "ac-nivel-10": 10,
+  "ac-nivel-15": 15,
 };
 
 export const ACHIEVEMENTS_BY_ID: Record<string, AchievementDef> = ACHIEVEMENTS.reduce(

@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Onboarding · Cinco pasos rápidos: nombre, género de tratamiento,
- * avatar, objetivo y experiencia previa. El tema se gestiona en
- * Ajustes (y aquí se preseleccióna claro/oscuro según el sistema).
+ * Onboarding · Seis pasos rápidos: nombre, género de tratamiento,
+ * avatar, objetivo, experiencia previa y paleta de color (Etapa 4).
+ * La paleta se aplica en vivo para probarla antes de decidir.
  */
 
 import { useState } from "react";
@@ -15,8 +15,8 @@ import { LexicoBubble } from "@/components/game/lexico";
 import { LEXICO_ONBOARDING } from "@/data/companion";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
-import { Briefcase, GraduationCap, Map as MapIcon, PenLine, Plane, BookOpen } from "lucide-react";
-import type { PlayerProfile } from "@/types";
+import { Briefcase, GraduationCap, Map as MapIcon, PenLine, Plane, BookOpen, Palette } from "lucide-react";
+import type { PlayerProfile, ThemeColorId } from "@/types";
 
 const AVATARS = [
   { id: "buho", emoji: "🦉", label: "Búho" },
@@ -41,7 +41,17 @@ const EXPERIENCES: { id: PlayerProfile["experience"]; label: string; desc: strin
   { id: "avanzado", label: "Avanzado", desc: "Busco afinar el rumbo" },
 ];
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
+
+/** Paletas seleccionables desde el onboarding (Etapa 4): vista previa en vivo. */
+const PALETTES: { id: ThemeColorId; label: string; desc: string; css: string }[] = [
+  { id: "aurora", label: "Aurora", desc: "Índigo profundo y cielo claro", css: "linear-gradient(135deg, oklch(0.55 0.17 285), oklch(0.72 0.13 210) 60%, oklch(0.85 0.10 90))" },
+  { id: "coral", label: "Coral", desc: "Atardecer cálido del puerto", css: "linear-gradient(135deg, oklch(0.6 0.17 25), oklch(0.75 0.13 50) 70%, oklch(0.9 0.08 85))" },
+  { id: "miel", label: "Miel", desc: "Pergamino y luz de biblioteca", css: "linear-gradient(135deg, oklch(0.7 0.14 70), oklch(0.82 0.13 90) 55%, oklch(0.95 0.05 95))" },
+  { id: "lavanda", label: "Lavanda", desc: "Tardes de observatorio", css: "linear-gradient(135deg, oklch(0.5 0.16 305), oklch(0.7 0.13 280) 65%, oklch(0.88 0.08 320))" },
+  { id: "oceano", label: "Océano", desc: "Marea alta y bruma", css: "linear-gradient(135deg, oklch(0.4 0.11 250), oklch(0.6 0.11 215) 60%, oklch(0.85 0.09 195))" },
+  { id: "magenta", label: "Magenta", desc: "Fucsia de la Forja", css: "linear-gradient(135deg, oklch(0.5 0.20 340), oklch(0.66 0.18 320) 55%, oklch(0.88 0.10 300))" },
+];
 
 const GENDERS: { id: PlayerProfile["gender"]; label: string; desc: string }[] = [
   { id: "f", label: "Femenino", desc: "«Exploradora», «Guardiana»…" },
@@ -59,11 +69,14 @@ export function OnboardingScreen() {
   const [goal, setGoal] = useState("leer");
   const [experience, setExperience] = useState<PlayerProfile["experience"]>("principiante");
   const [gender, setGender] = useState<PlayerProfile["gender"]>("x");
+  const [theme, setTheme] = useState<ThemeColorId>("aurora");
+  const updateSettings = useGameStore((s) => s.updateSettings);
 
   const canContinue =
     step === 0 ? name.trim().length > 0 && name.trim().length <= 20 : true;
 
   const finish = () => {
+    updateSettings({ themeColor: theme });
     finishOnboarding({
       name: name.trim() || "Explorador·a",
       avatar,
@@ -73,6 +86,7 @@ export function OnboardingScreen() {
       bio: "",
       banner: "preset:aurora",
       photo: "",
+      featuredBadge: "",
     });
     navigate({ name: "placement" });
   };
@@ -100,8 +114,14 @@ export function OnboardingScreen() {
 
       <LexicoBubble
         text={
-          [LEXICO_ONBOARDING.name, LEXICO_ONBOARDING.gender, LEXICO_ONBOARDING.avatar, LEXICO_ONBOARDING.goal, LEXICO_ONBOARDING.experience][step] ??
-          LEXICO_ONBOARDING.welcome
+          [
+            LEXICO_ONBOARDING.name,
+            LEXICO_ONBOARDING.gender,
+            LEXICO_ONBOARDING.avatar,
+            LEXICO_ONBOARDING.goal,
+            LEXICO_ONBOARDING.experience,
+            "Elige la paleta con la que más a gusto navegues: la verás aplicarse al instante. Podrás cambiarla en Ajustes.",
+          ][step] ?? LEXICO_ONBOARDING.welcome
         }
         className="mb-5"
       />
@@ -250,6 +270,37 @@ export function OnboardingScreen() {
                     )}
                     aria-hidden
                   />
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {step === 5 && (
+          <section className="anim-slide-up space-y-4">
+            <h1 className="font-display text-2xl font-bold">Tu paleta de navegación</h1>
+            <p className="text-sm text-muted-foreground">
+              Se aplica en vivo: pruébalas todas antes de decidir. Podrás cambiarla en Ajustes cuando quieras.
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {PALETTES.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { sfx.tap(); setTheme(p.id); updateSettings({ themeColor: p.id }); }}
+                  aria-pressed={theme === p.id}
+                  aria-label={`Paleta ${p.label}`}
+                  className={cn(
+                    "tap-3d tap-target flex flex-col gap-1.5 rounded-2xl border-2 bg-card p-3 text-left",
+                    theme === p.id ? "border-primary" : "border-border",
+                  )}
+                >
+                  <span className="h-10 w-full rounded-xl border" style={{ background: p.css }} aria-hidden />
+                  <span className="flex items-center gap-1 text-xs font-bold">
+                    {theme === p.id && <Palette className="h-3 w-3 text-primary" aria-hidden />}
+                    {p.label}
+                  </span>
+                  <span className="text-[10px] leading-tight text-muted-foreground">{p.desc}</span>
                 </button>
               ))}
             </div>

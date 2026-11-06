@@ -91,14 +91,15 @@ export function IntrusoGame(props: useGameProps<IntrusoExercise>) {
   const answeredRef = useRef(false);
 
   // Orden estable por ejercicio (determinista: mismo ejercicio, misma mesa).
-  const order = useRef(shuffle(item.options.map((_, i) => i), createRng(item.id)));
-  const correctPosition = order.current.indexOf(item.answerIndex);
+  // useState perezoso: la barajada se calcula una sola vez, sin leer refs en render.
+  const [order] = useState(() => shuffle(item.options.map((_, i) => i), createRng(item.id)));
+  const correctPosition = order.indexOf(item.answerIndex);
 
   const handle = (position: number) => {
     if (disabled || answeredRef.current) return;
     answeredRef.current = true;
     sfx.tap();
-    const r = checkIntruso(item, order.current[position]);
+    const r = checkIntruso(item, order[position]);
     setChosen(position);
     onAnswer({ correct: r.correct, userAnswer: r.userAnswer, correctAnswer: r.correctAnswer });
   };
@@ -119,7 +120,7 @@ export function IntrusoGame(props: useGameProps<IntrusoExercise>) {
       </div>
 
       <div className="grid w-full max-w-xl grid-cols-2 gap-3">
-        {order.current.map((originalIndex, position) => {
+        {order.map((originalIndex, position) => {
           const isRight = originalIndex === item.answerIndex;
           const state = answered ? (isRight ? "correct" : chosen === position ? "wrong" : "idle") : "idle";
           return (

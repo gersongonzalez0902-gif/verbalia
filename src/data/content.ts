@@ -32,6 +32,10 @@ import { VF_PACKS } from "./formats/verdadero-falso";
 import { ESCRIBE_PACKS } from "./formats/escribe";
 import { OYE_PACKS } from "./formats/oye";
 import { CONECTA_PACKS } from "./formats/conecta";
+// ---- Etapa 4 · Forja del Escritor (estilo y retórica) ----
+import { FORJA_PACKS } from "./forja";
+// ---- Etapa 4 · palabras SRS ampliadas ----
+import { SRS_WORDS_B } from "./words-srs-b";
 
 /**
  * Registro central de contenido: agrupa todos los paquetes,
@@ -63,6 +67,8 @@ export const ALL_EXERCISES: Exercise[] = [
   ...ESCRIBE_PACKS,
   ...OYE_PACKS,
   ...CONECTA_PACKS,
+  // ---- Etapa 4 · Forja del Escritor ----
+  ...FORJA_PACKS,
 ];
 
 export const EXERCISES_BY_ID: Record<string, Exercise> = ALL_EXERCISES.reduce(
@@ -125,5 +131,8 @@ export function packStats(game: string): { total: number; byDifficulty: Record<n
   for (const e of list) byDifficulty[e.difficulty] = (byDifficulty[e.difficulty] ?? 0) + 1;
   return { total: list.length, byDifficulty };
 }
+
+/** Palabras SRS completas: catálogo original + ampliación de la Etapa 4. */
+export const SRS_WORDS_FULL = [...SRS_WORDS, ...SRS_WORDS_B];
 
 export { SRS_WORDS };

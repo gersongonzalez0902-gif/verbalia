@@ -10,53 +10,57 @@ import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { EmptyState, StatusChip, ProgressRing } from "@/components/game/widgets";
-import { SRS_WORDS } from "@/data/words-srs";
+import { SRS_WORDS_FULL } from "@/data/content";
 import { cardStatus } from "@/engine/srs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookMarked, Search, Sprout } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
+import type { Cefr } from "@/types";
 
 type Filter = "todas" | "nueva" | "aprendiendo" | "aprendida" | "dominada";
 
 const FILTERS: Filter[] = ["todas", "nueva", "aprendiendo", "aprendida", "dominada"];
+const CEFR_LEVELS: ("todas" | Cefr)[] = ["todas", "A1", "A2", "B1", "B2", "C1", "C2"];
 
 export function CollectionScreen() {
   const srs = useGameStore((s) => s.srs);
   const navigate = useUiStore((s) => s.navigate);
   const [filter, setFilter] = useState<Filter>("todas");
+  const [cefr, setCefr] = useState<(typeof CEFR_LEVELS)[number]>("todas");
   const [query, setQuery] = useState("");
 
   const stats = useMemo(() => {
     const counts = { nueva: 0, aprendiendo: 0, aprendida: 0, dominada: 0 };
-    for (const w of SRS_WORDS) counts[cardStatus(srs[w.id])]++;
+    for (const w of SRS_WORDS_FULL) counts[cardStatus(srs[w.id])]++;
     return counts;
   }, [srs]);
 
   const words = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return SRS_WORDS.filter((w) => {
+    return SRS_WORDS_FULL.filter((w) => {
       const status = cardStatus(srs[w.id]);
       if (filter !== "todas" && status !== filter) return false;
+      if (cefr !== "todas" && w.cefr !== cefr) return false;
       if (q && !w.word.toLowerCase().includes(q) && !w.definition.toLowerCase().includes(q)) return false;
       return true;
     }).sort((a, b) => a.difficulty - b.difficulty || a.word.localeCompare(b.word, "es"));
-  }, [srs, filter, query]);
+  }, [srs, filter, cefr, query]);
 
   const learned = stats.aprendida + stats.dominada;
 
   return (
     <div>
-      <ScreenHeader title="Colección de palabras" subtitle={`${learned} de ${SRS_WORDS.length} aprendidas`} backTo={{ name: "home" }} />
+      <ScreenHeader title="Colección de palabras" subtitle={`${learned} de ${SRS_WORDS_FULL.length} aprendidas`} backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-28">
         {/* Progreso global */}
         <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4">
           <span aria-hidden className="anim-float absolute -right-2 -top-3 text-5xl opacity-25 select-none">🌿</span>
           <span aria-hidden className="anim-float absolute -bottom-3 right-14 text-3xl opacity-20 select-none" style={{ animationDelay: "-2.5s" }}>🌱</span>
-          <ProgressRing value={learned / SRS_WORDS.length} size={84} stroke={9}>
-            <span className="numeric font-display text-lg font-bold">{Math.round((learned / SRS_WORDS.length) * 100)}%</span>
+          <ProgressRing value={learned / SRS_WORDS_FULL.length} size={84} stroke={9}>
+            <span className="numeric font-display text-lg font-bold">{Math.round((learned / SRS_WORDS_FULL.length) * 100)}%</span>
           </ProgressRing>
           <div className="relative text-sm">
             <p className="font-bold">Tu jardín de vocabulario</p>
@@ -100,6 +104,24 @@ export function CollectionScreen() {
                 )}
               >
                 {f} {f !== "todas" && `(${stats[f as keyof typeof stats]})`}
+              </button>
+            ))}
+          </div>
+          {/* Filtro MCER (Etapa 4) */}
+          <div className="scroll-soft flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filtrar por nivel MCER">
+            {CEFR_LEVELS.map((c) => (
+              <button
+                key={c}
+                onClick={() => { sfx.tap(); setCefr(c); }}
+                aria-pressed={cefr === c}
+                className={cn(
+                  "tap-target shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold uppercase transition active:translate-y-0.5",
+                  cefr === c
+                    ? "gloss border-primary bg-primary text-primary-foreground shadow-[0_3px_0_0_color-mix(in_oklch,var(--primary)_52%,#000_30%)]"
+                    : "tap-3d border-border bg-card text-muted-foreground",
+                )}
+              >
+                {c}
               </button>
             ))}
           </div>

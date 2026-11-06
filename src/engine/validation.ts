@@ -296,3 +296,51 @@ export function checkConecta(exercise: any, mistakes: number): ValidationResult 
     correctAnswer: `${exercise.pairs.length} pares`,
   };
 }
+
+/* ====================== Etapa 4 · Forja del Escritor ====================== */
+
+/** Forja de Metáforas / Registro Correcto / Taller de Conectores: índice de opción. */
+export function checkForjaOption(exercise: any, chosenIndex: number): ValidationResult {
+  const list: string[] = exercise.options;
+  return {
+    correct: chosenIndex === exercise.answerIndex,
+    userAnswer: list[chosenIndex] ?? "—",
+    correctAnswer: list[exercise.answerIndex],
+  };
+}
+
+/** Detector de Ironía: tono elegido frente al real. */
+export function checkIronia(exercise: any, chosen: "literal" | "ironico"): ValidationResult {
+  const label = (t: "literal" | "ironico") => (t === "ironico" ? "Con ironía" : "Sentido literal");
+  return {
+    correct: chosen === exercise.answer,
+    userAnswer: label(chosen),
+    correctAnswer: label(exercise.answer),
+  };
+}
+
+/** Censura del Editor: token tachado (o -1 = texto limpio). */
+export function checkCensura(exercise: any, tokenIndex: number | "limpio"): ValidationResult {
+  const target = exercise.answerIndex as number;
+  if (target === -1) {
+    const correct = tokenIndex === "limpio";
+    return {
+      correct,
+      userAnswer: tokenIndex === "limpio" ? "Sin censura" : `tachó «${exercise.tokens[tokenIndex as number]}»`,
+      correctAnswer: "El texto estaba limpio",
+    };
+  }
+  if (tokenIndex === "limpio") {
+    return {
+      correct: false,
+      userAnswer: "Sin censura",
+      correctAnswer: `tachar «${exercise.tokens[target]}»`,
+    };
+  }
+  const correct = tokenIndex === target;
+  return {
+    correct,
+    userAnswer: `tachó «${exercise.tokens[tokenIndex]}»`,
+    correctAnswer: `tachar «${exercise.tokens[target]}»`,
+  };
+}

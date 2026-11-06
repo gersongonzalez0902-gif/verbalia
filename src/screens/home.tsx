@@ -11,9 +11,9 @@ import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
 import { levelProgress, rankForLevel, rankName } from "@/engine/xp";
 import { dailyProgress, dateKey } from "@/engine/missions";
-import { REGIONS } from "@/data/regions";
+import { REGIONS, REGION_BY_ID } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
-import { SRS_WORDS } from "@/data/words-srs";
+import { SRS_WORDS_FULL } from "@/data/content";
 import { dueCards } from "@/engine/session";
 import { ProgressRing, XpBar, LevelBadge, StreakBadge } from "@/components/game/widgets";
 import { LexicoBubble } from "@/components/game/lexico";
@@ -27,12 +27,16 @@ import {
   BookOpen,
   ChartColumn,
   ChevronRight,
+  Droplets,
+  Flame,
   Library,
   ListMusic,
   NotebookPen,
   Play,
   Quote,
   Settings as SettingsIcon,
+  ShoppingBag,
+  Sparkles,
   Sprout,
 } from "lucide-react";
 import { getIcon } from "@/components/game/icons";
@@ -71,6 +75,30 @@ export function HomeScreen() {
     return LEXICO_TIPS[idx];
   }, [today]);
 
+  // Saludo según la hora del día (Etapa 4).
+  const horaGreeting = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 6) return "Buenas noches";
+    if (h < 13) return "Buenos días";
+    if (h < 20) return "Buenas tardes";
+    return "Buenas noches";
+  }, []);
+
+  // Palabra del día: determinista por fecha, preferentemente no vista aún.
+  const palabraDelDia = useMemo(() => {
+    const rng = createRng(`palabra-${today}`);
+    const fresh = SRS_WORDS_FULL.filter((w) => !srs[w.id]);
+    const pool = fresh.length > 0 ? fresh : SRS_WORDS_FULL;
+    return pool[Math.floor(rng() * pool.length)];
+  }, [today, srs]);
+
+  const forjaUnlocked = level >= (REGION_BY_ID.forja?.unlockLevel ?? 8);
+  const forjaLockedHint = REGION_BY_ID.forja
+    ? forjaUnlocked
+      ? "Taller de estilo desbloqueado"
+      : `Nivel ${REGION_BY_ID.forja.unlockLevel} · ${Math.max(0, REGION_BY_ID.forja.unlockLevel - level)} para abrir`
+    : "";
+
   const unlockedRegions = REGIONS.filter((r) => r.games.length > 0 && level >= r.unlockLevel);
 
   /** Región dueña de cada minijuego (para respetar la progresión). */
@@ -90,7 +118,7 @@ export function HomeScreen() {
       <header className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            {rankName(rank, profile.gender)}
+            {horaGreeting} · {rankName(rank, profile.gender)}
           </p>
           <h1 className="font-display truncate text-2xl font-bold leading-tight title-sheen">
             ¡Hola, {profile.name}!
@@ -145,6 +173,63 @@ export function HomeScreen() {
           >
             <Play className="mr-2 h-5 w-5" aria-hidden />
             {due.length >= 5 ? "Regar el jardín" : "Sesión recomendada"}
+          </Button>
+        </div>
+      </section>
+
+      {/* ===== Palabra del día (Etapa 4) ===== */}
+      <section className="card-aurora mt-4 flex items-center gap-4 rounded-3xl border bg-card p-4" aria-labelledby="wotd-title">
+        <span className="chip-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" aria-hidden>
+          <Sparkles className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p id="wotd-title" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Palabra del día · {palabraDelDia.cefr}
+          </p>
+          <p className="font-display text-xl font-bold leading-tight">{palabraDelDia.word}</p>
+          <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{palabraDelDia.definition}</p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 text-xs font-bold"
+          onClick={() => { sfx.flip(); navigate({ name: "game", gameId: "srs", mode: "training" }); }}
+        >
+          Practicar
+        </Button>
+      </section>
+
+      {/* ===== Forja del Escritor (Etapa 4) ===== */}
+      <section
+        className={cn(
+          "mt-4 overflow-hidden rounded-3xl border p-4 transition",
+          forjaUnlocked ? "card-aurora border-primary/40 bg-card" : "border-dashed bg-muted/30 opacity-80",
+        )}
+        aria-labelledby="forja-title"
+      >
+        <div className="flex items-center gap-4">
+          <span
+            className="gloss flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white"
+            style={{ background: "linear-gradient(150deg, oklch(0.62 0.19 30), oklch(0.45 0.14 20) 70%)" }}
+            aria-hidden
+          >
+            <Flame className="h-6 w-6" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p id="forja-title" className="font-display text-lg font-bold leading-tight">
+              Forja del Escritor
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+              {forjaLockedHint} · metáforas, ironía, registro y estilo
+            </p>
+          </div>
+          <Button
+            size="sm"
+            disabled={!forjaUnlocked}
+            className="shrink-0 text-xs font-bold"
+            onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "metaforas", mode: "mission", regionId: "forja" }); }}
+          >
+            {forjaUnlocked ? "Entrar" : "🔒"}
           </Button>
         </div>
       </section>
@@ -294,9 +379,11 @@ export function HomeScreen() {
       <section className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4" aria-label="Accesos rápidos">
         <QuickLink icon={Sprout} label="Jardín" onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "srs", mode: "training" }); }} hint={`${due.length} vencidas`} />
         <QuickLink icon={NotebookPen} label="Errores" onClick={() => { sfx.click(); navigate({ name: "errors" }); }} hint={`${core.errors.length} pendientes`} />
-        <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS.length}`} />
+        <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS_FULL.length}`} />
         <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => { sfx.click(); navigate({ name: "stats" }); }} hint={`${core.stats.totalSessions} sesiones`} />
         <QuickLink icon={ListMusic} label="Estación" onClick={() => { sfx.click(); navigate({ name: "music" }); }} hint={`${stationCount} canciones`} />
+        <QuickLink icon={ShoppingBag} label="Bazar" onClick={() => { sfx.pop(); navigate({ name: "shop" }); }} hint={`${core.wallet.tinta} de tinta`} />
+        <QuickLink icon={Droplets} label="Tintero" onClick={() => { sfx.tap(); navigate({ name: "shop" }); }} hint={`${core.wallet.tinta + core.wallet.spent} ganada`} />
         <QuickLink icon={Quote} label="Frase" onClick={() => { sfx.tap(); navigate({ name: "map" }); }} hint="del día" />
       </section>
 

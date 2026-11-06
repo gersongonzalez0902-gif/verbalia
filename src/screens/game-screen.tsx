@@ -52,6 +52,7 @@ import { EscribeGame } from "@/games/formats/escribe-game";
 import { OyeGame } from "@/games/formats/oye-game";
 import { MemoriaGame } from "@/games/formats/memoria-game";
 import { ConectaGame } from "@/games/formats/conecta-game";
+import { MetaforasGame, RegistroGame, ConectoresGame, IroniaGame, CensuraGame } from "@/games/formats/forja-games";
 import { itemXp } from "@/engine/scoring";
 import { levelFromXp } from "@/engine/xp";
 import { dateKey } from "@/engine/missions";
@@ -90,6 +91,35 @@ export function GameScreen() {
   };
   const startedAt = useRef(Date.now());
   const itemStart = useRef(Date.now());
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* Léxico se vuelve curioso al entrar en los formatos de la Forja (Etapa 4). */
+  const isForjaGame = (g?: string) =>
+    Boolean(g && ["metaforas", "registro", "conectores", "ironia", "titulos"].includes(g));
+
+  /* Léxico se duerme si el navegante se ausenta 40 s (Etapa 4). */
+  useEffect(() => {
+    if (!spec) return;
+    const armIdle = () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      idleTimer.current = setTimeout(() => {
+        setLexicoMood((m) => (m === "idle" ? "dormido" : m));
+      }, 40_000);
+    };
+    armIdle();
+    const events: (keyof DocumentEventMap)[] = ["pointerdown", "keydown"];
+    events.forEach((ev) => document.addEventListener(ev, armIdle, { passive: true }));
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      events.forEach((ev) => document.removeEventListener(ev, armIdle));
+    };
+  }, [spec, index]);
+
+  useEffect(() => {
+    if (isForjaGame(params.gameId)) {
+      flashMood("curioso", "¡La Forja! Afina el oído: aquí las palabras suenan al golpe del yunque.");
+    }
+  }, [params.gameId]);
 
   /* La estación del jugador se pausa al entrar a jugar si así lo pide el ajuste. */
   useEffect(() => {
@@ -259,6 +289,7 @@ export function GameScreen() {
 
   const handleContinue = useCallback(() => {
     setFeedback(null);
+    setLexicoMood("idle");
     itemStart.current = Date.now();
     if (!spec) return;
     if (index + 1 < spec.items.length) {
@@ -379,6 +410,17 @@ export function GameScreen() {
       case "conecta-torre":
       case "conecta-observatorio":
         return <ConectaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      /* ---- Etapa 4 · Forja del Escritor ---- */
+      case "metaforas":
+        return <MetaforasGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "registro":
+        return <RegistroGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "conectores":
+        return <ConectoresGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "ironia":
+        return <IroniaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "titulos":
+        return <CensuraGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       default:
         return null;
     }

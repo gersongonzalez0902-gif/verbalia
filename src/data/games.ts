@@ -670,6 +670,73 @@ export const GAMES: Record<GameId, GameInfo> = {
     secondsPerItem: 22,
     timeLimit: null,
   },
+
+  /* ==================== Etapa 4 · Forja del Escritor ==================== */
+  metaforas: {
+    id: "metaforas",
+    name: "Forja de Metáforas",
+    tagline: "Enciende la imagen exacta",
+    description:
+      "El fuego de la Forja funde sentidos: completa cada metáfora eligiendo la imagen literaria justa, la que brilla y la que pega.",
+    skill: "expresion",
+    icon: "FlameKindling",
+    instructions:
+      "Lee la frase con su hueco y elige la imagen que completa la metáfora. Descarta las descripciones planas: aquí se pide fuego, no inventario.",
+    secondsPerItem: 26,
+    timeLimit: null,
+  },
+  registro: {
+    id: "registro",
+    name: "Registro Correcto",
+    tagline: "La misma idea, el traje justo",
+    description:
+      "Una misma cosa se dice de mil maneras: formal, coloquial, neutra. Viste cada mensaje con el registro que su situación pide.",
+    skill: "expresion",
+    icon: "MessagesSquare",
+    instructions:
+      "Lee la situación y fíjate en el registro que se pide (formal, coloquial o neutro). Elige la versión que mejor encaja.",
+    secondsPerItem: 28,
+    timeLimit: null,
+  },
+  conectores: {
+    id: "conectores",
+    name: "Taller de Conectores",
+    tagline: "Remaches lógicos del texto",
+    description:
+      "Los conectores son los remaches que sostienen un texto: sin embargo, por lo tanto, aunque… elige el que une estas ideas.",
+    skill: "gramatica",
+    icon: "Link2",
+    instructions:
+      "Mira la frase con el hueco y elige el conector lógico que encaja: contraste, causa, consecuencia, concesión…",
+    secondsPerItem: 22,
+    timeLimit: null,
+  },
+  ironia: {
+    id: "ironia",
+    name: "Detector de Ironía",
+    tagline: "¿Dice lo que dice… o lo contrario?",
+    description:
+      "En la Forja también se forja el tono: frases que dicen una cosa y quieren decir la otra. Con el contexto como brújula, decide.",
+    skill: "lectura",
+    icon: "Smile",
+    instructions:
+      "Lee la frase y su contexto. Di si va en sentido literal o con ironía: las comillas, la exageración y el contexto delatan al tono.",
+    secondsPerItem: 24,
+    timeLimit: null,
+  },
+  titulos: {
+    id: "titulos",
+    name: "Censura del Editor",
+    tagline: "Tacha la palabra que sobra",
+    description:
+      "El editor de la Forja es despiadado con las redundancias: «subir arriba», «mi opinión personal»… encuentra la palabra que repite la idea.",
+    skill: "ortografia",
+    icon: "Eraser",
+    instructions:
+      "Toca la palabra redundante del enunciado. Si el texto está limpio, elige «Sin censura»: el buen editor también sabe perdonar.",
+    secondsPerItem: 22,
+    timeLimit: null,
+  },
 };
 
 export const GAME_IDS = Object.keys(GAMES) as GameId[];

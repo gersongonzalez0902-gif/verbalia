@@ -10,7 +10,7 @@ import type {
   SessionSpec,
   SkillId,
 } from "@/types";
-import { EXERCISES_BY_GAME, EXERCISES_BY_ID, PLACEMENT_ITEMS, SRS_WORDS } from "@/data/content";
+import { EXERCISES_BY_GAME, EXERCISES_BY_ID, PLACEMENT_ITEMS, SRS_WORDS_FULL } from "@/data/content";
 import { REGION_BY_ID, REGIONS } from "@/data/regions";
 import { createRng, shuffle } from "./rng";
 import { targetDifficulty } from "./xp";
@@ -111,7 +111,7 @@ function srsCardsForSession(ctx: BuildContext, count: number): SrsWord[] {
   const due = dueCards(ctx).map((c) => c.wordId);
   for (const id of due) {
     if (out.length >= count) break;
-    const w = SRS_WORDS.find((x) => x.id === id);
+    const w = SRS_WORDS_FULL.find((x) => x.id === id);
     if (w) out.push(w);
   }
   // 2) Tarjetas nuevas hasta el cupo diario.
@@ -119,7 +119,7 @@ function srsCardsForSession(ctx: BuildContext, count: number): SrsWord[] {
     (c) => c.introducedAt >= startOfDay(ctx.now),
   ).length;
   let newQuota = Math.max(0, ctx.newCardsPerDay - introducedToday);
-  const newWords = SRS_WORDS.filter((w) => !ctx.srs[w.id]);
+  const newWords = SRS_WORDS_FULL.filter((w) => !ctx.srs[w.id]);
   for (const w of newWords) {
     if (out.length >= count || newQuota <= 0) break;
     out.push(w);
@@ -161,6 +161,12 @@ const TRAINING_SIZES: Partial<Record<GameId, number>> = {
   "conecta-torre": 6,
   "conecta-observatorio": 6,
   "escribe-ciudad": 8,
+  // ---- Etapa 4 · Forja ----
+  metaforas: 8,
+  registro: 8,
+  conectores: 8,
+  ironia: 8,
+  titulos: 8,
 };
 
 export function buildMissionSession(
@@ -209,6 +215,18 @@ export function buildMissionSession(
     items.push(...selectExercises("sortea-observatorio", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("memoria-observatorio", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("intruso-observatorio", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+  } else if (regionId === "forja") {
+    // Forja del Escritor (Etapa 4): los cinco formatos de estilo y retórica.
+    const forjaGames: GameId[] = ["metaforas", "registro", "conectores", "ironia", "titulos"];
+    const per = Math.ceil(MISSION_SIZE / forjaGames.length); // ~3 por formato
+    const buckets = forjaGames.map((g) => selectExercises(g, region.skill, per, ctx, rng));
+    const maxLen = Math.max(...buckets.map((b) => b.length));
+    for (let i = 0; i < maxLen; i++) {
+      for (const b of buckets) {
+        const e = b[i];
+        if (e) items.push({ kind: "exercise", exercise: e });
+      }
+    }
   } else {
     // Resto de regiones: mezcla alternada de sus dos juegos.
     const per = Math.ceil(MISSION_SIZE / games.length);
@@ -320,6 +338,16 @@ function inferSkill(gameId: GameId): SkillId {
     case "memoria-observatorio":
     case "intruso-observatorio":
       return "cultura";
+    // ---- Etapa 4 · Forja del Escritor ----
+    case "metaforas":
+    case "registro":
+      return "expresion";
+    case "conectores":
+      return "gramatica";
+    case "ironia":
+      return "lectura";
+    case "titulos":
+      return "ortografia";
   }
 }
 
@@ -362,6 +390,6 @@ export function collectionStats(srs: Record<string, SrsCard>): { learned: number
   return {
     learned: cards.filter(isLearned).length,
     mastered: cards.filter(isMastered).length,
-    total: SRS_WORDS.length,
+    total: SRS_WORDS_FULL.length,
   };
 }

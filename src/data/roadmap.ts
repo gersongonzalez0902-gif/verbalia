@@ -40,6 +40,9 @@ export const CORE_MECHANICS: RoadmapModule[] = [
   { name: "Corrección Colaborativa", description: "Corregir textos de otros usuarios, con moderación.", skill: "expresion", stage: 4, status: "previsto" },
   { name: "Editor Fantasma de Estilo", description: "Sugerir mejoras de vocabulario y claridad sin borrar la voz del escritor.", skill: "expresion", stage: 3, status: "previsto" },
   { name: "Historias Ramificadas", description: "Aventuras narrativas con decisiones libres y pregunta final.", skill: "lectura", stage: 2, status: "listo" },
+  { name: "Forja de Metáforas", description: "Completar imágenes literarias eligiendo la figura exacta (Etapa 4).", skill: "expresion", stage: 4, status: "listo" },
+  { name: "Registro Correcto", description: "Adaptar el mismo mensaje al contexto: formal, coloquial o neutro.", skill: "expresion", stage: 4, status: "listo" },
+  { name: "Detector de Ironía", description: "Distinguir sentido literal y tono irónico con el contexto como brújula.", skill: "lectura", stage: 4, status: "listo" },
   { name: "Desafíos de Modismos y Refranes", description: "Interpretar expresiones figuradas con variantes regionales.", skill: "lectura", stage: 2, status: "listo" },
 ];
 
@@ -56,12 +59,12 @@ export const INNOVATIVE_MODULES: RoadmapModule[] = [
   { name: "Laboratorio de Puntuación", description: "Descubrir cómo los signos cambian el significado.", skill: "ortografia", stage: 2, status: "previsto" },
   { name: "Asistente de Debate Virtual", description: "Práctica de argumentación con IA.", skill: "expresion", stage: 3, status: "previsto" },
   { name: "Constructor de Cómics de Texto", description: "Organizar diálogos y escenas.", skill: "expresion", stage: 3, status: "previsto" },
-  { name: "Desafío de Conectores Discursivos", description: "Dominar sin embargo, puesto que, no obstante…", skill: "gramatica", stage: 2, status: "previsto" },
-  { name: "Caza de Pleonasmos y Redundancias", description: "Detectar y eliminar repeticiones innecesarias.", skill: "ortografia", stage: 2, status: "previsto" },
+  { name: "Desafío de Conectores Discursivos", description: "Dominar sin embargo, puesto que, no obstante…", skill: "gramatica", stage: 2, status: "listo" },
+  { name: "Caza de Pleonasmos y Redundancias", description: "Detectar y eliminar repeticiones innecesarias.", skill: "ortografia", stage: 2, status: "listo" },
   { name: "Rincón del Orador", description: "Prácticas de dicción y expresión.", skill: "expresion", stage: 3, status: "previsto" },
   { name: "Simulador de Entrevistas y Exposiciones", description: "Ensayar situaciones comunicativas reales.", skill: "expresion", stage: 3, status: "previsto" },
   { name: "Biblioteca de Mitos y Leyendas Interactivos", description: "Lecturas ramificadas del patrimonio oral.", skill: "lectura", stage: 2, status: "previsto" },
-  { name: "Trivia de Figuras Retóricas", description: "Metáforas, símiles, hipérboles y compañía.", skill: "lectura", stage: 3, status: "previsto" },
+  { name: "Trivia de Figuras Retóricas", description: "Metáforas, símiles, hipérboles y compañía.", skill: "lectura", stage: 3, status: "listo" },
   { name: "Generador de Retos Diarios por Enlace", description: "Retos compartibles con un solo URL.", skill: "gramatica", stage: 4, status: "previsto" },
   { name: "Modo Lectura Nocturna", description: "Modo de lectura cálida y serena para jugar de noche (Ajustes).", skill: "lectura", stage: 2, status: "listo" },
   { name: "Estudio de Refranes del Mundo Hispanohablante", description: "Refranero panhispánico comentado (Sabiduría Popular, con región y explicación).", skill: "lectura", stage: 2, status: "listo" },
@@ -76,13 +79,13 @@ export const INNOVATIVE_MODULES: RoadmapModule[] = [
 export const STAGE_LABELS: Record<Stage, string> = {
   1: "Etapa 1 · MVP jugable",
   2: "Etapa 2 · Experiencia avanzada",
-  3: "Etapa 3 · IA y experiencias especiales",
-  4: "Etapa 4 · Comunidad y expansión",
+  3: "Etapa 3 · Cielo de formatos",
+  4: "Etapa 4 · El Códice Infinito",
 };
 
 export const STAGE_DESCRIPTIONS: Record<Stage, string> = {
   1: "La base completa y jugable: onboarding, evaluación, mapa, 7 minijuegos, progresión, misiones, repaso de errores y modo sin conexión.",
   2: "Audio, voz y expresión: Puerto de las Voces y Torre de la Expresión, lectura sincronizada, dictados, matices, historias ramificadas, refranes, sprint, sinónimos, reto del minuto y modo nocturno (15 minijuegos en total).",
-  3: "Inteligencia artificial: conversaciones, editor de estilo, debates, entrevistas y generación personalizada de retos.",
-  4: "Comunidad: retos por enlace, corrección colaborativa moderada, mural compartido, duelos y sincronización de cuentas.",
+  3: "Cielo de formatos: 35 minijuegos nuevos (memoria, el intruso, clasifica, verdadero/falso, escribe, oye, conecta), la isla del Observatorio, mascota reactiva, 6 paletas, estación de música y bóveda cifrada.",
+  4: "El Códice Infinito: la octava isla (Forja del Escritor) con 5 formatos de estilo, economía de tinta con el Bazar del Copista, +150 palabras, +100 frases, perfil 3.0 con marcos y títulos, estadísticas 3.0, háptics y ajustes de voz.",
 };

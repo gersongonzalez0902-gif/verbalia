@@ -26,7 +26,8 @@ export function MemoriaGame(props: useGameProps<MemoriaExercise>) {
   const answeredRef = useRef(false);
 
   // Mazo determinista: izquierda (palabra) y derecha (pareja) barajadas juntas.
-  const deck = useRef<Card[]>(
+  // useState perezoso: baraja única por montaje, sin leer refs durante el render.
+  const [deck] = useState<Card[]>(() =>
     shuffle(
       item.pairs.flatMap((p, pairId) => [
         { key: `L${pairId}`, text: p.left, pairId, isWord: true },
@@ -64,7 +65,7 @@ export function MemoriaGame(props: useGameProps<MemoriaExercise>) {
       const [a, b] = nextFlipped;
       setAttempts((n) => n + 1);
       const newAttempts = attempts + 1;
-      if (deck.current[a].pairId === deck.current[b].pairId) {
+      if (deck[a].pairId === deck[b].pairId) {
         // ¡Pareja!
         lockRef.current = true;
         setTimeout(() => {
@@ -103,7 +104,7 @@ export function MemoriaGame(props: useGameProps<MemoriaExercise>) {
       </div>
 
       <div className="grid w-full max-w-2xl grid-cols-4 gap-2.5 sm:gap-3">
-        {deck.current.map((card, i) => {
+        {deck.map((card, i) => {
           const isUp = flipped.includes(i) || matched.has(i);
           const isWrong = wrongPair.includes(i);
           const isMatched = matched.has(i);

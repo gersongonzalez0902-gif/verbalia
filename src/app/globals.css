@@ -49,6 +49,7 @@
   --color-region-puerto: var(--region-puerto);
   --color-region-torre: var(--region-torre);
   --color-region-observatorio: var(--region-observatorio);
+  --color-region-forja: var(--region-forja);
   --color-surface-glass: var(--surface-glass);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -111,6 +112,7 @@
   --region-puerto: oklch(0.52 0.09 200);
   --region-torre: oklch(0.56 0.15 22);
   --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
 
   --surface-glass: oklch(1 0 0 / 62%);
 }
@@ -167,6 +169,7 @@
   --region-puerto: oklch(0.7 0.1 198);
   --region-torre: oklch(0.7 0.15 20);
   --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.21 0.034 275 / 72%);
 }
@@ -223,6 +226,7 @@
   --region-puerto: oklch(0.52 0.09 200);
   --region-torre: oklch(0.56 0.15 22);
   --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
 
   --surface-glass: oklch(1 0 0 / 62%);
 }
@@ -279,6 +283,7 @@
   --region-puerto: oklch(0.7 0.1 198);
   --region-torre: oklch(0.7 0.15 20);
   --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.21 0.034 30 / 72%);
 }
@@ -335,6 +340,7 @@
   --region-puerto: oklch(0.52 0.09 200);
   --region-torre: oklch(0.56 0.15 22);
   --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
 
   --surface-glass: oklch(1 0 0 / 62%);
 }
@@ -391,6 +397,7 @@
   --region-puerto: oklch(0.7 0.1 198);
   --region-torre: oklch(0.7 0.15 20);
   --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.21 0.034 70 / 72%);
 }
@@ -447,6 +454,7 @@
   --region-puerto: oklch(0.52 0.09 200);
   --region-torre: oklch(0.56 0.15 22);
   --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
 
   --surface-glass: oklch(1 0 0 / 62%);
 }
@@ -503,6 +511,7 @@
   --region-puerto: oklch(0.7 0.1 198);
   --region-torre: oklch(0.7 0.15 20);
   --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.21 0.034 300 / 72%);
 }
@@ -559,6 +568,7 @@
   --region-puerto: oklch(0.52 0.09 200);
   --region-torre: oklch(0.56 0.15 22);
   --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
 
   --surface-glass: oklch(1 0 0 / 62%);
 }
@@ -615,6 +625,7 @@
   --region-puerto: oklch(0.7 0.1 198);
   --region-torre: oklch(0.7 0.15 20);
   --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.21 0.034 240 / 72%);
 }
@@ -671,6 +682,7 @@
   --region-puerto: oklch(0.52 0.09 200);
   --region-torre: oklch(0.56 0.15 22);
   --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
 
   --surface-glass: oklch(1 0 0 / 62%);
 }
@@ -727,6 +739,7 @@
   --region-puerto: oklch(0.7 0.1 198);
   --region-torre: oklch(0.7 0.15 20);
   --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.21 0.034 345 / 72%);
 }
@@ -779,6 +792,7 @@ html.night[data-theme] {
   --region-puerto: oklch(0.7 0.09 198);
   --region-torre: oklch(0.68 0.13 22);
   --region-observatorio: oklch(0.7 0.13 290);
+  --region-forja: oklch(0.66 0.17 28);
 
   --surface-glass: oklch(0.22 0.032 75 / 74%);
 }

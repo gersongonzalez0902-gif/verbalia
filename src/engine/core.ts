@@ -13,6 +13,7 @@ import { updateStreak, grantShield } from "./streak";
 import { dateKey, weekKey, dailyMissions, weeklyMissions, metricValue, daysOfWeek } from "./missions";
 import { ACHIEVEMENTS, LEVEL_ACHIEVEMENTS, ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { REPEAT_WINDOW_MS } from "./scoring";
+import { tintaForXp } from "./shop";
 
 /**
  * Núcleo puro del juego: crea el estado inicial y aplica los efectos
@@ -33,6 +34,15 @@ export const SKILL_IDS: SkillId[] = [
 const MAX_ERRORS = 120;
 const MAX_SESSIONS = 200;
 const MAX_ACTIVE_DAYS = 400;
+
+/** Wallet por defecto (robusta ante núcleos muy antiguos sin wallet). */
+const DEFAULT_WALLET = (): GameCore["wallet"] => ({
+  tinta: 0,
+  owned: [],
+  frame: "frame-none",
+  title: "title-none",
+  spent: 0,
+});
 
 export function createCore(now = Date.now()): GameCore {
   return {
@@ -72,6 +82,7 @@ export function createCore(now = Date.now()): GameCore {
     errors: [],
     seenExercises: {},
     sessions: [],
+    wallet: DEFAULT_WALLET(),
   };
 }
 
@@ -134,6 +145,10 @@ export function reduceSessionComplete(
     errors: [...core.errors],
     seenExercises: { ...core.seenExercises },
     sessions: [...core.sessions],
+    wallet: {
+      ...(core.wallet ?? DEFAULT_WALLET()),
+      owned: [...(core.wallet?.owned ?? [])],
+    },
   };
 
   const levelBefore = levelFromXp(core.xp);
@@ -368,6 +383,12 @@ export function reduceSessionComplete(
 
   const levelAfter = levelFromXp(next.xp);
 
+  // ---------- Tinta del Bazar (Etapa 4): 1 por cada 10 XP ----------
+  const tintaEarned = spec.mode === "placement" ? 0 : tintaForXp(xpTotal);
+  if (tintaEarned > 0) {
+    next.wallet.tinta = (next.wallet.tinta ?? 0) + tintaEarned;
+  }
+
   // ---------- Limpieza de vistos hace mucho (> 30 días) ----------
   const monthAgo = now.getTime() - 30 * 86_400_000;
   for (const [id, ts] of Object.entries(next.seenExercises)) {
@@ -378,6 +399,7 @@ export function reduceSessionComplete(
     record,
     xpTotal,
     xpBreakdown: { base: baseSum, comboBonus: comboBonusSum, completionBonus: bonus, capped: cappedTotal },
+    tintaEarned,
     correctCount,
     totalCount: gradable.length || answers.length,
     accuracy,

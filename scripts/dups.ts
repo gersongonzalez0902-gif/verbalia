@@ -1,0 +1,10 @@
+import { SRS_WORDS_FULL } from "../src/data/content";
+import { FRASES } from "../src/data/frases";
+const wids = SRS_WORDS_FULL.map((w) => w.id);
+const wwords = SRS_WORDS_FULL.map((w) => w.word);
+console.log("total:", SRS_WORDS_FULL.length);
+console.log("dup ids:", wids.filter((x, i) => wids.indexOf(x) !== i));
+console.log("dup words:", wwords.filter((x, i) => wwords.indexOf(x) !== i));
+const texts = FRASES.map((f) => f.text);
+console.log("frases total:", FRASES.length);
+console.log("dup frases:", texts.filter((x, i) => texts.indexOf(x) !== i));

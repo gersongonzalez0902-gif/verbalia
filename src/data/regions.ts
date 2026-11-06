@@ -128,6 +128,21 @@ export const REGIONS: RegionInfo[] = [
     colorVar: "--region-observatorio",
     tip: "Cada palabra llegó aquí en un barco distinto. Descubre de dónde viene la tuya: el Observatorio guarda los mapas de esos viajes.",
   },
+  {
+    id: "forja",
+    name: "Forja del Escritor",
+    subtitle: "Metáforas, ironía, registro y estilo",
+    description:
+      "La octava isla solo se abre a quienes ya dominan las otras siete: un taller de lava y yunques donde las palabras se funden hasta volverse estilo. Aquí se entrena la pluma, no solo la lengua.",
+    skill: "expresion",
+    unlockLevel: 8,
+    stage: 4,
+    games: ["metaforas", "registro", "conectores", "ironia", "titulos"],
+    map: { x: 50, y: 82 },
+    icon: "Flame",
+    colorVar: "--region-forja",
+    tip: "Bienvenid@ a la Forja. Aquí no se responde: se escribe con la cabeza. Elige la imagen exacta y el fuego hará el resto.",
+  },
 ];
 
 export const REGION_BY_ID: Record<RegionId, RegionInfo> = REGIONS.reduce(

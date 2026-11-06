@@ -1,8 +1,8 @@
 # VERBALIA · La aventura del lenguaje
 
-**VerbalIA** es un videojuego educativo de entrenamiento lingüístico en español. El jugador explora el **Archipiélago de las Palabras**: **siete islas** (una por habilidad, incluida la nueva **cultura lingüística**) con **51 minijuegos**, misiones y progresión adaptativa, en sesiones de 3 a 5 minutos.
+**VerbalIA** es un videojuego educativo de entrenamiento lingüístico en español. El jugador explora el **Archipiélago de las Palabras**: **ocho islas** (una por habilidad, incluida la **cultura lingüística** y la nueva **Forja del Escritor** de estilo) con **56 minijuegos**, misiones, economía de tinta y progresión adaptativa, en sesiones de 3 a 5 minutos.
 
-> Estado actual: **v3.0 · Etapa 3 «Cielo de formatos»** — 51 minijuegos en 7 islas (35 nuevos: memoria de pares, el intruso, clasifica, verdadero/falso, escribe la palabra, oye y conecta), **5 020 ejercicios** y **1 160 palabras**, mascota **Léxico** reactiva en plena partida, tarjeta SRS volteable 3D, **6 paletas de color** seleccionables, **estación de música del jugador** (IndexedDB, aleatorio/repetir/pasar), perfil estilo ficha con **banner, foto y bio**, estadísticas 2.0 con **mapa de constancia y récords**, **220 frases del día** rotativas, **bóveda de respaldo cifrada zero-knowledge** (AES-GCM + PBKDF2 600k) y backend endurecido (CSP, rate-limit, validación zod).
+> Estado actual: **v4.0 · Etapa 4 «El Códice Infinito»** — la octava isla (**Forja del Escritor**) con 5 formatos de estilo y retórica (metáforas, registro, conectores, ironía, redundancias), **economía de tinta** con el **Bazar del Copista** (marcos, títulos, escudos), **5 081 ejercicios** (+60), **1 310 palabras** (+150), **328 frases del día** (+108), perfil 3.0 con **marco, título e insignia destacada**, **palabra del día** y saludo por hora en el inicio, **estadísticas 3.0** (proyección de nivel, tinta, mejor isla, constancia de 16 semanas), **colección con filtro MCER**, cuaderno por habilidad, **paisajes sonoros sintetizados** (lluvia, olas, chimenea, noche), ajustes de **velocidad de voz y háptics**, paleta elegida desde el onboarding, atajos PWA y **migración automática de partidas antiguas** que repara perfiles sin banner. Total: **209 pruebas** del motor pasando.
 
 ---
 
@@ -12,18 +12,18 @@
 |---|---|
 | **Identidad visual** | Paleta verde profundo con crema cálido y dorado de XP, modo claro y modo oscuro, **modo lectura nocturna cálida**, tipografía Fredoka + Nunito, emblema propio, animaciones ligeras que respetan `prefers-reduced-motion` |
 | **Onboarding** | 4 pasos (nombre, avatar, objetivo, experiencia) + evaluación inicial «La prueba del faro» (8 ítems calibrados, saltable) |
-| **Mundo** | Mapa SVG interactivo del Archipiélago con **las 6 islas jugables** (Puerto niv. 5, Torre niv. 6), desbloqueo por nivel y lista accesible alternativa |
-| **51 minijuegos** (15 de Etapas 1-2 + 35 nuevos de la Etapa 3 · ver 1.bis) | **Bosque:** Jardín de Tarjetas (SRS), Trivia Relámpago, Sprint de Vocabulario, Batalla de Sinónimos · **Ciudad:** Puentes de Palabras, Puentes de Contexto · **Fortaleza:** Caza de Errores, Tribunal de las Tildes · **Biblioteca:** Cronista (párrafos), Cloze, **Lectura Inmersiva** (frase a frase con voz) · **Puerto:** **Dictado del Faro** (voz + escritura con diff), **Ecos del Puerto** (tono e intención) · **Torre:** **Historias Ramificadas**, **Sabiduría Popular** (refranes), **Reto del Minuto** (escritura libre + autoevaluación honesta) |
-| **Progresión** | XP con desglose, niveles, 7 rangos, **27 logros**, misiones diarias (3, deterministas por fecha) y semanales (con Escudo de Racha), combos, tope diario suave anti-farmeo, decaimiento por repetición |
-| **Adaptación** | Nivel 1-10 por cada una de las **6 habilidades**; selección de dificultad 55/25/20; SRS SM-2 simplificado configurable |
-| **Contenido** | **1 160 palabras SRS** (A1-C2, con regionalismos) + **209 ejercicios** de autoría propia (14 dictados, 12 matices, 6 lecturas, 16 sprint, 16 sinónimos, 4 historias ramificadas con 4-5 nodos, 16 refranes, 10 retos del minuto, además de todo el catálogo de la Etapa 1) |
-| **15 pantallas** | Bienvenida, onboarding, evaluación, dashboard, mapa, ficha de región, partida, resultados, perfil, estadísticas (radar de 6 habilidades e historial), colección, cuaderno de errores, misiones/logros, ajustes, biblioteca + hoja de ruta |
+| **Mundo** | Mapa SVG interactivo del Archipiélago con **las 8 islas jugables** (Observatorio niv. 7, **Forja niv. 8**), desbloqueo por nivel y lista accesible alternativa |
+| **51 minijuegos** (15 de Etapas 1-2 + 35 de la Etapa 3 + 5 de la Forja en la Etapa 4 = 56 · ver 1.bis y 1.ter) | **Bosque:** Jardín de Tarjetas (SRS), Trivia Relámpago, Sprint de Vocabulario, Batalla de Sinónimos · **Ciudad:** Puentes de Palabras, Puentes de Contexto · **Fortaleza:** Caza de Errores, Tribunal de las Tildes · **Biblioteca:** Cronista (párrafos), Cloze, **Lectura Inmersiva** (frase a frase con voz) · **Puerto:** **Dictado del Faro** (voz + escritura con diff), **Ecos del Puerto** (tono e intención) · **Torre:** **Historias Ramificadas**, **Sabiduría Popular** (refranes), **Reto del Minuto** (escritura libre + autoevaluación honesta) · **Etapa 4 · Forja:** metáforas, registro, conectores, ironía y censura de redundancias |
+| **Progresión** | XP con desglose, niveles, 7 rangos, **40 logros**, misiones diarias (3, deterministas por fecha) y semanales (con Escudo de Racha), combos, tope diario suave anti-farmeo, decaimiento por repetición |
+| **Adaptación** | Nivel 1-10 por cada una de las **7 habilidades**; selección de dificultad 55/25/20; SRS SM-2 simplificado configurable |
+| **Contenido** | **1 310 palabras SRS** (A1-C2, con regionalismos y retórica) + **209 ejercicios** de autoría propia de las Etapas 1-2 (14 dictados, 12 matices, 6 lecturas, 16 sprint, 16 sinónimos, 4 historias ramificadas con 4-5 nodos, 16 refranes, 10 retos del minuto, además de todo el catálogo de la Etapa 1) |
+| **16 pantallas** | Bienvenida, onboarding, evaluación, dashboard, mapa, ficha de región, partida, resultados, perfil, estadísticas, colección, cuaderno de errores, misiones/logros, ajustes, **Bazar del Copista**, estación de música, biblioteca + hoja de ruta |
 | **Voz y audio** | Síntesis del navegador (TTS) en tarjetas, dictados, matices y lectura sincronizada; **siempre con alternativa visual** si el navegador no ofrece voz; sonidos WebAudio sintetizados |
 | **Persistencia** | IndexedDB (con espejo en localStorage), guardado diferido + volcado inmediato; exportar/importar JSON; borrado total |
 | **PWA** | Manifest, service worker *network-first* conservador (cache v2), página offline, iconos (incl. maskable), aviso de nueva versión; **sin registro de SW en desarrollo** (evita caches obsoletas) |
 | **Compañero** | **Léxico, el búho bibliotecario**: interviene solo en momentos clave, con consejos de las mecánicas nuevas |
 | **Accesibilidad** | Navegación por teclado, etiquetas ARIA, contrastes AA en todas las paletas (claro, oscuro, nocturno), tamaño de texto configurable, alternativa a todo arrastre, estados no solo por color |
-| **Pruebas** | **172 pruebas unitarias del motor** (`bun test`) + auditoría automática de integridad de datos (grafos de historias, índices, duplicados) + verificación E2E con navegador real |
+| **Pruebas** | **209 pruebas unitarias del motor** (`bun test`) + auditoría automática de integridad de datos (grafos de historias, índices, duplicados) + verificación E2E con navegador real |
 
 ## 1.bis Qué incluye la Etapa 3 (super actualización)
 
@@ -55,6 +55,26 @@
 
 ---
 
+## 1.ter Qué incluye la Etapa 4 · «El Códice Infinito» (mayor actualización)
+
+| Área | Entregado |
+|---|---|
+| **Corrección crítica** | **Migración automática de partidas antiguas** (`engine/migrate.ts`): perfiles sin `banner`/`bio`/`wallet` y núcleos sin `skills.cultura`/métricas modernas se reparan al cargar — la clase entera de crashes «campo indefinido» queda extinta, con 6 pruebas dedicadas |
+| **8.ª isla** | **Forja del Escritor** (nivel 8): isla volcánica en el mapa (con yunque, brasas y chispas animadas) para entrenar estilo y retórica |
+| **5 formatos nuevos (56 juegos)** | **Forja de Metáforas** (la imagen literaria exacta), **Registro Correcto** (formal/coloquial/neutro según la situación), **Taller de Conectores** (contraste, causa, concesión…), **Detector de Ironía** (literal vs. irónico con contexto), **Censura del Editor** (tacha la redundancia: «subir arriba», «ambos dos»… con trampas honestas de texto limpio) |
+| **Economía** | Moneda **«tinta»** (1 por cada 10 XP de sesión) + **Bazar del Copista** (16.ª pantalla): 6 marcos de avatar, 7 títulos y escudos de racha comprables; lógica pura en `engine/shop.ts` con 12 pruebas (fondos, duplicados, tope de escudos, inmutabilidad) |
+| **Contenido** | **+60 ejercicios** de estilo (5 081 en total), **+150 palabras SRS** (1 310; literatura y retórica: «pleonasmo», «anáfora», «greguersía», «palimpsesto»…), **+108 frases del día** (328: de Borges a Benedetti, con la sabiduría de la Forja) |
+| **Perfil 3.0** | **Marco equipado** en la foto, **título** bajo el nombre, **insignia destacada** (toca un logro para lucirlo), saldo de tinta visible y acceso directo al Bazar |
+| **Inicio 3.0** | Saludo por hora (buenos días/tardes/noches), **Palabra del Día** determinista (prioriza palabras sin descubrir), tarjeta de la Forja con estado de desbloqueo y accesos a Bazar/Tintero |
+| **Estadísticas 3.0** | **Proyección de nivel** (días estimados a tu ritmo), **tinta ganada/gastada**, **isla más afilada**, mapa de constancia ampliado a **16 semanas** |
+| **Colección y cuaderno** | Filtro **MCER** (A1-C2) en la colección (además de búsqueda y estado) y **filtro por habilidad** en el cuaderno de errores |
+| **Sonido y voz** | **Paisajes sonoros sintetizados** sin descargas (lluvia, olas, chimenea con crepitar, noche con grillos) en la estación; **velocidad de voz** ajustable (×0.5-×1.3) y **háptics** (vibración en aciertos y fanfarrias) |
+| **Léxico 2.0** | Dos estados nuevos (**curioso** al entrar en la Forja, **dormido** si te ausentas 40 s) sobre los 6 existentes |
+| **Onboarding y PWA** | Paso 6 para elegir **paleta con vista previa en vivo**; **atajos de app** (sesión rápida, misiones, Bazar, estación) |
+| **Progresión** | **+13 logros** (40 en total: forja, tinta, ocho islas, racha 30, combo 15, 10 h, 100 sesiones, nivel 15 «Leyenda del Códice»), **misiones de tinta** diarias y semanales, métrica `tinta` en el motor |
+
+---
+
 ## 2. Arquitectura
 
 ```
@@ -66,37 +86,43 @@ src/
 │   └── icon.svg          # Emblema (favicon)
 ├── types/index.ts        # Tipos del dominio (ejercicios, progreso, SRS…)
 ├── data/                 # PAQUETES DE CONTENIDO (solo datos, sin UI)
-│   ├── regions.ts        #  6 regiones: metadatos, mapa, desbloqueo
-│   ├── games.ts          #  registro de minijuegos (instrucciones, tiempos)
-│   ├── words-srs.ts      #  48 palabras con definición, ejemplo y MCER
+│   ├── regions.ts        #  8 regiones: metadatos, mapa, desbloqueo
+│   ├── games.ts          #  registro de 56 minijuegos (instrucciones, tiempos)
+│   ├── words-srs.ts / words-srs-b.ts  #  1 310 palabras (definición, ejemplo, MCER)
 │   ├── trivia.ts / puzzles.ts / cloze.ts
 │   ├── errors-hunt.ts / tildes.ts / paragraphs.ts
 │   ├── placement.ts (en content.ts)  # evaluación inicial
-│   ├── achievements.ts   #  24 logros con evaluadores puros
-│   ├── missions.ts       #  plantillas diarias/semanales
+│   ├── achievements.ts   #  40 logros con evaluadores puros
+│   ├── missions.ts       #  plantillas diarias/semanales (incluye métrica de tinta)
+│   ├── forja.ts          #  60 ejercicios de estilo y retórica (Etapa 4)
+│   ├── frases-a/b/c.ts   #  328 frases del día
 │   ├── roadmap.ts        #  25 mecánicas + 26 módulos con etapa asignada
-│   └── companion.ts      #  repertorio de Tinta
+│   └── companion.ts      #  repertorio de Léxico
 ├── engine/               # LÓGICA PURA (testeable sin navegador)
-│   ├── core.ts           #  reductor de sesión: XP, racha, misiones, logros
+│   ├── core.ts           #  reductor de sesión: XP, racha, misiones, logros, tinta
+│   ├── migrate.ts        #  migración de partidas antiguas (perfil/núcleo)
+│   ├── shop.ts           #  Bazar: catálogo, tinta, compras y equipaje (puro)
 │   ├── xp.ts             #  niveles, rangos, MCER, dificultad objetivo
 │   ├── srs.ts            #  SM-2 simplificado
 │   ├── scoring.ts        #  XP por ítem: dificultad, combo, velocidad, topes
-│   ├── validation.ts     #  validación por tipo de ejercicio
+│   ├── validation.ts     #  validación por tipo de ejercicio (incluida la Forja)
 │   ├── session.ts        #  constructores de sesión (misión/entreno/repaso)
 │   ├── missions.ts       #  generación determinista + métricas
 │   ├── streak.ts         #  rachas flexibles con escudos
 │   └── rng.ts            #  RNG determinista (mulberry32) + barajado
 ├── services/
 │   ├── storage.ts        #  IndexedDB + espejo localStorage + export/import
-│   └── audio.ts          #  sonidos WebAudio sintetizados + TTS del navegador
+│   ├── audio.ts           #  sonidos WebAudio sintetizados, TTS, háptics
+│   ├── music-station.ts   #  estación de música del jugador (IndexedDB)
+│   └── soundscapes.ts     #  paisajes sonoros sintetizados (lluvia, olas…)
 ├── store/
-│   ├── game-store.ts     #  Zustand: perfil, ajustes, core, SRS, persistencia
+│   ├── game-store.ts     #  Zustand: perfil, ajustes, core, SRS, Bazar, persistencia
 │   └── ui-store.ts       #  enrutador por hash (botón atrás funcional)
 ├── components/
-│   ├── game/             #  carcasa, HUD, Tinta, feedback, widgets, iconos, PWA
+│   ├── game/             #  carcasa, HUD, Léxico, feedback, widgets, iconos, PWA
 │   └── ui/               #  shadcn/ui
-├── games/                #  LOS 7 MINIJUEGOS (componentes por ejercicio)
-└── screens/              #  LAS 15 PANTALLAS
+├── games/                #  LOS 56 MINIJUEGOS (componentes por ejercicio)
+└── screens/              #  LAS 17 PANTALLAS
 ```
 
 ### Decisiones técnicas clave
@@ -104,7 +130,7 @@ src/
 1. **Next.js 16 + React 19 + TypeScript** (en lugar de Vite): el entorno de despliegue de este proyecto está construido alrededor de Next.js, y su App Router deja preparadas rutas de API para la IA de la Etapa 3. El juego en sí es una SPA cliente 100 % React + TS, exactamente la propuesta técnica original.
 2. **Ruta única con enrutador propio por hash**: la interfaz completa vive bajo `/` (requisito del entorno), pero el botón atrás del navegador funciona porque el router sincroniza `location.hash` (`#/home`, `#/juego/trivia/training`…). Al recargar, se restaura la pantalla.
 3. **Separación estricta contenido / lógica / interfaz**: `data/` no importa React; `engine/` es puro (sin DOM) y por eso se puede probar con `bun test` sin navegador; `games/` y `screens/` solo orquestan.
-4. **Reductor de sesión puro** (`engine/core.ts`): `reduceSessionComplete(core, input) → { core, result }` aplica XP, habilidades, racha, misiones, logros y errores en una sola función inmutable — más de la mitad de las 172 pruebas cubren este flujo y las mecánicas de la Etapa 2.
+4. **Reductor de sesión puro** (`engine/core.ts`): `reduceSessionComplete(core, input) → { core, result }` aplica XP, habilidades, racha, misiones, logros, errores y **tinta del Bazar** en una sola función inmutable — más de la mitad de las 209 pruebas cubren este flujo y las mecánicas de la Etapa 2.
 5. **Zustand + persistencia propia**: guardado diferido (700 ms) para ráfagas de tarjetas y volcado inmediato al terminar sesión o ocultar la pestaña (`pagehide` + `visibilitychange`), de modo que nunca se pierde progreso.
 6. **Anti-farmeo honesto**: repetir un ejercicio visto hace <3 días rinde 25 % de XP; superado el tope diario (600 XP) el XP extra rinde al 50 % — con aviso transparente en resultados. El SRS no decae: repasar es legítimo.
 7. **Service worker conservador**: red primero para navegación (nunca sirve contenido viejo), SWR solo para estáticos con hash, `/api` y no-GET nunca se interceptan. Registro solo en https/localhost y con ajuste para desactivarlo.
@@ -123,7 +149,7 @@ npm install        # o: bun install
 # 2) Desarrollo (http://localhost:3000)
 npm run dev        # o: bun run dev
 
-# 3) Pruebas unitarias del motor (172 pruebas)
+# 3) Pruebas unitarias del motor (209 pruebas)
 npm test           # o: bun test tests/engine.test.ts
 
 # 4) Lint

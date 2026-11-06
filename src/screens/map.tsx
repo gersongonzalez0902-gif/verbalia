@@ -11,7 +11,7 @@ import { createElement } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
-import { REGIONS, REGION_BY_ID } from "@/data/regions";
+import { REGIONS, REGION_BY_ID, SKILL_LABELS } from "@/data/regions";
 import { GAMES } from "@/data/games";
 import { levelProgress } from "@/engine/xp";
 import { getIcon } from "@/components/game/icons";
@@ -53,14 +53,14 @@ export function MapScreen() {
 
   return (
     <div>
-      <ScreenHeader title="El Archipiélago de las Palabras" subtitle="Siete regiones, siete habilidades" backTo={{ name: "home" }} />
+      <ScreenHeader title="El Archipiélago de las Palabras" subtitle="Ocho regiones, ocho caminos" backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-4xl px-4 pb-28">
         {/* ===== Escena del mapa ===== */}
         <div
           className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md sm:aspect-[16/10]"
           role="img"
-          aria-label="Mapa del Archipiélago de las Palabras con siete regiones"
+          aria-label="Mapa del Archipiélago de las Palabras con ocho regiones"
         >
           <IslandScene />
 
@@ -132,10 +132,10 @@ export function MapScreen() {
         {/* ===== Leyenda de estados ===== */}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-primary" aria-hidden /> Etapa 1 · jugable
+            <span className="h-3 w-3 rounded-full bg-primary" aria-hidden /> Ocho islas jugables
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-muted-foreground/40" aria-hidden /> En desarrollo (Etapa 2-3)
+            <span className="h-3 w-3 rounded-full" style={{ background: "var(--region-forja)" }} aria-hidden /> Etapa 4 · la Forja del Escritor
           </span>
           <span className="flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5" aria-hidden /> Sube de nivel para desbloquear
@@ -231,14 +231,7 @@ function RegionSheet({
   if (!region) return null;
   const prog = progressOf(region.id);
   const accuracy = accuracyOf(region.id);
-  const skillLabel = {
-    vocabulario: "vocabulario",
-    gramatica: "gramática",
-    ortografia: "ortografía",
-    lectura: "lectura",
-    audicion: "audición",
-    expresion: "expresión",
-  }[region.skill];
+  const skillLabel = SKILL_LABELS[region.skill] ?? region.skill;
 
   return (
     <Sheet open={regionId !== null} onOpenChange={(v) => !v && onClose()}>
@@ -415,6 +408,36 @@ function IslandScene() {
         <g fill="var(--region-torre)" opacity="0.85">
           <path d="M30 56 L30 26 L40 16 L50 26 L50 56 Z" />
           <path d="M26 26 L40 12 L54 26 Z" opacity="0.6" />
+        </g>
+      </g>
+      {/* Observatorio */}
+      <g transform="translate(96,456)">
+        <path d="M0 50 Q-16 24 8 10 Q32 -4 60 6 Q86 18 80 46 Q74 72 36 74 Q6 74 0 50 Z" fill="url(#sand)" />
+        <path d="M12 46 Q2 26 24 16 Q46 6 66 18 Q82 30 74 48 Q64 66 34 66 Q16 66 12 46 Z" fill="var(--region-observatorio)" opacity="0.35" />
+        <g fill="var(--region-observatorio)" opacity="0.85">
+          <path d="M22 56 A 24 24 0 0 1 70 56 Z" />
+          <rect x="48" y="10" width="4" height="26" rx="2" transform="rotate(24 50 10)" />
+        </g>
+      </g>
+      {/* Forja del Escritor (Etapa 4): isla volcánica con resplandor */}
+      <g transform="translate(360,455)">
+        <path d="M0 56 Q-20 26 8 6 Q36 -12 68 4 Q94 20 86 52 Q78 80 38 82 Q2 82 0 56 Z" fill="url(#sand)" />
+        <path d="M14 52 Q4 30 26 16 Q50 4 70 18 Q88 32 80 52 Q70 72 38 72 Q18 72 14 52 Z" fill="var(--region-forja)" opacity="0.28" />
+        {/* Volcán */}
+        <path d="M18 66 L36 22 L44 12 L52 22 L70 66 Z" fill="var(--region-forja)" opacity="0.75" />
+        {/* Cráter con brasa */}
+        <path d="M36 22 L44 12 L52 22 Q44 27 36 22 Z" fill="var(--region-forja)" />
+        <circle cx="44" cy="17" r="3.5" fill="var(--xp)" opacity="0.9" className="anim-glow" />
+        {/* Chispas ascendiendo */}
+        <g fill="var(--xp)" opacity="0.85">
+          <circle cx="40" cy="6" r="1.8" className="anim-float" style={{ animationDuration: "5s" }} />
+          <circle cx="50" cy="-2" r="1.4" className="anim-float" style={{ animationDuration: "6s", animationDelay: "-2s" }} />
+          <circle cx="46" cy="0" r="1.1" className="anim-float" style={{ animationDuration: "7s", animationDelay: "-4s" }} />
+        </g>
+        {/* Yunque estilizado al pie */}
+        <g fill="var(--region-forja)" opacity="0.85">
+          <path d="M58 60 h14 v4 h-14 Z" />
+          <path d="M62 64 h6 v6 h-6 Z" />
         </g>
       </g>
 

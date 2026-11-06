@@ -26,6 +26,7 @@ import {
   NotebookPen,
   Settings,
   ShieldCheck,
+  ShoppingBag,
   User,
 } from "lucide-react";
 import type { Screen } from "@/types";
@@ -54,6 +55,7 @@ const SIDEBAR_NAV: { section: string; items: { screen: Screen; label: string; ic
       { screen: { name: "stats" }, label: "Estadísticas", icon: ChartColumn },
       { screen: { name: "errors" }, label: "Cuaderno de errores", icon: NotebookPen },
       { screen: { name: "profile" }, label: "Perfil", icon: User },
+      { screen: { name: "shop" }, label: "El Bazar del Copista", icon: ShoppingBag },
     ],
   },
   {

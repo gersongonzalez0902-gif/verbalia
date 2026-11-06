@@ -6,13 +6,14 @@
  * habilidades (las 7 ciudades), insignias con tiers y gestión de datos.
  */
 
-import { useRef, useState } from "react";
+import { createElement, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { levelProgress, rankForLevel, rankName, cefrFromSkill, skillMasteryLabel } from "@/engine/xp";
 import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { ACHIEVEMENTS } from "@/data/achievements";
+import { FRAMES, frameCss, titleText } from "@/engine/shop";
 import { LevelBadge, XpBar, ProgressRing } from "@/components/game/widgets";
 import { getIcon } from "@/components/game/icons";
 import { LexicoMascot } from "@/components/game/lexico";
@@ -34,13 +35,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
+import type { AchievementDef } from "@/types";
 import { formatPlaytime } from "@/lib/format-time";
 import {
   Camera,
   Check,
+  Droplets,
   Image as ImageIcon,
   Lock,
   PenLine,
+  Star,
   Trash2,
   X,
 } from "lucide-react";
@@ -138,12 +142,16 @@ export function ProfileScreen() {
     }
   };
 
+  // Guard defensivo: un dato corrupto o muy antiguo nunca debe romper la ficha.
+  const bannerId = typeof profile.banner === "string" && profile.banner
+    ? profile.banner
+    : "preset:aurora";
   const bannerCss = (() => {
-    if (profile.banner.startsWith("data:")) return undefined;
-    const preset = BANNER_PRESETS.find((b) => b.id === profile.banner.replace("preset:", "")) ?? BANNER_PRESETS[0];
+    if (bannerId.startsWith("data:")) return undefined;
+    const preset = BANNER_PRESETS.find((b) => b.id === bannerId.replace("preset:", "")) ?? BANNER_PRESETS[0];
     return { background: preset.css };
   })();
-  const isCustomBanner = profile.banner.startsWith("data:");
+  const isCustomBanner = bannerId.startsWith("data:");
 
   const memberSince = new Date(profile.createdAt).toLocaleDateString("es-ES", {
     month: "long",
@@ -151,6 +159,16 @@ export function ProfileScreen() {
   });
 
   const allSkills = ["vocabulario", "gramatica", "ortografia", "lectura", "audicion", "expresion", "cultura"] as const;
+
+  // Cosméticos equipados (Etapa 4): marco y título del Bazar.
+  const equipFrameCss = frameCss(core.wallet?.frame ?? "frame-none");
+  const equipTitle = titleText(core.wallet?.title ?? "title-none");
+  const tintaTotal = (core.wallet?.tinta ?? 0) + (core.wallet?.spent ?? 0);
+  const featured = ACHIEVEMENTS.find((a) => a.id === profile.featuredBadge && core.achievements[a.id]);
+  const toggleFeatured = (id: string) => {
+    updateProfile({ featuredBadge: profile.featuredBadge === id ? "" : id });
+    sfx.pop();
+  };
 
   return (
     <div>
@@ -177,11 +195,10 @@ export function ProfileScreen() {
             className="relative h-32 sm:h-40"
             style={bannerCss}
             role="img"
-            aria-label={isCustomBanner ? "Banner personalizado" : `Banner ${profile.banner.replace("preset:", "")}`}
+            aria-label={isCustomBanner ? "Banner personalizado" : `Banner ${bannerId.replace("preset:", "")}`}
           >
             {isCustomBanner && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.banner} alt="" className="h-full w-full object-cover" />
+              <img src={bannerId} alt="" className="h-full w-full object-cover" />
             )}
             <span className="anim-twinkle absolute right-3 top-3 text-xl opacity-70" aria-hidden>✦</span>
             <button
@@ -204,10 +221,10 @@ export function ProfileScreen() {
                     key={b.id}
                     onClick={() => { sfx.tap(); updateProfile({ banner: `preset:${b.id}` }); setBannerPicker(false); }}
                     aria-label={`Banner ${b.label}`}
-                    aria-pressed={profile.banner === `preset:${b.id}`}
+                    aria-pressed={bannerId === `preset:${b.id}`}
                     className={cn(
                       "h-10 rounded-xl border-2 transition hover:scale-[1.03]",
-                      profile.banner === `preset:${b.id}` ? "border-primary" : "border-transparent",
+                      bannerId === `preset:${b.id}` ? "border-primary" : "border-transparent",
                     )}
                     style={{ background: b.css }}
                   />
@@ -246,17 +263,23 @@ export function ProfileScreen() {
           <div className="relative -mt-12 flex items-end gap-3 px-4 pb-4">
             <div className="relative shrink-0">
               <span
-                className="block h-24 w-24 overflow-hidden rounded-3xl border-4 bg-card shadow-lg"
-                style={{ borderColor: "color-mix(in oklch, var(--primary) 35%, var(--card))" }}
+                className={cn("block rounded-3xl shadow-lg", equipFrameCss ? "p-[3px]" : "")}
+                style={
+                  equipFrameCss
+                    ? { background: equipFrameCss }
+                    : { boxShadow: "inset 0 0 0 3px color-mix(in oklch, var(--primary) 35%, var(--card))" }
+                }
+                aria-hidden
               >
-                {profile.photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profile.photo} alt={`Foto de ${profile.name}`} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center">
-                    <LexicoMascot size={92} mood="happy" />
-                  </span>
-                )}
+                <span className="block h-[90px] w-[90px] overflow-hidden rounded-[calc(1.5rem-3px)] bg-card">
+                  {profile.photo ? (
+                    <img src={profile.photo} alt={`Foto de ${profile.name}`} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center">
+                      <LexicoMascot size={86} mood="happy" />
+                    </span>
+                  )}
+                </span>
               </span>
               <button
                 onClick={() => photoRef.current?.click()}
@@ -296,6 +319,11 @@ export function ProfileScreen() {
               <p className="mt-0.5 text-xs font-semibold leading-snug text-foreground/85 drop-shadow-sm">
                 {rankName(rank, profile.gender)} · desde {memberSince}
               </p>
+              {equipTitle && (
+                <p className="mt-1 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                  <Star className="h-3 w-3" aria-hidden /> {equipTitle}
+                </p>
+              )}
             </div>
             <div className="shrink-0 pb-1">
               <LevelBadge level={level} size="lg" />
@@ -351,6 +379,16 @@ export function ProfileScreen() {
             <p className="numeric text-xs text-muted-foreground">{into}/{needed} XP</p>
           </div>
           <XpBar into={into} needed={needed} />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+              <Droplets className="h-3.5 w-3.5 text-primary" aria-hidden />
+              Tinta del Bazar: <span className="numeric text-foreground">{core.wallet?.tinta ?? 0}</span> en el tintero
+              <span className="text-muted-foreground/70">· {tintaTotal} ganada en total</span>
+            </p>
+            <Button variant="link" className="h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "shop" }); }}>
+              Visitar el Bazar →
+            </Button>
+          </div>
         </section>
 
         {/* ===== Habilidades (las 7 islas) ===== */}
@@ -410,20 +448,29 @@ export function ProfileScreen() {
             Insignias: {unlockedCount} / {ACHIEVEMENTS.length}
           </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Bronce, plata, oro y platino según la talla del logro.
+            Bronce, plata, oro y platino según la talla del logro. Toca una insignia desbloqueada para destacarla en tu ficha.
           </p>
+
+          {/* Insignia destacada */}
+          {featured && <FeaturedBadgeCard badge={featured} onRemove={() => toggleFeatured(featured.id)} />}
+
           <div className="mt-3 grid grid-cols-4 gap-2.5 sm:grid-cols-6">
             {ACHIEVEMENTS.map((a) => {
               const got = Boolean(core.achievements[a.id]);
               const tier = badgeTier(a.xpReward);
               const Icon = getIcon(a.icon);
+              const isStarred = profile.featuredBadge === a.id && got;
               return (
-                <div
+                <button
                   key={a.id}
                   title={`${a.name}: ${a.description}`}
+                  aria-pressed={got ? isStarred : undefined}
+                  aria-label={got ? `${a.name}. Tocar para ${isStarred ? "quitar" : "destacar"} en la ficha.` : `${a.name} (bloqueada)`}
+                  onClick={() => got && toggleFeatured(a.id)}
                   className={cn(
                     "group relative flex aspect-square items-center justify-center rounded-2xl border p-1.5 transition",
                     got ? "border-border" : "border-border/60 bg-muted/40",
+                    isStarred && "border-primary ring-2 ring-primary/50",
                   )}
                   style={
                     got
@@ -446,8 +493,11 @@ export function ProfileScreen() {
                       <Lock className="h-4 w-4" aria-hidden />
                     </span>
                   )}
+                  {isStarred && (
+                    <Star className="absolute -right-1 -top-1 h-4 w-4 fill-primary text-primary drop-shadow" aria-hidden />
+                  )}
                   <span className="sr-only">{a.name}</span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -531,6 +581,29 @@ function StatCard({ value, label }: { value: string; label: string }) {
     <div className="gloss card-aurora rounded-2xl border bg-card p-2.5 text-center">
       <p className="numeric font-display title-sheen truncate text-base font-bold sm:text-lg">{value}</p>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+/** Tarjeta de la insignia destacada (componente de módulo, sin estado). */
+function FeaturedBadgeCard({ badge, onRemove }: { badge: AchievementDef; onRemove: () => void }) {
+  return (
+    <div className="card-aurora anim-pop mt-3 flex items-center gap-3.5 rounded-3xl border border-primary/30 bg-card p-4">
+      <span
+        className="gloss flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-md"
+        style={{ background: "linear-gradient(140deg, var(--xp), color-mix(in oklch, var(--primary) 60%, var(--card)))", color: "oklch(0.25 0.03 260)" }}
+        aria-hidden
+      >
+        {createElement(getIcon(badge.icon), { className: "h-7 w-7" })}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Insignia destacada</p>
+        <p className="font-display text-base font-bold leading-tight">{badge.name}</p>
+        <p className="text-xs text-muted-foreground">{badge.description}</p>
+      </div>
+      <Button variant="ghost" size="sm" className="shrink-0 text-xs" onClick={onRemove}>
+        <X className="h-3.5 w-3.5" aria-hidden /> Quitar
+      </Button>
     </div>
   );
 }

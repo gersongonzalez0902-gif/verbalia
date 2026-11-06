@@ -111,6 +111,9 @@ export function metricValue(
       return sum((d) => core.stats.correctByDay[d] ?? 0);
     case "xp":
       return sum((d) => core.stats.xpByDay[d] ?? 0);
+    case "tinta":
+      // Tinta aproximada ganada: 1 por cada 10 XP del periodo.
+      return sum((d) => Math.floor((core.stats.xpByDay[d] ?? 0) / 10));
     case "games":
       return distinct(core.stats.gamesByDay);
     case "regions":

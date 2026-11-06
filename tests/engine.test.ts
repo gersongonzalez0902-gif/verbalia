@@ -764,13 +764,15 @@ describe("paquetes de la Etapa 2: cobertura de dificultad", () => {
   test("el jardín se amplió a 1160 palabras (x2 variedad)", () => {
     expect(SRS_WORDS.length).toBe(1160);
   });
-  test("las 7 regiones tienen sus cinco juegos nuevos", () => {
+  test("las 8 regiones tienen sus cinco juegos nuevos", () => {
     for (const r of REGIONS_ALL) {
       expect(r.games.length).toBeGreaterThanOrEqual(5);
-      const nuevos = r.games.filter((g) => g.includes("-"));
-      expect(nuevos.length).toBeGreaterThanOrEqual(5); // 5 formatos nuevos por ciudad
+      if (r.id !== "forja") {
+        const nuevos = r.games.filter((g) => g.includes("-"));
+        expect(nuevos.length).toBeGreaterThanOrEqual(5); // 5 formatos nuevos por ciudad
+      }
     }
-    expect(REGIONS_ALL.length).toBe(7); // 6 clásicas + Observatorio
+    expect(REGIONS_ALL.length).toBe(8); // 6 clásicas + Observatorio + Forja
   });
 });
 
@@ -815,5 +817,427 @@ describe("reductor: una sesión del minuto cuenta esfuerzo sin falsear aciertos"
     expect(result.accuracy).toBe(null);
     expect(result.xpTotal).toBeGreaterThan(0);
     expect(next.stats.byGame["minuto"].plays).toBe(1);
+  });
+});
+
+/* ============================ Etapa 4 · El Códice Infinito ============================ */
+
+import { migrateProfile, migrateCore, EMPTY_PROFILE } from "@/engine/migrate";
+import {
+  applyPurchase, applyEquip, tintaForXp, TINTA_PER_XP, MAX_SHIELDS as SHOP_MAX_SHIELDS,
+  SHOP_ITEMS, FRAMES, TITLES, frameCss, titleText,
+} from "@/engine/shop";
+import { checkForjaOption, checkIronia, checkCensura } from "@/engine/validation";
+import { FORJA_PACKS, FORJA_METAFORAS, FORJA_REGISTRO, FORJA_CONECTORES, FORJA_IRONIA, FORJA_TITULOS } from "@/data/forja";
+import { ALL_EXERCISES, EXERCISES_BY_GAME, SRS_WORDS_FULL } from "@/data/content";
+import { SRS_WORDS_B } from "@/data/words-srs-b";
+import { FRASES } from "@/data/frases";
+import { ACHIEVEMENTS as ACH_ET4, LEVEL_ACHIEVEMENTS as LEVELS_ET4, ACHIEVEMENTS_BY_ID as BY_ID_ET4 } from "@/data/achievements";
+
+describe("migración de partidas antiguas (fix del banner)", () => {
+  test("migrateProfile rellena banner, bio, foto y featuredBadge de un perfil antiguo", () => {
+    const antiguo = { name: "Marina", createdAt: 0 } as Partial<import("@/types").PlayerProfile>;
+    const p = migrateProfile(antiguo);
+    expect(p.banner).toBe("preset:aurora"); // nunca más undefined → .startsWith() seguro
+    expect(p.bio).toBe("");
+    expect(p.photo).toBe("");
+    expect(p.featuredBadge).toBe("");
+    expect(p.gender).toBe("x");
+    expect(p.name).toBe("Marina");
+    expect(p.createdAt).toBeGreaterThan(0); // 0 se sustituye por ahora
+  });
+
+  test("migrateProfile respeta los valores existentes", () => {
+    const p = migrateProfile({ banner: "preset:coral", bio: "Hola", gender: "f", createdAt: 123456 });
+    expect(p.banner).toBe("preset:coral");
+    expect(p.bio).toBe("Hola");
+    expect(p.gender).toBe("f");
+    expect(p.createdAt).toBe(123456);
+  });
+
+  test("migrateProfile tolera null e undefined", () => {
+    expect(migrateProfile(null).banner).toBe("preset:aurora");
+    expect(migrateProfile(undefined).name).toBe("");
+  });
+
+  test("migrateCore añade wallet, cultura y métricas modernas a un núcleo Etapa 1", () => {
+    const viejo: Partial<GameCore> = {
+      xp: 500,
+      skills: { vocabulario: 4, gramatica: 3 } as GameCore["skills"],
+      stats: { totalSessions: 2, totalAnswers: 20, totalCorrect: 15 } as Partial<GameCore["stats"]> as GameCore["stats"],
+    };
+    const c = migrateCore(viejo as GameCore);
+    expect(c.wallet.tinta).toBe(0);
+    expect(c.wallet.owned).toEqual([]);
+    expect(c.skills.cultura).toBe(2); // habilidad de la Etapa 3 rellenada
+    expect(c.stats.totalTimeMs).toBe(0);
+    expect(c.stats.bestComboEver).toBe(0);
+    expect(c.xp).toBe(500); // el progreso no se toca
+    expect(c.skills.vocabulario).toBe(4);
+  });
+
+  test("migrateCore conserva wallet existente y clona owned", () => {
+    const base = createCore();
+    base.wallet.tinta = 77;
+    base.wallet.owned = ["frame-marea"];
+    const c = migrateCore(base);
+    expect(c.wallet.tinta).toBe(77);
+    expect(c.wallet.owned).toEqual(["frame-marea"]);
+    expect(c.wallet.owned).not.toBe(base.wallet.owned); // clonado, no compartido
+  });
+
+  test("migrateCore sin datos devuelve un núcleo fresco válido", () => {
+    const c = migrateCore(null);
+    expect(c).toEqual(createCore());
+    expect(EMPTY_PROFILE.banner).toBe("preset:aurora");
+  });
+});
+
+describe("Bazar del Copista: economía de tinta", () => {
+  test("tintaForXp convierte 1 tinta por cada 10 XP (redondeo a la baja)", () => {
+    expect(TINTA_PER_XP).toBe(10);
+    expect(tintaForXp(0)).toBe(0);
+    expect(tintaForXp(9)).toBe(0);
+    expect(tintaForXp(10)).toBe(1);
+    expect(tintaForXp(54)).toBe(5);
+    expect(tintaForXp(-5)).toBe(0);
+  });
+
+  test("el reductor acredita la tinta de la sesión en la wallet", () => {
+    const now = new Date("2026-03-01T10:00:00");
+    const triviaEx = EXERCISES_BY_GAME["trivia"]![0];
+    const spec: SessionSpec = {
+      label: "T", mode: "training", gameId: "trivia",
+      items: [{ kind: "exercise", exercise: triviaEx }],
+    };
+    const answer: AnswerRecord = {
+      itemId: triviaEx.id, kind: "exercise", gameId: "trivia", skill: "vocabulario",
+      difficulty: 1, correct: true, userAnswer: "sustantivo", correctAnswer: "sustantivo",
+      timeMs: 4000, wasSeenRecently: false,
+    };
+    const { core, result } = reduceSessionComplete(createCore(), {
+      spec, answers: [answer], durationMs: 9000, now, masteredWords: 0, learnedWords: 0,
+    });
+    expect(result.tintaEarned).toBe(Math.floor(result.xpTotal / 10));
+    expect(core.wallet.tinta).toBe(result.tintaEarned);
+    expect(result.tintaEarned).toBeGreaterThan(0);
+  });
+
+  test("la evaluación inicial no genera tinta", () => {
+    const now = new Date("2026-03-01T10:00:00");
+    const spec: SessionSpec = {
+      label: "Evaluación", mode: "placement",
+      items: ALL_EXERCISES.slice(0, 8).map((e) => ({ kind: "exercise", exercise: e })),
+    };
+    const answers: AnswerRecord[] = spec.items.map((it) => ({
+      itemId: (it as { exercise: { id: string } }).exercise.id,
+      kind: "exercise",
+      gameId: "trivia" as const,
+      skill: "vocabulario",
+      difficulty: 1,
+      correct: false,
+      userAnswer: "x",
+      correctAnswer: "y",
+      timeMs: 1000,
+      wasSeenRecently: false,
+    }));
+    const { result } = reduceSessionComplete(createCore(), {
+      spec, answers, durationMs: 8000, now, masteredWords: 0, learnedWords: 0,
+    });
+    expect(result.tintaEarned).toBe(0);
+  });
+
+  test("compra falla sin fondos y no muta el núcleo", () => {
+    const core = createCore();
+    const item = SHOP_ITEMS.find((s) => s.kind === "frame")!;
+    const out = applyPurchase(core, item.id);
+    expect(out.ok).toBe(false);
+    expect(out.reason).toBe("sin-fondos");
+    expect(out.core).toBeUndefined();
+    expect(core.wallet.tinta).toBe(0); // inmutabilidad
+  });
+
+  test("compra con fondos descuenta, registra, gasta y equipa al instante", () => {
+    const core = createCore();
+    core.wallet.tinta = 500;
+    const item = SHOP_ITEMS.find((s) => s.id === "frame-marea")!;
+    const out = applyPurchase(core, item.id)!;
+    expect(out.ok).toBe(true);
+    const next = out.core!;
+    expect(next.wallet.tinta).toBe(500 - item.price);
+    expect(next.wallet.spent).toBe(item.price);
+    expect(next.wallet.owned).toContain("frame-marea");
+    expect(next.wallet.frame).toBe("frame-marea"); // se equipa al comprar
+    expect(core.wallet.tinta).toBe(500); // el original intacto
+    // Repetir la compra: ya es dueño
+    expect(applyPurchase(next, item.id).reason).toBe("ya-propietario");
+  });
+
+  test("los títulos se equipan en el campo correcto", () => {
+    const core = createCore();
+    core.wallet.tinta = 400;
+    const out = applyPurchase(core, "title-tinta")!;
+    expect(out.ok).toBe(true);
+    expect(out.core!.wallet.title).toBe("title-tinta");
+    expect(titleText("title-tinta")).toBe("Mano de tinta");
+    expect(titleText("title-none")).toBe("");
+  });
+
+  test("escudo: se apila hasta el máximo y luego rechaza", () => {
+    const core = createCore();
+    core.wallet.tinta = 500;
+    let cur = core;
+    for (let i = 1; i <= SHOP_MAX_SHIELDS; i++) {
+      const out = applyPurchase(cur, "shield-1")!;
+      expect(out.ok).toBe(true);
+      cur = out.core!;
+      expect(cur.streak.shields).toBe(i);
+    }
+    const full = applyPurchase(cur, "shield-1");
+    expect(full.ok).toBe(false);
+    expect(full.reason).toBe("escudo-lleno");
+  });
+
+  test("applyEquip solo permite artículos comprados o gratuitos", () => {
+    const core = createCore();
+    core.wallet.tinta = 300;
+    const owned = applyPurchase(core, "frame-rustico")!.core!;
+    // Equipar lo comprado
+    let cur = applyEquip(owned, "frame-rustico");
+    expect(cur.wallet.frame).toBe("frame-rustico");
+    // Volver al gratuito
+    cur = applyEquip(cur, "frame-none");
+    expect(cur.wallet.frame).toBe("frame-none");
+    // No se puede equipar lo no comprado
+    cur = applyEquip(cur, "frame-faro");
+    expect(cur.wallet.frame).toBe("frame-none");
+    // Catálogos completos
+    expect(FRAMES.length).toBeGreaterThanOrEqual(6);
+    expect(TITLES.length).toBeGreaterThanOrEqual(7);
+    expect(frameCss("frame-codice")).toContain("linear-gradient");
+    expect(frameCss("no-existe")).toBe("");
+  });
+
+  test("el catálogo no vende ventajas: precios razonables y sin ids duplicados", () => {
+    const ids = new Set(SHOP_ITEMS.map((s) => s.id));
+    expect(ids.size).toBe(SHOP_ITEMS.length);
+    for (const s of SHOP_ITEMS) {
+      expect(s.price).toBeGreaterThan(0);
+      expect(s.price).toBeLessThanOrEqual(200);
+    }
+  });
+});
+
+describe("Etapa 4: contenido de la Forja", () => {
+  test("la Forja aporta 12 ejercicios por cada uno de sus cinco formatos", () => {
+    expect(FORJA_METAFORAS.length).toBe(12);
+    expect(FORJA_REGISTRO.length).toBe(12);
+    expect(FORJA_CONECTORES.length).toBe(12);
+    expect(FORJA_IRONIA.length).toBe(12);
+    expect(FORJA_TITULOS.length).toBe(12);
+    expect(FORJA_PACKS.length).toBe(60);
+  });
+
+  test("los 60 ejercicios de la Forja están registrados y sin ids repetidos", () => {
+    const ids = FORJA_PACKS.map((e) => e.id);
+    expect(new Set(ids).size).toBe(60);
+    for (const g of ["metaforas", "registro", "conectores", "ironia", "titulos"] as const) {
+      expect(EXERCISES_BY_GAME[g]?.length).toBe(12);
+    }
+  });
+
+  test("metáforas y registro: opciones válidas, respuesta dentro de rango y explicación real", () => {
+    for (const e of [...FORJA_METAFORAS, ...FORJA_REGISTRO]) {
+      expect(e.options.length).toBeGreaterThanOrEqual(3);
+      expect(e.answerIndex).toBeGreaterThanOrEqual(0);
+      expect(e.answerIndex).toBeLessThan(e.options.length);
+      expect(e.explanation.length).toBeGreaterThan(20);
+      expect(e.stem ?? e.context).toBeTruthy();
+    }
+  });
+
+  test("conectores: el hueco está en la frase y la respuesta es un conector", () => {
+    for (const e of FORJA_CONECTORES) {
+      expect(e.sentence).toContain("___");
+      expect(e.answerIndex).toBeLessThan(e.options.length);
+      expect(e.options[e.answerIndex].length).toBeGreaterThan(3);
+    }
+  });
+
+  test("ironía: tono binario y contexto presente", () => {
+    for (const e of FORJA_IRONIA) {
+      expect(["literal", "ironico"]).toContain(e.answer);
+      expect(e.context.length).toBeGreaterThan(8);
+      expect(e.statement.length).toBeGreaterThan(8);
+    }
+    const iron = FORJA_IRONIA.filter((e) => e.answer === "ironico").length;
+    const lit = FORJA_IRONIA.length - iron;
+    expect(iron).toBeGreaterThan(0);
+    expect(lit).toBeGreaterThan(0); // equilibrio: ambos tonos aparecen
+  });
+
+  test("censura: tokens contienen la respuesta; los textos limpios son mínimos", () => {
+    for (const e of FORJA_TITULOS) {
+      if (e.answerIndex === -1) continue;
+      expect(e.answerIndex).toBeLessThan(e.tokens.length);
+      expect(e.tokens.length).toBeGreaterThanOrEqual(5);
+      expect(e.explanation.length).toBeGreaterThan(15);
+    }
+    const limpios = FORJA_TITULOS.filter((e) => e.answerIndex === -1).length;
+    expect(limpios).toBe(2); // trampas honestas: no todo lleva error
+  });
+
+  test("la misión de la Forja mezcla los cinco formatos", () => {
+    const ctx = {
+      skills: createCore().skills,
+      seenExercises: {},
+      srs: {} as Record<string, SrsCard>,
+      now: new Date("2026-03-01").getTime(),
+      newCardsPerDay: 8,
+    };
+    const spec = buildMission2("forja" as never, ctx, "seed-forja");
+    expect(spec.items.length).toBeGreaterThan(0);
+    const tipos = new Set(spec.items.map((i) => (i.kind === "exercise" ? i.exercise.type : "srs")));
+    expect(tipos.size).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe("Etapa 4: validación de los formatos de la Forja", () => {
+  test("checkForjaOption compara por índice", () => {
+    const ex = { options: ["a", "b", "c"], answerIndex: 2 };
+    expect(checkForjaOption(ex, 2).correct).toBe(true);
+    expect(checkForjaOption(ex, 0).correct).toBe(false);
+    expect(checkForjaOption(ex, 2).correctAnswer).toBe("c");
+  });
+
+  test("checkIronia acierta solo con el tono real", () => {
+    const ex = { answer: "ironico" };
+    expect(checkIronia(ex, "ironico").correct).toBe(true);
+    expect(checkIronia(ex, "literal").correct).toBe(false);
+    expect(checkIronia(ex, "literal").userAnswer).toBe("Sentido literal");
+  });
+
+  test("checkCensura: token redundante, texto limpio y ambos errores", () => {
+    const conError = { tokens: ["El", "gato", "subió", "arriba"], answerIndex: 3 };
+    expect(checkCensura(conError, 3).correct).toBe(true);
+    expect(checkCensura(conError, 1).correct).toBe(false);
+    expect(checkCensura(conError, "limpio").correct).toBe(false);
+    expect(checkCensura(conError, "limpio").correctAnswer).toContain("arriba");
+    const limpio = { tokens: ["Faro", "brilla"], answerIndex: -1 };
+    expect(checkCensura(limpio, "limpio").correct).toBe(true);
+    expect(checkCensura(limpio, 0).correct).toBe(false);
+  });
+});
+
+describe("Etapa 4: logros del Códice", () => {
+  test("existen los 13 logros nuevos de la Etapa 4 con id único", () => {
+    const ids = ACH_ET4.map((a) => a.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of [
+      "ac-forja-1", "ac-forja-25", "ac-forja-completa",
+      "ac-tinta-100", "ac-tinta-500", "ac-mecenas",
+      "ac-ocho-islas", "ac-palabras-75", "ac-palabras-125",
+      "ac-racha-30", "ac-combo-15", "ac-tiempo-10h", "ac-sesiones-100",
+    ]) {
+      expect(ids).toContain(id);
+    }
+    expect(LEVELS_ET4["ac-nivel-15"]).toBe(15);
+    expect(BY_ID_ET4["ac-nivel-15"].name).toBe("Leyenda del Códice");
+  });
+
+  test("herrero de palabras se desbloquea con 25 aciertos de la Forja", () => {
+    const core = createCore();
+    core.stats.byGame["metaforas"] = { plays: 3, answers: 10, correct: 9, bestCombo: 2 };
+    core.stats.byGame["titulos"] = { plays: 2, answers: 10, correct: 8, bestCombo: 3 };
+    core.stats.byGame["ironia"] = { plays: 2, answers: 10, correct: 8, bestCombo: 2 };
+    const def = ACH_ET4.find((a) => a.id === "ac-forja-25")!;
+    expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+  });
+
+  test("maestro de la Forja exige los cinco formatos", () => {
+    const core = createCore();
+    for (const g of ["metaforas", "registro", "conectores", "ironia"] as const) {
+      core.stats.byGame[g] = { plays: 1, answers: 1, correct: 1, bestCombo: 1 };
+    }
+    const def = ACH_ET4.find((a) => a.id === "ac-forja-completa")!;
+    expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(false);
+    core.stats.byGame["titulos"] = { plays: 1, answers: 1, correct: 1, bestCombo: 1 };
+    expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+  });
+
+  test("tinta ganada y mecenas usan la wallet (compatible con núcleos sin wallet)", () => {
+    const core = createCore();
+    const def100 = ACH_ET4.find((a) => a.id === "ac-tinta-100")!;
+    const defMecenas = ACH_ET4.find((a) => a.id === "ac-mecenas")!;
+    expect(def100.check({ ...core, wallet: undefined as never }, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(false);
+    core.wallet.tinta = 90;
+    core.wallet.spent = 20;
+    expect(def100.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+    core.wallet.owned = ["frame-rustico", "title-tinta", "frame-faro"];
+    expect(defMecenas.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+  });
+
+  test("cartógrafo de las ocho islas exige las 8 regiones", () => {
+    const core = createCore();
+    core.stats.regionsByDay["2026-01-05"] = ["bosque", "ciudad", "fortaleza", "biblioteca", "puerto", "torre", "observatorio"];
+    const def = ACH_ET4.find((a) => a.id === "ac-ocho-islas")!;
+    expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(false);
+    core.stats.regionsByDay["2026-01-06"] = ["forja"];
+    expect(def.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+  });
+
+  test("combo-15, tiempo-10h y sesiones-100 usan las métricas acumuladas", () => {
+    const core = createCore();
+    const combo = ACH_ET4.find((a) => a.id === "ac-combo-15")!;
+    const tiempo = ACH_ET4.find((a) => a.id === "ac-tiempo-10h")!;
+    const sesiones = ACH_ET4.find((a) => a.id === "ac-sesiones-100")!;
+    expect(combo.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(false);
+    core.stats.bestComboEver = 15;
+    expect(combo.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+    core.stats.totalTimeMs = 10 * 3_600_000;
+    expect(tiempo.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+    core.stats.totalSessions = 100;
+    expect(sesiones.check(core, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+  });
+});
+
+describe("Etapa 4: misiones y palabras ampliadas", () => {
+  test("la métrica de tinta aproxima 1 por cada 10 XP del periodo", () => {
+    const core = createCore();
+    core.stats.xpByDay["2026-03-01"] = 95;
+    core.stats.xpByDay["2026-03-02"] = 40;
+    const hoy = metricValue(core, "tinta", { days: ["2026-03-01", "2026-03-02"] });
+    expect(hoy).toBe(9 + 4);
+  });
+
+  test("el jardín completo creció a 1310 palabras sin duplicados entre paquetes", () => {
+    expect(SRS_WORDS_B.length).toBe(150);
+    expect(SRS_WORDS_FULL.length).toBe(1310);
+    const ids = SRS_WORDS_FULL.map((w) => w.id);
+    expect(new Set(ids).size).toBe(1310);
+    const words = SRS_WORDS_FULL.map((w) => w.word);
+    expect(new Set(words).size).toBe(1310); // ni palabras repetidas
+  });
+
+  test("las palabras nuevas tienen definición, ejemplo y MCER coherente", () => {
+    for (const w of SRS_WORDS_B) {
+      expect(w.definition.length).toBeGreaterThan(10);
+      expect(w.example.length).toBeGreaterThan(6);
+      expect(["A1", "A2", "B1", "B2", "C1", "C2"]).toContain(w.cefr);
+      expect(w.difficulty).toBeGreaterThanOrEqual(1);
+      expect(w.difficulty).toBeLessThanOrEqual(5);
+    }
+  });
+
+  test("las frases del día llegan a 320 sin repetición de texto", () => {
+    expect(FRASES.length).toBeGreaterThanOrEqual(320);
+    const texts = new Set(FRASES.map((f) => f.text));
+    expect(texts.size).toBe(FRASES.length);
+  });
+
+  test("todo el catálogo de ejercicios sigue sin ids duplicados y creció a 5080+", () => {
+    const ids = ALL_EXERCISES.map((e) => e.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ALL_EXERCISES.length).toBeGreaterThanOrEqual(5080);
   });
 });

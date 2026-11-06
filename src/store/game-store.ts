@@ -20,9 +20,11 @@ import type {
 } from "@/types";
 import { createCore, reduceSessionComplete, computePlacement } from "@/engine/core";
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
+import { EMPTY_PROFILE, migrateProfile, migrateCore } from "@/engine/migrate";
+import { applyPurchase, applyEquip } from "@/engine/shop";
 import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
 import { useMusicStore } from "@/services/music-station";
-import { setSoundEnabled, setMusicVolume, setSfxVolume } from "@/services/audio";
+import { setSoundEnabled, setMusicVolume, setSfxVolume, setTtsRate, setHaptics } from "@/services/audio";
 
 const SAVE_DEBOUNCE_MS = 700;
 
@@ -40,6 +42,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   musicInGames: false,
   stationVolume: 0.75,
   stationInGames: false,
+  ttsRate: 1,
+  haptics: false,
 };
 
 export interface GameStore {
@@ -59,6 +63,10 @@ export interface GameStore {
   rateCard: (wordId: string, grade: SrsGrade) => void;
   updateSettings: (partial: Partial<GameSettings>) => void;
   updateProfile: (partial: Partial<PlayerProfile>) => void;
+  /** Compra un artículo del Bazar del Copista con tinta. */
+  buyShopItem: (itemId: string) => "ok" | "sin-fondos" | "ya-propietario" | "escudo-lleno" | "item-desconocido";
+  /** Equipa un marco o título ya comprado. */
+  equipShopItem: (itemId: string) => void;
   resetAll: () => Promise<void>;
   /** Borra progreso (XP, niveles, logros, misiones, historial) conservando perfil y ajustes. */
   resetProgress: () => Promise<void>;
@@ -69,19 +77,7 @@ export interface GameStore {
   clearLastResult: () => void;
 }
 
-const EMPTY_PROFILE: PlayerProfile = {
-  name: "",
-  avatar: "owl",
-  goal: "leer",
-  experience: "principiante",
-  gender: "x",
-  bio: "",
-  banner: "preset:aurora",
-  photo: "",
-  createdAt: 0,
-  onboarded: false,
-  placementDone: false,
-};
+const EMPTY_PROFILE_STORE: PlayerProfile = EMPTY_PROFILE;
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingSave = false;
@@ -95,6 +91,8 @@ function applySettingsSideEffects(settings: GameSettings) {
   setSoundEnabled(settings.sound);
   setMusicVolume(settings.musicVolume);
   setSfxVolume(settings.sfxVolume);
+  setTtsRate(settings.ttsRate ?? 1);
+  setHaptics(Boolean(settings.haptics));
   useMusicStore.getState().setVolume(settings.stationVolume ?? 0.75);
 }
 
@@ -151,12 +149,13 @@ export const useGameStore = create<GameStore>((set, get) => {
       const saved = await storage.load();
       if (saved && saved.profile) {
         const settings = { ...DEFAULT_SETTINGS, ...saved.settings };
+        const profile = migrateProfile(saved.profile);
         set({
           hydrated: true,
-          hasProfile: saved.profile.onboarded,
-          profile: saved.profile,
+          hasProfile: profile.onboarded,
+          profile,
           settings,
-          core: saved.core ?? createCore(),
+          core: migrateCore(saved.core),
           srs: saved.srs ?? {},
         });
         applySettingsSideEffects(settings);
@@ -232,11 +231,25 @@ export const useGameStore = create<GameStore>((set, get) => {
       persist(true);
     },
 
+    buyShopItem(itemId) {
+      const outcome = applyPurchase(get().core, itemId);
+      if (!outcome.ok || !outcome.core) return outcome.reason ?? "item-desconocido";
+      set({ core: outcome.core });
+      persist(true);
+      return "ok";
+    },
+
+    equipShopItem(itemId) {
+      const core = applyEquip(get().core, itemId);
+      set({ core });
+      persist(true);
+    },
+
     async resetAll() {
       await storage.clear();
       set({
         hasProfile: false,
-        profile: EMPTY_PROFILE,
+        profile: EMPTY_PROFILE_STORE,
         settings: DEFAULT_SETTINGS,
         core: createCore(),
         srs: {},
@@ -264,15 +277,24 @@ export const useGameStore = create<GameStore>((set, get) => {
     async importJson(text) {
       const parsed = storage.parseImport(text);
       if (!parsed) return false;
+      const profile = migrateProfile(parsed.profile);
       set({
-        profile: parsed.profile,
+        profile,
         settings: { ...DEFAULT_SETTINGS, ...parsed.settings },
-        core: parsed.core,
+        core: migrateCore(parsed.core),
         srs: parsed.srs ?? {},
-        hasProfile: parsed.profile.onboarded,
+        hasProfile: profile.onboarded,
       });
       applySettingsSideEffects({ ...DEFAULT_SETTINGS, ...parsed.settings });
-      await storage.save(parsed);
+      const migrated = {
+        version: CURRENT_SCHEMA_VERSION,
+        profile,
+        settings: { ...DEFAULT_SETTINGS, ...parsed.settings },
+        core: migrateCore(parsed.core),
+        srs: parsed.srs ?? {},
+        savedAt: Date.now(),
+      };
+      await storage.save(migrated);
       return true;
     },
 

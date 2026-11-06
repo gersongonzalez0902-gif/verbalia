@@ -1,7 +1,7 @@
 {
   "name": "VERBALIA · La aventura del lenguaje",
   "short_name": "VERBALIA",
-  "description": "Videojuego educativo de español: 51 minijuegos en 7 islas del Archipiélago de las Palabras. Vocabulario, gramática, ortografía, lectura, audición, expresión y cultura lingüística.",
+  "description": "Videojuego educativo de español: 56 minijuegos en 8 islas del Archipiélago de las Palabras. Vocabulario, gramática, ortografía, lectura, audición, expresión, cultura lingüística y estilo.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -33,6 +33,32 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Sesión rápida",
+      "short_name": "Jugar",
+      "description": "Arranca el jardín de tarjetas SRS sin pasar por el mapa.",
+      "url": "/#/juego/srs/training"
+    },
+    {
+      "name": "Misiones de hoy",
+      "short_name": "Misiones",
+      "description": "Consulta tus misiones diarias y semanales.",
+      "url": "/#/misiones"
+    },
+    {
+      "name": "El Bazar del Copista",
+      "short_name": "Bazar",
+      "description": "Gasta tu tinta en marcos, títulos y escudos.",
+      "url": "/#/tienda"
+    },
+    {
+      "name": "Estación de música",
+      "short_name": "Música",
+      "description": "Tus canciones y los paisajes sonoros del Archipiélago.",
+      "url": "/#/musica"
     }
   ]
 }
