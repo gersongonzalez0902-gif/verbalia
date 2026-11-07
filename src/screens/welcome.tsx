@@ -35,7 +35,7 @@ export function WelcomeScreen() {
       <div className="anim-pop relative z-10 flex flex-col items-center gap-6">
         {/* Emblema */}
         <div className="relative">
-          <img src="/icon.svg" alt="Emblema de VerbalIA" className="h-24 w-24 rounded-3xl shadow-lg" />
+          <img src="/icons/icon-192.png" alt="Emblema de VerbalIA" className="h-24 w-24 rounded-3xl shadow-lg" />
           <span className="anim-float absolute -right-3 -top-2 text-2xl" aria-hidden>
             ✨
           </span>

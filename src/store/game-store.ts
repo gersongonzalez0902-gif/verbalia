@@ -10,6 +10,7 @@
 import { create } from "zustand";
 import type {
   AnswerRecord,
+  GameCore,
   GameSettings,
   PlayerProfile,
   SrsCard,
@@ -21,8 +22,11 @@ import type {
 import { createCore, reduceSessionComplete, computePlacement } from "@/engine/core";
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { EMPTY_PROFILE, migrateProfile, migrateCore } from "@/engine/migrate";
-import { applyPurchase, applyEquip } from "@/engine/shop";
-import { applyArcadeUnlock, applyArcadeScore, applyChessElo } from "@/engine/arcade";
+import { applyPurchase, applyEquip, claimDailyGift } from "@/engine/shop";
+import { dailyMissions, weeklyMissions, metricValue, dateKey, weekKey, daysOfWeek } from "@/engine/missions";
+import { levelFromXp } from "@/engine/xp";
+import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
+import { applyArcadeUnlock, applyArcadeScore, applyTypingTest, type TypingResult } from "@/engine/arcade";
 import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
 import { useMusicStore } from "@/services/music-station";
 import { setSoundEnabled, setMusicVolume, setSfxVolume, setTtsRate, setHaptics } from "@/services/audio";
@@ -68,12 +72,18 @@ export interface GameStore {
   buyShopItem: (itemId: string) => "ok" | "sin-fondos" | "ya-propietario" | "escudo-lleno" | "item-desconocido";
   /** Equipa un marco o título ya comprado. */
   equipShopItem: (itemId: string) => void;
+  /** Reclama el regalo diario de tinta del Bazar. */
+  claimDailyTinta: () => boolean;
   /** Desbloquea un juego del Salón con tinta. */
   unlockArcade: (gameId: string) => "ok" | "sin-fondos" | "ya-desbloqueado" | "item-desconocido";
   /** Registra la puntuación de una partida del Salón (XP + tinta + récord). */
   recordArcadeScore: (gameId: string, score: number) => { xp: number; tinta: number; isRecord: boolean };
-  /** Actualiza el ELO de ajedrez tras una partida contra el motor. */
-  recordChessResult: (result: "w" | "d" | "l", engineElo: number) => void;
+  /** Registra una prueba del Taller de Escritura (mecanografía). */
+  recordTypingTest: (result: Omit<TypingResult, "core">) => { xp: number; isRecord: boolean };
+  /** Recoge manualmente la recompensa de una misión diaria o semanal. */
+  claimMission: (scope: "daily" | "weekly", missionId: string) => { ok: boolean; xp: number; tinta: number; shield: boolean };
+  /** Recoge manualmente la recompensa de un logro desbloqueado. */
+  claimAchievement: (achievementId: string) => { ok: boolean; xp: number; tinta: number };
   resetAll: () => Promise<void>;
   /** Borra progreso (XP, niveles, logros, misiones, historial) conservando perfil y ajustes. */
   resetProgress: () => Promise<void>;
@@ -252,6 +262,14 @@ export const useGameStore = create<GameStore>((set, get) => {
       persist(true);
     },
 
+    claimDailyTinta() {
+      const outcome = claimDailyGift(get().core);
+      if (!outcome.ok) return false;
+      set({ core: outcome.core });
+      persist(true);
+      return true;
+    },
+
     unlockArcade(gameId) {
       const outcome = applyArcadeUnlock(get().core, gameId);
       if (!outcome.ok || !outcome.core) return outcome.reason ?? "item-desconocido";
@@ -267,10 +285,62 @@ export const useGameStore = create<GameStore>((set, get) => {
       return { xp: outcome.xp, tinta: outcome.tinta, isRecord: outcome.isRecord };
     },
 
-    recordChessResult(result, engineElo) {
-      const core = applyChessElo(get().core, result, engineElo);
-      set({ core });
+    recordTypingTest(result) {
+      const outcome = applyTypingTest(get().core, result);
+      set({ core: outcome.core });
       persist(true);
+      return { xp: outcome.xp, isRecord: outcome.isRecord };
+    },
+
+    claimMission(scope, missionId) {
+      const core = get().core;
+      const now = new Date();
+      const level = levelFromXp(core.xp);
+      const list = scope === "daily" ? dailyMissions(dateKey(now), level) : weeklyMissions(weekKey(now), level);
+      const def = list.find((m) => m.id === missionId);
+      if (!def) return { ok: false, xp: 0, tinta: 0, shield: false };
+      const scopeDays = scope === "daily" ? [dateKey(now)] : daysOfWeek(now);
+      const reached = metricValue(core, def.metric, { days: scopeDays });
+      if (reached < def.target) return { ok: false, xp: 0, tinta: 0, shield: false };
+      const store = scope === "daily" ? core.missions.daily : core.missions.weekly;
+      if (store.claimed.includes(missionId)) return { ok: false, xp: 0, tinta: 0, shield: false };
+
+      const xp = def.xpReward;
+      const tinta = def.tintaReward ?? 0;
+      let next = {
+        ...core,
+        xp: core.xp + xp,
+        wallet: { ...core.wallet, tinta: core.wallet.tinta + tinta },
+        missions: {
+          ...core.missions,
+          [scope]: { ...store, claimed: [...store.claimed, missionId] },
+        } as GameCore["missions"],
+      };
+      if (def.shieldReward) {
+        next = { ...next, streak: { ...next.streak, shields: Math.min(3, next.streak.shields + 1) } };
+      }
+      set({ core: next });
+      persist(true);
+      return { ok: true, xp, tinta, shield: Boolean(def.shieldReward) };
+    },
+
+    claimAchievement(achievementId) {
+      const core = get().core;
+      if (!core.achievements[achievementId]) return { ok: false, xp: 0, tinta: 0 };
+      if (core.achievementsClaimed?.includes(achievementId)) return { ok: false, xp: 0, tinta: 0 };
+      const def = ACHIEVEMENTS_BY_ID[achievementId];
+      const xp = def?.xpReward ?? 40;
+      const tinta = def?.tintaReward ?? 0;
+      set({
+        core: {
+          ...core,
+          xp: core.xp + xp,
+          wallet: { ...core.wallet, tinta: core.wallet.tinta + tinta },
+          achievementsClaimed: [...(core.achievementsClaimed ?? []), achievementId],
+        },
+      });
+      persist(true);
+      return { ok: true, xp, tinta };
     },
 
     async resetAll() {

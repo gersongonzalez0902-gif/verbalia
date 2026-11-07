@@ -1,0 +1,751 @@
+     1→import type { GameId, SkillId } from "@/types";
+     2→
+     3→/** Metadatos de un minijuego (para el registro de juegos y la biblioteca). */
+     4→export interface GameInfo {
+     5→  id: GameId;
+     6→  name: string;
+     7→  tagline: string;
+     8→  description: string;
+     9→  skill: SkillId;
+    10→  icon: string;
+    11→  /** Instrucciones que se muestran antes de jugar. */
+    12→  instructions: string;
+    13→  /** Segundos estimados por ítem. */
+    14→  secondsPerItem: number;
+    15→  /** Tiempo límite por ítem en segundos (null = sin límite). */
+    16→  timeLimit: number | null;
+    17→}
+    18→
+    19→export const GAMES: Record<GameId, GameInfo> = {
+    20→  srs: {
+    21→    id: "srs",
+    22→    name: "Jardín de Tarjetas",
+    23→    tagline: "Repetición espaciada dinámica",
+    24→    description:
+    25→      "Tarjetas inteligentes que reaparecen justo cuando estás a punto de olvidar la palabra. Cada respuesta ajusta el calendario del jardín.",
+    26→    skill: "vocabulario",
+    27→    icon: "Sprout",
+    28→    instructions:
+    29→      "Piensa el significado de la palabra, toca «Mostrar» y sé sincero al valorarte: el jardín usa tu respuesta para decidir cuándo volver a preguntarte.",
+    30→    secondsPerItem: 18,
+    31→    timeLimit: null,
+    32→  },
+    33→  trivia: {
+    34→    id: "trivia",
+    35→    name: "Trivia Relámpago",
+    36→    tagline: "Clasifica palabras a contrarreloj",
+    37→    description:
+    38→      "Palabras que caen como rayos: clasifícalas como sustantivo, verbo, adjetivo o adverbio antes de que se apague la luz.",
+    39→    skill: "vocabulario",
+    40→    icon: "Zap",
+    41→    instructions:
+    42→      "Mira la palabra destacada en la frase y elige su categoría gramatical. Tienes 12 segundos por palabra.",
+    43→    secondsPerItem: 10,
+    44→    timeLimit: 12,
+    45→  },
+    46→  puzzle: {
+    47→    id: "puzzle",
+    48→    name: "Puentes de Palabras",
+    49→    tagline: "Puzzles sintácticos",
+    50→    description:
+    51→      "Los fragmentos de una oración se han caído del puente. Tócalos en orden para reconstruir la sintaxis completa.",
+    52→    skill: "gramatica",
+    53→    icon: "Blocks",
+    54→    instructions:
+    55→      "Toca los fragmentos en el orden correcto para construir la oración. Si te equivocas, toca un fragmento ya colocado para devolverlo.",
+    56→    secondsPerItem: 30,
+    57→    timeLimit: null,
+    58→  },
+    59→  cloze: {
+    60→    id: "cloze",
+    61→    name: "Puentes de Contexto",
+    62→    tagline: "Cloze test contextual",
+    63→    description:
+    64→      "Textos con huecos que solo el contexto puede resolver. Ser, estar, por, para… la palabra exacta importa.",
+    65→    skill: "gramatica",
+    66→    icon: "TextSelect",
+    67→    instructions: "Lee el texto con atención y elige la opción que completa el hueco correctamente.",
+    68→    secondsPerItem: 22,
+    69→    timeLimit: null,
+    70→  },
+    71→  errores: {
+    72→    id: "errores",
+    73→    name: "Caza de Errores",
+    74→    tagline: "Detective ortográfico",
+    75→    description:
+    76→      "Una frase se cuela en la Fortaleza con un error escondido. Encuéntralo y elige la corrección correcta.",
+    77→    skill: "ortografia",
+    78→    icon: "Search",
+    79→    instructions:
+    80→      "Toca la palabra que esconde el error (o «No hay error» si la frase está limpia) y después elige la corrección adecuada.",
+    81→    secondsPerItem: 28,
+    82→    timeLimit: null,
+    83→  },
+    84→  tildes: {
+    85→    id: "tildes",
+    86→    name: "Tribunal de las Tildes",
+    87→    tagline: "Justicia acentual",
+    88→    description:
+    89→      "La palabra comparece ante el tribunal sin su tilde. Decide qué sílaba la merece… o declárala inocente.",
+    90→    skill: "ortografia",
+    91→    icon: "Scale",
+    92→    instructions:
+    93→      "Lee la frase, mira la palabra señalada y toca la sílaba que debe llevar tilde. Si la palabra no lleva ninguna, elige «No lleva tilde».",
+    94→    secondsPerItem: 24,
+    95→    timeLimit: null,
+    96→  },
+    97→  parrafos: {
+    98→    id: "parrafos",
+    99→    name: "Cronista de la Biblioteca",
+   100→    tagline: "Constructor de párrafos",
+   101→    description:
+   102→      "Las páginas de un libro se han mezclado. Ordena las oraciones hasta que la historia recupere su hilo.",
+   103→    skill: "lectura",
+   104→    icon: "ListOrdered",
+   105→    instructions:
+   106→      "Toca las oraciones en el orden correcto para reconstruir el párrafo. Fíjate en los conectores y en la lógica del relato.",
+   107→    secondsPerItem: 45,
+   108→    timeLimit: null,
+   109→  },
+   110→
+   111→  /* ==================== Etapa 2 ==================== */
+   112→  dictado: {
+   113→    id: "dictado",
+   114→    name: "Dictado del Faro",
+   115→    tagline: "Escucha y escribe, tilde a tilde",
+   116→    description:
+   117→      "El faro dicta frases con la voz del navegador y tú las escribes. Tildes, eñes y signos de apertura cuentan.",
+   118→    skill: "audicion",
+   119→    icon: "Ear",
+   120→    instructions:
+   121→      "Escucha la frase (puedes repetirla hasta tres veces) y escríbela exacta. Se toleran mayúsculas y el punto final, pero no las tildes que faltan.",
+   122→    secondsPerItem: 40,
+   123→    timeLimit: null,
+   124→  },
+   125→  matices: {
+   126→    id: "matices",
+   127→    name: "Ecos del Puerto",
+   128→    tagline: "Tono e intención en la voz",
+   129→    description:
+   130→      "No todo está en las palabras: escucha el eco y decide qué intención esconde la frase.",
+   131→    skill: "audicion",
+   132→    icon: "AudioLines",
+   133→    instructions:
+   134→      "Escucha la frase y elige su intención o tono. Cada respuesta explica la pista que lo delata.",
+   135→    secondsPerItem: 25,
+   136→    timeLimit: null,
+   137→  },
+   138→  lectura: {
+   139→    id: "lectura",
+   140→    name: "Lectura Inmersiva",
+   141→    tagline: "Leer (y oír) con los ojos y las orejas",
+   142→    description:
+   143→      "Textos breves que se iluminan frase a frase mientras se leen en voz alta. Al final, una pregunta de comprensión.",
+   144→    skill: "lectura",
+   145→    icon: "BookOpenText",
+   146→    instructions:
+   147→      "Escucha (o lee) el texto con calma y responde después la pregunta. La voz es la de tu navegador: varía según el sistema.",
+   148→    secondsPerItem: 75,
+   149→    timeLimit: null,
+   150→  },
+   151→  sprint: {
+   152→    id: "sprint",
+   153→    name: "Sprint de Vocabulario",
+   154→    tagline: "Definiciones a contrarreloj",
+   155→    description:
+   156→      "Una palabra, cuatro definiciones y diez segundos. La velocidad con precisión es la única vía.",
+   157→    skill: "vocabulario",
+   158→    icon: "Gauge",
+   159→    instructions:
+   160→      "Elige la definición correcta antes de que se agote el tiempo. Si se agota, cuenta como fallo (con explicación).",
+   161→    secondsPerItem: 10,
+   162→    timeLimit: 10,
+   163→  },
+   164→  sinonimos: {
+   165→    id: "sinonimos",
+   166→    name: "Batalla de Sinónimos",
+   167→    tagline: "La palabra justa en el sitio justo",
+   168→    description:
+   169→      "Sinónimos y antónimos en contexto: la palabra que encaja sin romper la frase.",
+   170→    skill: "vocabulario",
+   171→    icon: "Swords",
+   172→    instructions:
+   173→      "Lee la frase y elige la opción pedida (sinónimo o antónimo) que mejor sustituye a la palabra destacada.",
+   174→    secondsPerItem: 20,
+   175→    timeLimit: null,
+   176→  },
+   177→  historias: {
+   178→    id: "historias",
+   179→    name: "Historias Ramificadas",
+   180→    tagline: "Tú decides el rumbo",
+   181→    description:
+   182→      "Relatos del Archipiélago que cambian según tus decisiones. Explorar no se castiga: al final, una pregunta de comprensión.",
+   183→    skill: "expresion",
+   184→    icon: "GitBranch",
+   185→    instructions:
+   186→      "Lee y decide el rumbo en cada encrucijada. Cuando la historia termine, responde la pregunta final.",
+   187→    secondsPerItem: 90,
+   188→    timeLimit: null,
+   189→  },
+   190→  refranes: {
+   191→    id: "refranes",
+   192→    name: "Sabiduría Popular",
+   193→    tagline: "Refranes y modismos del español",
+   194→    description:
+   195→      "Dichos de toda la hispanofonía con su significado real. Del Caribe al Cono Sur, la lengua cambia y converge.",
+   196→    skill: "expresion",
+   197→    icon: "ScrollText",
+   198→    instructions:
+   199→      "Elige el significado verdadero del dicho. Las distracciones suenan creíbles: busca el sentido figurado.",
+   200→    secondsPerItem: 22,
+   201→    timeLimit: null,
+   202→  },
+   203→  minuto: {
+   204→    id: "minuto",
+   205→    name: "Reto del Minuto",
+   206→    tagline: "Escritura libre sin freno",
+   207→    description:
+   208→      "Sesenta segundos de escritura sin borrar ni juzgar. Después, una autoevaluación honesta con criterios claros.",
+   209→    skill: "expresion",
+   210→    icon: "PenLine",
+   211→    instructions:
+   212→      "Escribe sin parar durante un minuto. Sin corrección automática: luego revisas tu texto con una lista de criterios.",
+   213→    secondsPerItem: 75,
+   214→    timeLimit: null,
+   215→  },
+   216→
+   217→  /* ==================== Etapa 3 · cinco nuevos por ciudad ==================== */
+   218→  "memoria-bosque": {
+   219→    id: "memoria-bosque",
+   220→    name: "Memoria del Bosque",
+   221→    tagline: "Pares de palabra y significado",
+   222→    description:
+   223→      "Las tarjetas del jardín se han mezclado. Voltéalas de dos en dos y empareja cada palabra con su significado.",
+   224→    skill: "vocabulario",
+   225→    icon: "Brain",
+   226→    instructions:
+   227→      "Toca dos tarjetas para voltearlas. Si forman un par (palabra y su significado), se quedan descubiertas. Empareja todas con los menores intentos posibles.",
+   228→    secondsPerItem: 45,
+   229→    timeLimit: null,
+   230→  },
+   231→  "intruso-bosque": {
+   232→    id: "intruso-bosque",
+   233→    name: "El Intruso del Bosque",
+   234→    tagline: "Encuentra la palabra que no encaja",
+   235→    description:
+   236→      "Tres palabras de la misma familia y una intrusa escondida entre la maleza. Señálala para despejar el claro.",
+   237→    skill: "vocabulario",
+   238→    icon: "Shapes",
+   239→    instructions:
+   240→      "Mira las cuatro palabras: tres comparten una familia semántica. Toca la que no pertenece.",
+   241→    secondsPerItem: 20,
+   242→    timeLimit: null,
+   243→  },
+   244→  "escribe-bosque": {
+   245→    id: "escribe-bosque",
+   246→    name: "Pluma Salvaje",
+   247→    tagline: "Escribe la palabra escondida",
+   248→    description:
+   249→      "La definición aparece, la palabra se esconde. Escríbela letra a letra con la ayuda de su categoría.",
+   250→    skill: "vocabulario",
+   251→    icon: "PenLine",
+   252→    instructions:
+   253→      "Lee la definición y escribe la palabra correcta. Puedes pedir una pista (categoría y número de letras), pero la pluma recuerda los intentos.",
+   254→    secondsPerItem: 30,
+   255→    timeLimit: null,
+   256→  },
+   257→  "vf-bosque": {
+   258→    id: "vf-bosque",
+   259→    name: "Verdad o Hierba",
+   260→    tagline: "Afirmaciones sobre palabras",
+   261→    description:
+   262→      "Afirmaciones sobre el uso y el significado de las palabras. Decide si florecen verdaderas o se marchitan falsas.",
+   263→    skill: "vocabulario",
+   264→    icon: "Sprout",
+   265→    instructions:
+   266→      "Lee la afirmación sobre una palabra y decide: verdadera o falsa. Si es falsa, verás la explicación correcta.",
+   267→    secondsPerItem: 18,
+   268→    timeLimit: null,
+   269→  },
+   270→  "oye-bosque": {
+   271→    id: "oye-bosque",
+   272→    name: "Oído del Bosque",
+   273→    tagline: "Escucha y elige la escritura",
+   274→    description:
+   275→      "El viento susurra una palabra. Escúchala y elige la escritura correcta entre trampas fonéticas.",
+   276→    skill: "vocabulario",
+   277→    icon: "Ear",
+   278→    instructions:
+   279→      "Pulsa el altavoz para oír la palabra (voz de tu navegador) y toca la escritura correcta.",
+   280→    secondsPerItem: 20,
+   281→    timeLimit: null,
+   282→  },
+   283→  "sortea-ciudad": {
+   284→    id: "sortea-ciudad",
+   285→    name: "Semáforo Gramático",
+   286→    tagline: "Clasifica en el cubo correcto",
+   287→    description:
+   288→      "Las frases cruzan la ciudad sin dirección. Enróscalas al cubo correcto: ser o estar, por o para, bien o mal.",
+   289→    skill: "gramatica",
+   290→    icon: "ArrowDownUp",
+   291→    instructions:
+   292→      "Lee la frase y toca el cubo al que pertenece. Los cubos cambian según la ronda: fíjate en sus etiquetas.",
+   293→    secondsPerItem: 16,
+   294→    timeLimit: null,
+   295→  },
+   296→  "vf-ciudad": {
+   297→    id: "vf-ciudad",
+   298→    name: "Juzgado Gramatical",
+   299→    tagline: "¿Se dice o no se dice?",
+   300→    description:
+   301→      "Frases que pasan por el juzgado de la ciudad: unas son correctas y otras esconden un delito gramatical.",
+   302→    skill: "gramatica",
+   303→    icon: "BadgeCheck",
+   304→    instructions:
+   305→      "Lee la frase del juzgado y decide si es gramaticalmente correcta (verdadera) o incorrecta (falsa).",
+   306→    secondsPerItem: 16,
+   307→    timeLimit: null,
+   308→  },
+   309→  "conecta-ciudad": {
+   310→    id: "conecta-ciudad",
+   311→    name: "Puentes Incompletos",
+   312→    tagline: "Une inicio y final",
+   313→    description:
+   314→      "Los puentes de la ciudad quedaron a medias. Conecta cada inicio de oración con el final que le corresponde.",
+   315→    skill: "gramatica",
+   316→    icon: "Waypoints",
+   317→    instructions:
+   318→      "Toca un inicio de la columna izquierda y después su final en la derecha. Los puentes se dibujan solos cuando aciertas.",
+   319→    secondsPerItem: 40,
+   320→    timeLimit: null,
+   321→  },
+   322→  "intruso-ciudad": {
+   323→    id: "intruso-ciudad",
+   324→    name: "Intruso Urbano",
+   325→    tagline: "Cuatro palabras, una disfrazada",
+   326→    description:
+   327→      "En la avenida desfilan cuatro palabras: tres hacen la misma función y una se ha colado con documentación falsa.",
+   328→    skill: "gramatica",
+   329→    icon: "Building2",
+   330→    instructions:
+   331→      "Tres palabras comparten función o estructura gramatical. Toca el intruso que no pertenece al grupo.",
+   332→    secondsPerItem: 20,
+   333→    timeLimit: null,
+   334→  },
+   335→  "escribe-ciudad": {
+   336→    id: "escribe-ciudad",
+   337→    name: "Pluma Urbana",
+   338→    tagline: "Conjuga bajo presión",
+   339→    description:
+   340→      "El ayuntamiento exige formas verbales exactas. Escríbelas con tilde y todo, sin redondear la esquina.",
+   341→    skill: "gramatica",
+   342→    icon: "PenLine",
+   343→    instructions:
+   344→      "Lee la persona, el tiempo y el verbo pedidos, y escribe la forma exacta. Las tildes cuentan.",
+   345→    secondsPerItem: 26,
+   346→    timeLimit: null,
+   347→  },
+   348→  "sortea-fortaleza": {
+   349→    id: "sortea-fortaleza",
+   350→    name: "Clasifica Acentos",
+   351→    tagline: "Agudas, llanas y esdrújulas",
+   352→    description:
+   353→      "Las palabras asaltan la fortaleza por tres puertas: aguda, llana o esdrújula. Colócalas en su torre.",
+   354→    skill: "ortografia",
+   355→    icon: "Scale",
+   356→    instructions:
+   357→      "Mira la palabra (sin tilde) y clasifícala por donde llevaría el acento: aguda, llana o esdrújula. Después de responder verás dónde va la tilde.",
+   358→    secondsPerItem: 16,
+   359→    timeLimit: null,
+   360→  },
+   361→  "vf-fortaleza": {
+   362→    id: "vf-fortaleza",
+   363→    name: "Muro de Verdades",
+   364→    tagline: "Ortografía verdadera o falsa",
+   365→    description:
+   366→      "Cada ladrillo del muro trae una afirmación ortográfica. Los falsos se caen solos cuando los señalas.",
+   367→    skill: "ortografia",
+   368→    icon: "Castle",
+   369→    instructions:
+   370→      "Lee la afirmación sobre escritura de una palabra y decide si es verdadera o falsa. La corrección aparece al fallar.",
+   371→    secondsPerItem: 16,
+   372→    timeLimit: null,
+   373→  },
+   374→  "escribe-fortaleza": {
+   375→    id: "escribe-fortaleza",
+   376→    name: "Pluma Blindada",
+   377→    tagline: "Escribe la palabra trampa",
+   378→    description:
+   379→      "Palabras con b/v, g/j, h y tildes traicioneras. La fortaleza te dicta la definición y tú escribes sin fallar.",
+   380→    skill: "ortografia",
+   381→    icon: "Feather",
+   382→    instructions:
+   383→      "Lee la definición y escribe la palabra con ortografía exacta. Las tildes valen tanto como las letras.",
+   384→    secondsPerItem: 28,
+   385→    timeLimit: null,
+   386→  },
+   387→  "oye-fortaleza": {
+   388→    id: "oye-fortaleza",
+   389→    name: "Eco Guardián",
+   390→    tagline: "b/v, g/j, h… ¿cuál oíste?",
+   391→    description:
+   392→      "El eco del muro pronuncia palabras trampa. Elige la escritura correcta: el oído engaña, la fortaleza no.",
+   393→    skill: "ortografia",
+   394→    icon: "Ear",
+   395→    instructions:
+   396→      "Escucha la palabra y elige su escritura correcta entre las cuatro opciones (solo una es la válida).",
+   397→    secondsPerItem: 18,
+   398→    timeLimit: null,
+   399→  },
+   400→  "memoria-fortaleza": {
+   401→    id: "memoria-fortaleza",
+   402→    name: "Memoria de Homófonos",
+   403→    tagline: "Suena igual, se escribe distinto",
+   404→    description:
+   405→      "Pares de homófonos grabados en los muros: azar y azahar, haber y a ver. Voltéalos y emparéjalos.",
+   406→    skill: "ortografia",
+   407→    icon: "Layers",
+   408→    instructions:
+   409→      "Empareja cada palabra con su compañera de sonido: suenan igual pero se escriben y significan cosas distintas.",
+   410→    secondsPerItem: 45,
+   411→    timeLimit: null,
+   412→  },
+   413→  "conecta-biblioteca": {
+   414→    id: "conecta-biblioteca",
+   415→    name: "Conecta Páginas",
+   416→    tagline: "Conceptos y definiciones",
+   417→    description:
+   418→      "Los conceptos de la Biblioteca se han despegado de sus definiciones. Vuelve a encuadernarlos por pares.",
+   419→    skill: "lectura",
+   420→    icon: "Waypoints",
+   421→    instructions:
+   422→      "Toca un concepto y después su definición. Cada pareja correcta ilumina una página más del libro.",
+   423→    secondsPerItem: 40,
+   424→    timeLimit: null,
+   425→  },
+   426→  "vf-biblioteca": {
+   427→    id: "vf-biblioteca",
+   428→    name: "Lector Detectivo",
+   429→    tagline: "¿Dice el texto lo que crees?",
+   430→    description:
+   431→      "Afirmaciones sobre textos, tono y sentido literal. Detecta las que el autor nunca escribió.",
+   432→    skill: "lectura",
+   433→    icon: "Library",
+   434→    instructions:
+   435→      "Lee la afirmación sobre un texto o su lenguaje y decide: verdadera o falsa. La explicación llega al final.",
+   436→    secondsPerItem: 20,
+   437→    timeLimit: null,
+   438→  },
+   439→  "intruso-biblioteca": {
+   440→    id: "intruso-biblioteca",
+   441→    name: "Intruso Literario",
+   442→    tagline: "El que no pertenece al estante",
+   443→    description:
+   444→      "Cuatro palabras comparten un estante por registro o campo… menos una, que alguien dejó en el lugar equivocado.",
+   445→    skill: "lectura",
+   446→    icon: "Shapes",
+   447→    instructions:
+   448→      "Observa las cuatro palabras: tres comparten campo semántico o registro. Toca la intrusa del estante.",
+   449→    secondsPerItem: 20,
+   450→    timeLimit: null,
+   451→  },
+   452→  "memoria-puerto": {
+   453→    id: "memoria-puerto",
+   454→    name: "Memoria de Ecos",
+   455→    tagline: "Pares de regionalismos",
+   456→    description:
+   457→      "En el puerto desembarcan palabras gemelas de países distintos: plátano y banana, palta y aguacate. Emparéjalas.",
+   458→    skill: "audicion",
+   459→    icon: "Languages",
+   460→    instructions:
+   461→      "Voltea dos tarjetas y une cada palabra con su variante regional. La tripulación te observa.",
+   462→    secondsPerItem: 45,
+   463→    timeLimit: null,
+   464→  },
+   465→  "memoria-biblioteca": {
+   466→    id: "memoria-biblioteca",
+   467→    name: "Memoria de Cultismos",
+   468→    tagline: "Pares de vocabulario culto",
+   469→    description:
+   470→      "Las palabras más viajadas de la Biblioteca juegan al escondite con sus significados. Encuéntralos por pares.",
+   471→    skill: "lectura",
+   472→    icon: "BookHeart",
+   473→    instructions:
+   474→      "Voltea las tarjetas y empareja cada cultismo (C1-C2) con su definición. Menos intentos, más mérito.",
+   475→    secondsPerItem: 45,
+   476→    timeLimit: null,
+   477→  },
+   478→  "sortea-biblioteca": {
+   479→    id: "sortea-biblioteca",
+   480→    name: "Hecho u Opinión",
+   481→    tagline: "Clasifica lo que lees",
+   482→    description:
+   483→      "La Biblioteca separa los hechos de las opiniones. Tú eres el bibliotecario de guardia: clasifica cada frase.",
+   484→    skill: "lectura",
+   485→    icon: "BookOpenText",
+   486→    instructions:
+   487→      "Lee la frase y decide: ¿es un hecho comprobable o una opinión? Clasifícala en el cubo correcto.",
+   488→    secondsPerItem: 16,
+   489→    timeLimit: null,
+   490→  },
+   491→  "oye-puerto": {
+   492→    id: "oye-puerto",
+   493→    name: "Reflejos del Faro",
+   494→    tagline: "Escucha la frase exacta",
+   495→    description:
+   496→      "El faro dicta y las gaviotas confunden. Escucha la frase completa y elige la transcripción exacta.",
+   497→    skill: "audicion",
+   498→    icon: "AudioLines",
+   499→    instructions:
+   500→      "Escucha la frase corta (puedes repetirla) y toca la escritura que copia exactamente lo que oíste.",
+   501→    secondsPerItem: 22,
+   502→    timeLimit: null,
+   503→  },
+   504→  "vf-puerto": {
+   505→    id: "vf-puerto",
+   506→    name: "Tono Verdadero",
+   507→    tagline: "¿Qué intención esconde la voz?",
+   508→    description:
+   509→      "Afirmaciones sobre tono, ironía y cortesía. El puerto murmura: distingue la voz sincera de la burlona.",
+   510→    skill: "audicion",
+   511→    icon: "MessageCircle",
+   512→    instructions:
+   513→      "Lee (o escucha) la afirmación sobre una frase y su tono, y decide si es verdadera o falsa.",
+   514→    secondsPerItem: 18,
+   515→    timeLimit: null,
+   516→  },
+   517→  "conecta-puerto": {
+   518→    id: "conecta-puerto",
+   519→    name: "Conecta Intenciones",
+   520→    tagline: "Frase y propósito",
+   521→    description:
+   522→      "Cada frase del puerto llegó con un propósito distinto: pedir, ironizar, tranquilizar. Conéctalas.",
+   523→    skill: "audicion",
+   524→    icon: "Waypoints",
+   525→    instructions:
+   526→      "Une cada frase con la intención que transmite. Piensa en el tono, no solo en las palabras.",
+   527→    secondsPerItem: 36,
+   528→    timeLimit: null,
+   529→  },
+   530→  "sortea-puerto": {
+   531→    id: "sortea-puerto",
+   532→    name: "Registro del Puerto",
+   533→    tagline: "¿Formal o coloquial?",
+   534→    description:
+   535→      "Los marineros hablan de mil maneras. Clasifica cada frase por su registro antes de que zape el barco.",
+   536→    skill: "audicion",
+   537→    icon: "Filter",
+   538→    instructions:
+   539→      "Lee la frase y clasifícala: registro formal o coloquial. Piensa en el contexto donde encajaría.",
+   540→    secondsPerItem: 16,
+   541→    timeLimit: null,
+   542→  },
+   543→  "vf-torre": {
+   544→    id: "vf-torre",
+   545→    name: "Refrán Verdadero",
+   546→    tagline: "¿Significa eso el refrán?",
+   547→    description:
+   548→      "Los refranes de la torre se presentan con un significado atribuido. Algunos dicen la verdad; otros, puro cuento.",
+   549→    skill: "expresion",
+   550→    icon: "ScrollText",
+   551→    instructions:
+   552→      "Lee el refrán y el significado que se le atribuye: ¿es el verdadero o es una trampa? Decide.",
+   553→    secondsPerItem: 18,
+   554→    timeLimit: null,
+   555→  },
+   556→  "conecta-torre": {
+   557→    id: "conecta-torre",
+   558→    name: "Conecta Sabidurías",
+   559→    tagline: "Refrán y significado",
+   560→    description:
+   561→      "Los refranes cuelgan de la torre con los significados en bolsas separadas. Vuelve a unir cada dicho con su sentido.",
+   562→    skill: "expresion",
+   563→    icon: "Waypoints",
+   564→    instructions:
+   565→      "Toca un refrán y después su significado verdadero. Cada acierto cuelga una linterna más en la torre.",
+   566→    secondsPerItem: 40,
+   567→    timeLimit: null,
+   568→  },
+   569→  "sortea-torre": {
+   570→    id: "sortea-torre",
+   571→    name: "Literal o Figurado",
+   572→    tagline: "¿Qué sentido esconde?",
+   573→    description:
+   574→      "Frases que pueden tomarse al pie de la letra… o no. Clasifícalas según el sentido con que se usan.",
+   575→    skill: "expresion",
+   576→    icon: "Lightbulb",
+   577→    instructions:
+   578→      "Lee la frase y decide si se usa en sentido literal o figurado. Después, la torre te cuenta el porqué.",
+   579→    secondsPerItem: 16,
+   580→    timeLimit: null,
+   581→  },
+   582→  "escribe-torre": {
+   583→    id: "escribe-torre",
+   584→    name: "Pluma de la Torre",
+   585→    tagline: "La palabra justa evocada",
+   586→    description:
+   587→      "Una pista desde la terraza más alta y una palabra que solo tu vocabulario puede alcanzar. Escríbela.",
+   588→    skill: "expresion",
+   589→    icon: "PenLine",
+   590→    instructions:
+   591→      "Lee la pista (una frase con el hueco de la palabra buscada) y escribe el término exacto que encaja.",
+   592→    secondsPerItem: 28,
+   593→    timeLimit: null,
+   594→  },
+   595→  "memoria-torre": {
+   596→    id: "memoria-torre",
+   597→    name: "Memoria de Sinónimos",
+   598→    tagline: "Pares que significan lo mismo",
+   599→    description:
+   600→      "La torre guarda parejas de palabras casi gemelas: dichoso y afortunado, pena y tristeza. Encuéntralas.",
+   601→    skill: "expresion",
+   602→    icon: "Swords",
+   603→    instructions:
+   604→      "Voltea las tarjetas y empareja cada palabra con su sinónimo. Ojo: hay distractores que se parecen mucho.",
+   605→    secondsPerItem: 45,
+   606→    timeLimit: null,
+   607→  },
+   608→  "vf-observatorio": {
+   609→    id: "vf-observatorio",
+   610→    name: "Mitos y Etimologías",
+   611→    tagline: "¿De dónde viene esa palabra?",
+   612→    description:
+   613→      "El Observatorio recibe informes sobre el origen de las palabras: unos son ciertos, otros son leyendas urbanas.",
+   614→    skill: "cultura",
+   615→    icon: "Telescope",
+   616→    instructions:
+   617→      "Lee la afirmación etimológica y decide: ¿historia verdadera o mito? La ficha del telescopio corrige al final.",
+   618→    secondsPerItem: 18,
+   619→    timeLimit: null,
+   620→  },
+   621→  "conecta-observatorio": {
+   622→    id: "conecta-observatorio",
+   623→    name: "Ruta de Orígenes",
+   624→    tagline: "Palabra y puerto de origen",
+   625→    description:
+   626→      "Las palabras anclan en el Observatorio tras un largo viaje. Conecta cada una con el idioma que la trajo.",
+   627→    skill: "cultura",
+   628→    icon: "Globe",
+   629→    instructions:
+   630→      "Toca una palabra y después el idioma de origen que le corresponde (latín, griego, árabe, náhuatl, quechua…).",
+   631→    secondsPerItem: 36,
+   632→    timeLimit: null,
+   633→  },
+   634→  "sortea-observatorio": {
+   635→    id: "sortea-observatorio",
+   636→    name: "Mapa de la Lengua",
+   637→    tagline: "¿Dónde se dice así?",
+   638→    description:
+   639→      "Regionalismos de toda la hispanofonía piden su lugar en el mapa. Asigna cada palabra a su región.",
+   640→    skill: "cultura",
+   641→    icon: "MapPin",
+   642→    instructions:
+   643→      "Mira la palabra regional y toca la región donde es habitual. Al responder verás un apunte del Observatorio.",
+   644→    secondsPerItem: 18,
+   645→    timeLimit: null,
+   646→  },
+   647→  "memoria-observatorio": {
+   648→    id: "memoria-observatorio",
+   649→    name: "Memoria de Orígenes",
+   650→    tagline: "Pares de palabra y puerto",
+   651→    description:
+   652→      "Las tarjetas del Observatorio esconden palabras y los idiomas que las trajeron. Emparéjalas antes del anochecer.",
+   653→    skill: "cultura",
+   654→    icon: "Layers",
+   655→    instructions:
+   656→      "Voltea dos tarjetas y une cada palabra con el idioma del que procede. Los viajes largos merecen memoria larga.",
+   657→    secondsPerItem: 45,
+   658→    timeLimit: null,
+   659→  },
+   660→  "intruso-observatorio": {
+   661→    id: "intruso-observatorio",
+   662→    name: "Intruso Etimológico",
+   663→    tagline: "Tres viajeras y una nativa",
+   664→    description:
+   665→      "Cuatro palabras, tres llegadas del mismo puerto y una que desembarcó de otro barco. Señala a la pasajera intrusa.",
+   666→    skill: "cultura",
+   667→    icon: "Shapes",
+   668→    instructions:
+   669→      "Tres palabras comparten idioma de origen. Toca la que llegó de un viaje distinto.",
+   670→    secondsPerItem: 22,
+   671→    timeLimit: null,
+   672→  },
+   673→
+   674→  /* ==================== Etapa 4 · Forja del Escritor ==================== */
+   675→  metaforas: {
+   676→    id: "metaforas",
+   677→    name: "Forja de Metáforas",
+   678→    tagline: "Enciende la imagen exacta",
+   679→    description:
+   680→      "El fuego de la Forja funde sentidos: completa cada metáfora eligiendo la imagen literaria justa, la que brilla y la que pega.",
+   681→    skill: "expresion",
+   682→    icon: "FlameKindling",
+   683→    instructions:
+   684→      "Lee la frase con su hueco y elige la imagen que completa la metáfora. Descarta las descripciones planas: aquí se pide fuego, no inventario.",
+   685→    secondsPerItem: 26,
+   686→    timeLimit: null,
+   687→  },
+   688→  registro: {
+   689→    id: "registro",
+   690→    name: "Registro Correcto",
+   691→    tagline: "La misma idea, el traje justo",
+   692→    description:
+   693→      "Una misma cosa se dice de mil maneras: formal, coloquial, neutra. Viste cada mensaje con el registro que su situación pide.",
+   694→    skill: "expresion",
+   695→    icon: "MessagesSquare",
+   696→    instructions:
+   697→      "Lee la situación y fíjate en el registro que se pide (formal, coloquial o neutro). Elige la versión que mejor encaja.",
+   698→    secondsPerItem: 28,
+   699→    timeLimit: null,
+   700→  },
+   701→  conectores: {
+   702→    id: "conectores",
+   703→    name: "Taller de Conectores",
+   704→    tagline: "Remaches lógicos del texto",
+   705→    description:
+   706→      "Los conectores son los remaches que sostienen un texto: sin embargo, por lo tanto, aunque… elige el que une estas ideas.",
+   707→    skill: "gramatica",
+   708→    icon: "Link2",
+   709→    instructions:
+   710→      "Mira la frase con el hueco y elige el conector lógico que encaja: contraste, causa, consecuencia, concesión…",
+   711→    secondsPerItem: 22,
+   712→    timeLimit: null,
+   713→  },
+   714→  ironia: {
+   715→    id: "ironia",
+   716→    name: "Detector de Ironía",
+   717→    tagline: "¿Dice lo que dice… o lo contrario?",
+   718→    description:
+   719→      "En la Forja también se forja el tono: frases que dicen una cosa y quieren decir la otra. Con el contexto como brújula, decide.",
+   720→    skill: "lectura",
+   721→    icon: "Smile",
+   722→    instructions:
+   723→      "Lee la frase y su contexto. Di si va en sentido literal o con ironía: las comillas, la exageración y el contexto delatan al tono.",
+   724→    secondsPerItem: 24,
+   725→    timeLimit: null,
+   726→  },
+   727→  titulos: {
+   728→    id: "titulos",
+   729→    name: "Censura del Editor",
+   730→    tagline: "Tacha la palabra que sobra",
+   731→    description:
+   732→      "El editor de la Forja es despiadado con las redundancias: «subir arriba», «mi opinión personal»… encuentra la palabra que repite la idea.",
+   733→    skill: "ortografia",
+   734→    icon: "Eraser",
+   735→    instructions:
+   736→      "Toca la palabra redundante del enunciado. Si el texto está limpio, elige «Sin censura»: el buen editor también sabe perdonar.",
+   737→    secondsPerItem: 22,
+   738→    timeLimit: null,
+   739→  },
+   740→};
+   741→
+   742→export const GAME_IDS = Object.keys(GAMES) as GameId[];
+   743→
+   744→/** Etiquetas legibles de categorías gramaticales para Trivia. */
+   745→export const GRAMMAR_CLASSES = [
+   746→  { id: "sustantivo", label: "Sustantivo", example: "casa, libertad, faro" },
+   747→  { id: "verbo", label: "Verbo", example: "corre, soñé, será" },
+   748→  { id: "adjetivo", label: "Adjetivo", example: "ligero, difícil, amable" },
+   749→  { id: "adverbio", label: "Adverbio", example: "despacio, quizá, hoy" },
+   750→] as const;
+   751→

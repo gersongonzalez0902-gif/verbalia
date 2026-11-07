@@ -57,11 +57,15 @@ export function MapScreen() {
 
       <main className="mx-auto w-full max-w-4xl px-4 pb-28">
         {/* ===== Escena del mapa ===== */}
-        <div
-          className="relative mt-4 h-[68dvh] max-h-[640px] min-h-[440px] w-full overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md sm:h-auto sm:aspect-[16/10] sm:max-h-none sm:min-h-0"
-          role="img"
-          aria-label="Mapa del Archipiélago de las Palabras con ocho regiones"
-        >
+        {/* El contenedor SIEMPRE respeta el aspecto 4:3 del viewBox (800×600):
+            así el fondo SVG nunca se recorta y cada botón cae exactamente
+            sobre la isla dibujada, en PC y en móvil (arreglo de alineación). */}
+        <div className="scroll-soft mt-4 overflow-x-auto pb-1" role="group" aria-label="Mapa del archipiélago, deslizable en pantallas pequeñas">
+          <div
+            className="relative mx-auto aspect-[4/3] w-full min-w-[600px] max-w-[min(100%,calc(74dvh*4/3))] overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md"
+            role="img"
+            aria-label="Mapa del Archipiélago de las Palabras con ocho regiones"
+          >
           <IslandScene />
 
           {/* Botones-isla superpuestos (accesibles y táctiles) */}
@@ -77,7 +81,7 @@ export function MapScreen() {
                 disabled={!unlocked}
                 aria-label={`${r.name}. ${unlocked ? `${prog.played} sesiones jugadas. Tocar para abrir la región.` : shipped ? `Se desbloquea al alcanzar el nivel ${r.unlockLevel}.` : `Región en desarrollo: llegará en la Etapa ${r.stage}.`}`}
                 className={cn(
-                  "group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-2xl p-2 transition-all duration-200",
+                  "group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-2xl p-2 transition-[scale,filter] duration-200",
                   unlocked ? "hover:scale-110 focus-visible:scale-110 focus-visible:outline-2 focus-visible:outline-primary" : "cursor-default",
                 )}
                 style={{ left: `${r.map.x}%`, top: `${r.map.y}%` }}
@@ -127,7 +131,13 @@ export function MapScreen() {
           <div className="pointer-events-none absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-foreground/15 bg-card/70 backdrop-blur-sm" aria-hidden>
             <span className="text-lg">🧭</span>
           </div>
+          </div>
         </div>
+
+        {/* Pista de deslizamiento (solo pantallas estrechas) */}
+        <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground sm:hidden">
+          Desliza el mapa con el dedo para recorrerlo entero
+        </p>
 
         {/* ===== Leyenda de estados ===== */}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
@@ -235,7 +245,7 @@ function RegionSheet({
   const skillLabel = SKILL_LABELS[region.skill] ?? region.skill;
 
   return (
-    <Sheet open={regionId !== null} onOpenChange={(v) => !v && onClose()}>
+    <Sheet open={regionId !== null} onOpenChange={(v) => { if (v) sfx.open(); else { sfx.close(); onClose(); } }}>
       <SheetContent side="bottom" className="safe-bottom max-h-[85dvh] overflow-y-auto rounded-t-3xl sm:max-w-lg sm:mx-auto sm:rounded-3xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2">
         <SheetHeader className="pb-0 text-left">
           <div className="flex items-center gap-3.5">
@@ -381,8 +391,8 @@ function IslandScene() {
         <path d="M14 52 Q2 30 24 18 Q46 8 68 20 Q86 32 78 52 Q68 72 36 72 Q16 72 14 52 Z" fill="var(--region-fortaleza)" opacity="0.45" />
         <path d="M30 54 L30 30 L36 30 L36 24 L42 24 L42 30 L48 30 L48 24 L54 24 L54 30 L60 30 L60 54 Z" fill="var(--region-fortaleza)" opacity="0.9" />
       </g>
-      {/* Biblioteca */}
-      <g transform="translate(256,330)">
+      {/* Biblioteca (Etapa 1 · desbloqueo nivel 4: en la ruta va ANTES del Puerto) */}
+      <g transform="translate(504,270)">
         <path d="M0 50 Q-16 24 8 10 Q32 -4 60 6 Q86 18 80 46 Q74 72 36 74 Q6 74 0 50 Z" fill="url(#sand)" />
         <path d="M12 48 Q2 28 24 18 Q46 8 66 20 Q82 32 74 50 Q64 68 34 68 Q16 68 12 48 Z" fill="var(--region-biblioteca)" opacity="0.45" />
         <g fill="var(--region-biblioteca)" opacity="0.85">
@@ -393,8 +403,8 @@ function IslandScene() {
           </g>
         </g>
       </g>
-      {/* Puerto */}
-      <g transform="translate(504,288)">
+      {/* Puerto (Etapa 2 · desbloqueo nivel 5: después de la Biblioteca) */}
+      <g transform="translate(556,372)">
         <path d="M0 56 Q-18 28 6 10 Q30 -6 60 4 Q88 18 82 48 Q76 76 38 78 Q6 78 0 56 Z" fill="url(#sand)" />
         <path d="M12 52 Q2 32 22 20 Q44 10 66 22 Q84 34 76 52 Q66 70 34 70 Q14 70 12 52 Z" fill="var(--region-puerto)" opacity="0.4" />
         <g stroke="var(--region-puerto)" strokeWidth="4" strokeLinecap="round" opacity="0.85">
@@ -442,10 +452,11 @@ function IslandScene() {
         </g>
       </g>
 
-      {/* Ruta de navegación (línea de puntos que fluye) */}
+      {/* Ruta de navegación: visita las islas en el orden de desbloqueo
+          (Bosque → Ciudad → Fortaleza → Biblioteca → Puerto → Torre → Forja → Observatorio) */}
       <path
         id="route-path"
-        d="M150 170 C 220 90, 300 80, 360 110 C 430 145, 520 130, 600 165 C 640 185, 610 230, 540 300 C 480 355, 400 330, 330 370 C 280 400, 300 430, 350 470 C 480 545, 620 520, 690 450"
+        d="M179 192 C 240 120, 320 88, 393 110 C 480 136, 560 120, 628 180 C 672 218, 620 250, 539 305 C 500 335, 540 360, 591 408 C 630 440, 680 430, 704 443 C 660 490, 540 500, 397 490 C 300 484, 190 520, 131 491"
         className="route-flow"
         stroke="var(--foreground)"
         strokeOpacity="0.28"
@@ -505,7 +516,7 @@ function IslandScene() {
 
       {/* Pececitos asomando bajo el puente del puerto */}
       <g fill="var(--region-puerto)" fillOpacity="0.6">
-        <path className="fish-dart" d="M0 0 q5 -4 10 0 q-5 4 -10 0 Z" transform="translate(540,360)" />
+        <path className="fish-dart" d="M0 0 q5 -4 10 0 q-5 4 -10 0 Z" transform="translate(600,470)" />
         <path className="fish-dart" style={{ animationDelay: "-3s", animationDuration: "13s" }} d="M0 0 q4 -3 8 0 q-4 3 -8 0 Z" transform="translate(180,470)" />
       </g>
 

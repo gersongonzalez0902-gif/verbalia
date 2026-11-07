@@ -12,6 +12,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa tu primera sesión.",
     icon: "Footprints",
     xpReward: 25,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => c.stats.totalSessions >= 1,
     progress: (c) => Math.min(c.stats.totalSessions, 1),
   },
@@ -21,6 +23,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Alcanza el nivel 3 de jugador.",
     icon: "TrendingUp",
     xpReward: 40,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: () => false, // se evalúa con el nivel; ver note en engine/achievements
     progress: () => 0,
   },
@@ -30,6 +34,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Alcanza el nivel 5 de jugador.",
     icon: "Map",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: () => false,
     progress: () => 0,
   },
@@ -39,6 +45,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Alcanza el nivel 10 de jugador.",
     icon: "Crown",
     xpReward: 120,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
     check: () => false,
     progress: () => 0,
   },
@@ -48,6 +56,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Alcanza el nivel 15 de jugador y entra en la leyenda del Archipiélago.",
     icon: "Crown",
     xpReward: 200,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 10,
     check: () => false,
     progress: () => 0,
   },
@@ -57,6 +67,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Acumula 500 XP en total.",
     icon: "Feather",
     xpReward: 30,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => c.xp >= 500,
     progress: (c) => c.xp / 500,
   },
@@ -66,6 +78,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Acumula 2500 XP en total.",
     icon: "Feather",
     xpReward: 80,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => c.xp >= 2500,
     progress: (c) => c.xp / 2500,
   },
@@ -75,6 +89,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Consigue una racha de 3 días.",
     icon: "Flame",
     xpReward: 30,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => c.streak.best >= 3,
     progress: (c) => c.streak.best / 3,
   },
@@ -84,6 +100,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Consigue una racha de 7 días.",
     icon: "Flame",
     xpReward: 70,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => c.streak.best >= 7,
     progress: (c) => c.streak.best / 7,
   },
@@ -93,6 +111,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Consigue una racha de 14 días.",
     icon: "Flame",
     xpReward: 140,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 7,
     check: (c) => c.streak.best >= 14,
     progress: (c) => c.streak.best / 14,
   },
@@ -102,6 +122,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Aprende 25 palabras del jardín.",
     icon: "Sprout",
     xpReward: 40,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (_c, ctx) => ctx.learnedWords >= 25,
     progress: (_c, ctx) => ctx.learnedWords / 25,
   },
@@ -111,6 +133,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Aprende 50 palabras del jardín.",
     icon: "Flower2",
     xpReward: 90,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (_c, ctx) => ctx.learnedWords >= 50,
     progress: (_c, ctx) => ctx.learnedWords / 50,
   },
@@ -120,6 +144,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Dominio verificado de 10 palabras (intervalo largo en el SRS).",
     icon: "Brain",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: (_c, ctx) => ctx.masteredWords >= 10,
     progress: (_c, ctx) => ctx.masteredWords / 10,
   },
@@ -129,6 +155,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa una sesión de 10 o más respuestas sin fallar ninguna.",
     icon: "Sparkles",
     xpReward: 50,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => c.sessions.some((s) => s.total >= 10 && s.accuracy === 1),
   },
   {
@@ -137,6 +165,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Juega a 5 minijuegos distintos.",
     icon: "Shapes",
     xpReward: 50,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => Object.keys(c.stats.byGame).length >= 5,
     progress: (c) => Object.keys(c.stats.byGame).length / 5,
   },
@@ -146,6 +176,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Juega al menos una vez a cada minijuego de la Etapa 1.",
     icon: "Trophy",
     xpReward: 100,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 5,
     check: (c) => ["srs", "trivia", "puzzle", "cloze", "errores", "tildes", "parrafos"].every((g) => c.stats.byGame[g]),
     progress: (c) => ["srs", "trivia", "puzzle", "cloze", "errores", "tildes", "parrafos"].filter((g) => c.stats.byGame[g]).length / 7,
   },
@@ -155,6 +187,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Repasa 10 ejercicios fallados desde tu cuaderno de errores.",
     icon: "Undo2",
     xpReward: 50,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => c.stats.byGame["review"]?.plays >= 10,
   },
   {
@@ -163,6 +197,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa 50 sesiones.",
     icon: "BookHeart",
     xpReward: 150,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 8,
     check: (c) => c.stats.totalSessions >= 50,
     progress: (c) => c.stats.totalSessions / 50,
   },
@@ -172,6 +208,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Descubre la mitad de las palabras del jardín.",
     icon: "Layers",
     xpReward: 80,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (_c, ctx) => ctx.learnedWords >= Math.ceil(SRS_WORDS.length / 2),
     progress: (_c, ctx) => ctx.learnedWords / Math.ceil(SRS_WORDS.length / 2),
   },
@@ -183,6 +221,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Escribe 10 dictados del faro correctamente.",
     icon: "Ear",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: (c) => (c.stats.byGame["dictado"]?.correct ?? 0) >= 10,
     progress: (c) => (c.stats.byGame["dictado"]?.correct ?? 0) / 10,
   },
@@ -192,6 +232,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Acierta 8 preguntas de lectura inmersiva.",
     icon: "BookOpenText",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: (c) => (c.stats.byGame["lectura"]?.correct ?? 0) >= 8,
     progress: (c) => (c.stats.byGame["lectura"]?.correct ?? 0) / 8,
   },
@@ -201,6 +243,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Termina 3 historias ramificadas.",
     icon: "GitBranch",
     xpReward: 70,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => (c.stats.byGame["historias"]?.plays ?? 0) >= 3,
     progress: (c) => (c.stats.byGame["historias"]?.plays ?? 0) / 3,
   },
@@ -210,6 +254,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Descifra 15 refranes y modismos.",
     icon: "ScrollText",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: (c) => (c.stats.byGame["refranes"]?.correct ?? 0) >= 15,
     progress: (c) => (c.stats.byGame["refranes"]?.correct ?? 0) / 15,
   },
@@ -219,6 +265,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa 5 Retos del Minuto (esfuerzo honesto, sin corrección automática).",
     icon: "PenLine",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: (c) => (c.stats.byGame["minuto"]?.plays ?? 0) >= 5,
     progress: (c) => (c.stats.byGame["minuto"]?.plays ?? 0) / 5,
   },
@@ -228,6 +276,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa misiones en las 7 regiones del Archipiélago.",
     icon: "MapPin",
     xpReward: 150,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 8,
     check: (c) => {
       const regions = new Set<string>();
       for (const list of Object.values(c.stats.regionsByDay)) for (const r of list) regions.add(r);
@@ -245,6 +295,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Prueba 20 minijuegos distintos.",
     icon: "Layers",
     xpReward: 80,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => (c.stats.uniqueGames ?? []).length >= 20,
     progress: (c) => Math.min(1, (c.stats.uniqueGames ?? []).length / 20),
   },
@@ -254,6 +306,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Alcanza nivel 4 de cultura lingüística.",
     icon: "Telescope",
     xpReward: 90,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => c.skills.cultura >= 4,
     progress: (c) => c.skills.cultura / 4,
   },
@@ -265,6 +319,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa tu primera sesión en la Forja del Escritor.",
     icon: "Flame",
     xpReward: 40,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) =>
       ["metaforas", "registro", "conectores", "ironia", "titulos"].some(
         (g) => (c.stats.byGame[g]?.plays ?? 0) >= 1,
@@ -284,6 +340,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Acierta 25 ejercicios entre los cinco formatos de la Forja.",
     icon: "Hammer",
     xpReward: 90,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) =>
       ["metaforas", "registro", "conectores", "ironia", "titulos"].reduce(
         (acc, g) => acc + (c.stats.byGame[g]?.correct ?? 0),
@@ -301,6 +359,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Prueba los cinco minijuegos de la Forja del Escritor.",
     icon: "FlameKindling",
     xpReward: 150,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 8,
     check: (c) =>
       ["metaforas", "registro", "conectores", "ironia", "titulos"].every(
         (g) => (c.stats.byGame[g]?.plays ?? 0) >= 1,
@@ -316,6 +376,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Acumula 100 de tinta ganada en el Bazar.",
     icon: "Droplets",
     xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
     check: (c) => (c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0) >= 100,
     progress: (c) => ((c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0)) / 100,
   },
@@ -325,6 +387,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Acumula 500 de tinta ganada en total.",
     icon: "Droplet",
     xpReward: 120,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
     check: (c) => (c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0) >= 500,
     progress: (c) => ((c.wallet?.tinta ?? 0) + (c.wallet?.spent ?? 0)) / 500,
   },
@@ -334,6 +398,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Compra 3 artículos en el Bazar del Copista.",
     icon: "ShoppingBag",
     xpReward: 80,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => (c.wallet?.owned?.length ?? 0) >= 3,
     progress: (c) => (c.wallet?.owned?.length ?? 0) / 3,
   },
@@ -343,6 +409,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa misiones en las 8 regiones del Archipiélago.",
     icon: "Map",
     xpReward: 200,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 10,
     check: (c) => {
       const regions = new Set<string>();
       for (const list of Object.values(c.stats.regionsByDay)) for (const r of list) regions.add(r);
@@ -360,6 +428,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Aprende 75 palabras del jardín.",
     icon: "Leaf",
     xpReward: 70,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (_c, ctx) => ctx.learnedWords >= 75,
     progress: (_c, ctx) => ctx.learnedWords / 75,
   },
@@ -369,6 +439,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Aprende 125 palabras del jardín.",
     icon: "TreePine",
     xpReward: 130,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
     check: (_c, ctx) => ctx.learnedWords >= 125,
     progress: (_c, ctx) => ctx.learnedWords / 125,
   },
@@ -378,6 +450,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Consigue una racha de 30 días.",
     icon: "Flame",
     xpReward: 250,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 12,
     check: (c) => c.streak.best >= 30,
     progress: (c) => c.streak.best / 30,
   },
@@ -387,6 +461,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Consigue un combo de 15 aciertos seguidos.",
     icon: "Zap",
     xpReward: 120,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
     check: (c) => (c.stats.bestComboEver ?? 0) >= 15,
     progress: (c) => (c.stats.bestComboEver ?? 0) / 15,
   },
@@ -396,6 +472,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Juega durante 10 horas acumuladas.",
     icon: "Hourglass",
     xpReward: 100,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 5,
     check: (c) => (c.stats.totalTimeMs ?? 0) >= 10 * 3_600_000,
     progress: (c) => (c.stats.totalTimeMs ?? 0) / (10 * 3_600_000),
   },
@@ -405,6 +483,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Completa 100 sesiones de juego.",
     icon: "Flag",
     xpReward: 120,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
     check: (c) => c.stats.totalSessions >= 100,
     progress: (c) => c.stats.totalSessions / 100,
   },
@@ -415,26 +495,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Juega tu primera partida en el Salón de Juegos Educativos.",
     icon: "Gamepad2",
     xpReward: 30,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 2,
     check: (c) => Object.values(c.arcade.plays).reduce((a, b) => a + b, 0) >= 1,
     progress: (c) => Math.min(Object.values(c.arcade.plays).reduce((a, b) => a + b, 0), 1),
-  },
-  {
-    id: "ac-arcade-ajedrez",
-    name: "El faro cae",
-    description: "Gana tu primera partida de ajedrez al motor local.",
-    icon: "Crown",
-    xpReward: 120,
-    check: (c) => c.arcade.chessRecord.w >= 1,
-    progress: (c) => Math.min(c.arcade.chessRecord.w, 1),
-  },
-  {
-    id: "ac-arcade-elo",
-    name: "Mente de farero",
-    description: "Alcanza 1400 de ELO en el ajedrez del salón.",
-    icon: "Swords",
-    xpReward: 150,
-    check: (c) => (c.arcade.chessElo ?? 1200) >= 1400,
-    progress: (c) => Math.min(((c.arcade.chessElo ?? 1200) - 1200) / 200, 1),
   },
   {
     id: "ac-arcade-coleccionista",
@@ -442,6 +506,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Desbloquea 8 juegos del salón con tinta.",
     icon: "Droplets",
     xpReward: 100,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 5,
     check: (c) => c.arcade.unlocked.length >= 8,
     progress: (c) => Math.min(c.arcade.unlocked.length / 8, 1),
   },
@@ -451,6 +517,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Logra un récord personal en 5 juegos distintos.",
     icon: "Trophy",
     xpReward: 90,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 4,
     check: (c) => Object.keys(c.arcade.best).length >= 5,
     progress: (c) => Math.min(Object.keys(c.arcade.best).length / 5, 1),
   },
@@ -460,8 +528,295 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Juega 50 partidas en el Salón de Juegos.",
     icon: "Zap",
     xpReward: 110,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
     check: (c) => Object.values(c.arcade.plays).reduce((a, b) => a + b, 0) >= 50,
     progress: (c) => Math.min(Object.values(c.arcade.plays).reduce((a, b) => a + b, 0) / 50, 1),
+  },
+
+  /* ================= Mega-7 · progresión ampliada ================= */
+  {
+    id: "ac-nivel-20",
+    name: "Titán de las palabras",
+    description: "Alcanza el nivel 20 de jugador.",
+    icon: "Crown",
+    xpReward: 150,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 8,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-nivel-25",
+    name: "Leyenda del faro",
+    description: "Alcanza el nivel 25 de jugador.",
+    icon: "Crown",
+    xpReward: 200,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 10,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-nivel-35",
+    name: "Almirante del idioma",
+    description: "Alcanza el nivel 35 de jugador.",
+    icon: "Crown",
+    xpReward: 300,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 15,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-nivel-50",
+    name: "Mito del Archipiélago",
+    description: "Alcanza el nivel 50 de jugador.",
+    icon: "Crown",
+    xpReward: 500,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 25,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-centenas",
+    name: "Cien formas de jugar",
+    description: "Prueba 25 minijuegos distintos (hay 100 esperándote).",
+    icon: "Shapes",
+    xpReward: 120,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
+    check: (c) => (c.stats.uniqueGames?.length ?? 0) >= 25,
+    progress: (c) => Math.min((c.stats.uniqueGames?.length ?? 0), 25),
+  },
+  {
+    id: "ac-media-centuria",
+    name: "Media centuria",
+    description: "Prueba 50 minijuegos distintos.",
+    icon: "Shapes",
+    xpReward: 250,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 12,
+    check: (c) => (c.stats.uniqueGames?.length ?? 0) >= 50,
+    progress: (c) => Math.min((c.stats.uniqueGames?.length ?? 0), 50),
+  },
+  {
+    id: "ac-todas-regiones",
+    name: "Las siete coronas",
+    description: "Juega al menos una sesión en las ocho regiones del Archipiélago.",
+    icon: "Globe",
+    xpReward: 180,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 9,
+    check: (c) => {
+      const regions = new Set<string>();
+      for (const list of Object.values(c.stats.regionsByDay ?? {})) for (const r of list) regions.add(r);
+      return regions.size >= 8;
+    },
+    progress: (c) => {
+      const regions = new Set<string>();
+      for (const list of Object.values(c.stats.regionsByDay ?? {})) for (const r of list) regions.add(r);
+      return Math.min(regions.size, 8);
+    },
+  },
+  {
+    id: "ac-palabras-100",
+    name: "Jardín centenario",
+    description: "Aprende 100 palabras del jardín SRS.",
+    icon: "Sprout",
+    xpReward: 150,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 8,
+    check: (_c, ctx) => (ctx?.learnedWords ?? 0) >= 100,
+    progress: (_c, ctx) => Math.min((ctx?.learnedWords ?? 0), 100),
+  },
+  {
+    id: "ac-palabras-300",
+    name: "Sembrador de siglos",
+    description: "Aprende 300 palabras del jardín SRS.",
+    icon: "TreePine",
+    xpReward: 350,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 18,
+    check: (_c, ctx) => (ctx?.learnedWords ?? 0) >= 300,
+    progress: (_c, ctx) => Math.min((ctx?.learnedWords ?? 0), 300),
+  },
+  {
+    id: "ac-sesiones-100",
+    name: "Cien puertos",
+    description: "Completa 100 sesiones en total.",
+    icon: "Anchor",
+    xpReward: 200,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 10,
+    check: (c) => c.stats.totalSessions >= 100,
+    progress: (c) => Math.min(c.stats.totalSessions, 100),
+  },
+  {
+    id: "ac-racha-14",
+    name: "Quincena encendida",
+    description: "Consigue una racha de 14 días.",
+    icon: "Flame",
+    xpReward: 220,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 11,
+    check: (c) => c.streak.best >= 14,
+    progress: (c) => Math.min(c.streak.best, 14),
+  },
+  {
+    id: "ac-racha-30",
+    name: "Mes de mareas",
+    description: "Consigue una racha de 30 días.",
+    icon: "Flame",
+    xpReward: 400,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 20,
+    check: (c) => c.streak.best >= 30,
+    progress: (c) => Math.min(c.streak.best, 30),
+  },
+  {
+    id: "ac-combo-20",
+    name: "Combo de faro",
+    description: "Encadena un combo de 20 aciertos seguidos.",
+    icon: "Zap",
+    xpReward: 180,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 9,
+    check: (c) => (c.stats.bestComboEver ?? 0) >= 20,
+    progress: (c) => Math.min((c.stats.bestComboEver ?? 0), 20),
+  },
+  {
+    id: "ac-arcade-10",
+    name: "Habitual del salón",
+    description: "Juega 25 partidas en el Salón de Juegos.",
+    icon: "Gamepad2",
+    xpReward: 140,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 7,
+    check: (c) => Object.values(c.arcade.plays ?? {}).reduce((a, b) => a + b, 0) >= 25,
+    progress: (c) => Math.min(Object.values(c.arcade.plays ?? {}).reduce((a, b) => a + b, 0), 25),
+  },
+  {
+    id: "ac-xp-10000",
+    name: "Río de tinta",
+    description: "Acumula 10.000 XP en total.",
+    icon: "Feather",
+    xpReward: 300,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 15,
+    check: (c) => c.xp >= 10_000,
+    progress: (c) => Math.min(c.xp / 10_000, 1),
+  },
+  {
+    id: "ac-nivel-30",
+    name: "Treinta faros",
+    description: "Alcanza el nivel 30: treinta faros encendidos a tu nombre.",
+    icon: "Sparkles",
+    xpReward: 300,
+    tintaReward: 15,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-nivel-42",
+    name: "Luz de faro vivo",
+    description: "Alcanza el nivel 42: tu luz guía a toda la flota del idioma.",
+    icon: "Sparkles",
+    xpReward: 400,
+    tintaReward: 20,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-nivel-60",
+    name: "Palabra Eterna",
+    description: "Alcanza el nivel 60: el nivel máximo del Archipiélago.",
+    icon: "Crown",
+    xpReward: 600,
+    tintaReward: 30,
+    check: () => false,
+    progress: () => 0,
+  },
+  {
+    id: "ac-typing-first",
+    name: "Primera pluma veloz",
+    description: "Completa tu primera prueba del Taller de Escritura.",
+    icon: "Keyboard",
+    xpReward: 30,
+    tintaReward: 2,
+    check: (c) => (c.arcade.typing?.testsDone ?? 0) >= 1,
+    progress: (c) => Math.min((c.arcade.typing?.testsDone ?? 0), 1),
+  },
+  {
+    id: "ac-typing-40",
+    name: "Dedos de farero",
+    description: "Alcanza 40 palabras por minuto en el taller.",
+    icon: "Gauge",
+    xpReward: 120,
+    tintaReward: 6,
+    check: (c) => (c.arcade.typing?.bestWpm ?? 0) >= 40,
+    progress: (c) => Math.min((c.arcade.typing?.bestWpm ?? 0) / 40, 1),
+  },
+  {
+    id: "ac-typing-70",
+    name: "Teclado domado",
+    description: "Alcanza 70 palabras por minuto en el taller.",
+    icon: "Keyboard",
+    xpReward: 260,
+    tintaReward: 13,
+    check: (c) => (c.arcade.typing?.bestWpm ?? 0) >= 70,
+    progress: (c) => Math.min((c.arcade.typing?.bestWpm ?? 0) / 70, 1),
+  },
+  {
+    id: "ac-typing-drills",
+    name: "Mecanógrafo del faro",
+    description: "Completa 15 ejercicios de filas del teclado.",
+    icon: "Keyboard",
+    xpReward: 90,
+    tintaReward: 5,
+    check: (c) => (c.arcade.typing?.drillsDone ?? 0) >= 15,
+    progress: (c) => Math.min((c.arcade.typing?.drillsDone ?? 0) / 15, 1),
+  },
+  {
+    id: "ac-typing-precision",
+    name: "Pluma de cirujano",
+    description: "Logra un 98 % de precisión en el taller de escritura.",
+    icon: "Target",
+    xpReward: 150,
+    tintaReward: 8,
+    check: (c) => (c.arcade.typing?.bestAccuracy ?? 0) >= 98,
+    progress: (c) => Math.min((c.arcade.typing?.bestAccuracy ?? 0) / 98, 1),
+  },
+  {
+    id: "ac-typing-week",
+    name: "Callo de escritor",
+    description: "Encadena 7 días seguidos del Taller de Escritura.",
+    icon: "Flame",
+    xpReward: 200,
+    tintaReward: 10,
+    check: (c) => (c.arcade.typing?.streak ?? 0) >= 7,
+    progress: (c) => Math.min((c.arcade.typing?.streak ?? 0) / 7, 1),
+  },
+  {
+    id: "ac-variety-40",
+    name: "Probador de formatos",
+    description: "Juega 40 minijuegos distintos.",
+    icon: "Shapes",
+    xpReward: 180,
+    tintaReward: 9,
+    check: (c) => (c.stats.uniqueGames?.length ?? 0) >= 40,
+    progress: (c) => Math.min((c.stats.uniqueGames?.length ?? 0) / 40, 1),
+  },
+  {
+    id: "ac-variety-75",
+    name: "Nauta universal",
+    description: "Juega 75 minijuegos distintos del Archipiélago.",
+    icon: "Compass",
+    xpReward: 400,
+    tintaReward: 20,
+    check: (c) => (c.stats.uniqueGames?.length ?? 0) >= 75,
+    progress: (c) => Math.min((c.stats.uniqueGames?.length ?? 0) / 75, 1),
   },
 ];
 
@@ -474,6 +829,13 @@ export const LEVEL_ACHIEVEMENTS: Record<string, number> = {
   "ac-nivel-5": 5,
   "ac-nivel-10": 10,
   "ac-nivel-15": 15,
+  "ac-nivel-20": 20,
+  "ac-nivel-25": 25,
+  "ac-nivel-30": 30,
+  "ac-nivel-35": 35,
+  "ac-nivel-42": 42,
+  "ac-nivel-50": 50,
+  "ac-nivel-60": 60,
 };
 
 export const ACHIEVEMENTS_BY_ID: Record<string, AchievementDef> = ACHIEVEMENTS.reduce(

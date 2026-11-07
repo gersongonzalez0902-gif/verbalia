@@ -1,0 +1,1149 @@
+     1→/**
+     2→ * Motor de audio de VERBALIA · v2
+     3→ * ---------------------------------------------------------------
+     4→ * Todo el sonido del juego se sintetiza aquí con WebAudio:
+     5→ * sin ficheros, sin descargas, sin red.
+     6→ *
+     7→ * 1) SFX: ~30 efectos de interacción (acierto, fallo, niveles,
+     8→ *    monedas de XP, naipes, etc.) con variantes para que nunca
+     9→ *    suenen igual dos veces seguidas.
+    10→ * 2) MÚSICA AMBIENTE GENERATIVA: cada escena/ región tiene su
+    11→ *    propia paleta musical (escala, tempo, timbres, textura de
+    12→ *    ruido) compuesta en tiempo real con un secuenciador por
+    13→ *    adelantado (lookahead). Al cambiar de región la música
+    14→ *    hace fundido cruzado.
+    15→ * 3) EL GRAN RELOJ EN CONTRATIEMPO: una capa de tic-tac que
+    16→ *    suena DESFASADA respecto al pulso musical (en los
+    17→ *    contratiempos, como pidió el jugador). En reposo es una
+    18→ *    presencia mínima y sugerente; en los juegos cronometrados
+    19→ *    `setTension()` la enciende, la acelera y le sube el tono
+    20→ *    hasta el clímax de los últimos segundos.
+    21→ *
+    22→ * El AudioContext se desbloquea con el primer gesto del usuario
+    23→ * (política de navegadores). Si el jugador silencia el juego,
+    24→ * el contexto se suspende y todo queda en silencio absoluto.
+    25→ */
+    26→
+    27→/* ============================== ajustes ============================== */
+    28→
+    29→let ctx: AudioContext | null = null;
+    30→let master: GainNode | null = null;
+    31→let musicBus: GainNode | null = null;
+    32→let sfxBus: GainNode | null = null;
+    33→let clockBus: GainNode | null = null;
+    34→let noiseBus: GainNode | null = null;
+    35→
+    36→let enabled = true;
+    37→let musicVolume = 0.55;
+    38→let sfxVolume = 0.9;
+    39→
+    40→let unlocked = false;
+    41→let unlockListeners: (() => void) | null = null;
+    42→
+    43→/* Ruido compartido (buffer de 2 s reutilizado por todas las texturas) */
+    44→let noiseBuffer: AudioBuffer | null = null;
+    45→
+    46→function ensureCtx(): AudioContext | null {
+    47→  if (typeof window === "undefined") return null;
+    48→  try {
+    49→    if (!ctx) {
+    50→      const AudioCtor =
+    51→        window.AudioContext ??
+    52→        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    53→      if (!AudioCtor) return null;
+    54→      ctx = new AudioCtor();
+    55→      master = ctx.createGain();
+    56→      master.gain.value = enabled ? 0.9 : 0;
+    57→      master.connect(ctx.destination);
+    58→
+    59→      musicBus = ctx.createGain();
+    60→      musicBus.gain.value = musicVolume;
+    61→      musicBus.connect(master);
+    62→
+    63→      sfxBus = ctx.createGain();
+    64→      sfxBus.gain.value = sfxVolume;
+    65→      sfxBus.connect(master);
+    66→
+    67→      clockBus = ctx.createGain();
+    68→      clockBus.gain.value = 0.5;
+    69→      clockBus.connect(master);
+    70→
+    71→      noiseBus = ctx.createGain();
+    72→      noiseBus.gain.value = 1;
+    73→      noiseBus.connect(musicBus);
+    74→
+    75→      const len = ctx.sampleRate * 2;
+    76→      noiseBuffer = ctx.createBuffer(1, len, ctx.sampleRate);
+    77→      const data = noiseBuffer.getChannelData(0);
+    78→      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    79→    }
+    80→    if (ctx.state === "suspended" && enabled) void ctx.resume();
+    81→    return ctx;
+    82→  } catch {
+    83→    return null;
+    84→  }
+    85→}
+    86→
+    87→/** Desbloquea el audio en el primer gesto (tap, teclado, scroll táctil). */
+    88→export function initAudioUnlock(): void {
+    89→  if (typeof window === "undefined" || unlockListeners) return;
+    90→  const unlock = () => {
+    91→    ensureCtx();
+    92→    unlocked = true;
+    93→    if (currentScene) startScene(currentScene); // la música arranca al desbloquear
+    94→    detach();
+    95→  };
+    96→  const detach = () => {
+    97→    window.removeEventListener("pointerdown", unlock);
+    98→    window.removeEventListener("keydown", unlock);
+    99→    window.removeEventListener("touchstart", unlock);
+   100→    unlockListeners = null;
+   101→  };
+   102→  window.addEventListener("pointerdown", unlock, { once: false, passive: true });
+   103→  window.addEventListener("keydown", unlock, { once: false });
+   104→  window.addEventListener("touchstart", unlock, { once: false, passive: true });
+   105→  unlockListeners = detach;
+   106→  registerVisibilityGuard();
+   107→}
+   108→
+   109→/* ================== guarda de visibilidad de la página ==================
+   110→ * Cuando la pestaña se oculta o el teléfono se suspende, la música
+   111→ * generativa debe callar (y el AudioContext congelarse para no gastar
+   112→ * batería). Al volver, la escena se reanuda si sonaba antes. */
+   113→
+   114→let visibilityGuardOn = false;
+   115→let pausedByVisibility = false;
+   116→
+   117→export function registerVisibilityGuard(): void {
+   118→  if (typeof window === "undefined" || visibilityGuardOn) return;
+   119→  visibilityGuardOn = true;
+   120→
+   121→  const pauseAll = () => {
+   122→    if (pausedByVisibility) return;
+   123→    pausedByVisibility = true;
+   124→    // 1) Banda sonora generativa: se detiene el secuenciador y la textura
+   125→    //    (la escena se recuerda para reanudarla al volver).
+   126→    if (schedulerId) {
+   127→      clearInterval(schedulerId);
+   128→      schedulerId = null;
+   129→    }
+   130→    stopTexture();
+   131→    // 2) El contexto entero se suspende: cero audio y cero batería mientras
+   132→    //    la página no está visible (móvil bloqueado, app en segundo plano…).
+   133→    if (ctx && ctx.state === "running") void ctx.suspend();
+   134→  };
+   135→
+   136→  const resumeAll = () => {
+   137→    if (!pausedByVisibility) return;
+   138→    pausedByVisibility = false;
+   139→    if (!enabled) return; // el jugador silenció el juego mientras no miraba
+   140→    if (ctx && ctx.state === "suspended") void ctx.resume();
+   141→    // La escena que sonaba antes del ocultado vuelve con fundido.
+   142→    if (currentScene && unlocked) startScene(currentScene);
+   143→  };
+   144→
+   145→  document.addEventListener("visibilitychange", () => {
+   146→    if (document.visibilityState === "hidden") pauseAll();
+   147→    else resumeAll();
+   148→  });
+   149→  // iOS y algunos navegadores: al minimizar o navegar fuera de la página.
+   150→  window.addEventListener("pagehide", () => pauseAll());
+   151→  window.addEventListener("pageshow", () => resumeAll());
+   152→  // Congelar la pestaña (procesos en background) también detiene el audio.
+   153→  document.addEventListener("freeze" as keyof DocumentEventMap, () => pauseAll());
+   154→  document.addEventListener("resume" as keyof DocumentEventMap, () => resumeAll());
+   155→}
+   156→
+   157→export function setSoundEnabled(value: boolean) {
+   158→  enabled = value;
+   159→  const ac = ctx ?? null;
+   160→  if (ac && master) master.gain.setTargetAtTime(value ? 0.9 : 0, ac.currentTime, 0.05);
+   161→  if (!value && ac && ac.state === "running") void ac.suspend();
+   162→  if (value && ac && ac.state === "suspended") {
+   163→    void ac.resume();
+   164→    unlocked = true;
+   165→  }
+   166→}
+   167→
+   168→export function setMusicVolume(v: number) {
+   169→  musicVolume = Math.min(1, Math.max(0, v));
+   170→  if (ctx && musicBus) musicBus.gain.setTargetAtTime(musicVolume, ctx.currentTime, 0.08);
+   171→}
+   172→
+   173→export function setSfxVolume(v: number) {
+   174→  sfxVolume = Math.min(1, Math.max(0, v));
+   175→  if (ctx && sfxBus) sfxBus.gain.setTargetAtTime(sfxVolume, ctx.currentTime, 0.05);
+   176→}
+   177→
+   178→export function isAudioUnlocked(): boolean {
+   179→  return unlocked && !!ctx && ctx.state === "running";
+   180→}
+   181→
+   182→/* ============================== voces base ============================== */
+   183→
+   184→function tone(
+   185→  freq: number,
+   186→  start: number,
+   187→  duration: number,
+   188→  volume = 0.09,
+   189→  type: OscillatorType = "sine",
+   190→  bus: GainNode | null = null,
+   191→  glideTo?: number,
+   192→) {
+   193→  const ac = ensureCtx();
+   194→  if (!ac || !enabled) return;
+   195→  const osc = ac.createOscillator();
+   196→  const gain = ac.createGain();
+   197→  osc.type = type;
+   198→  const t = ac.currentTime + start;
+   199→  osc.frequency.setValueAtTime(freq, t);
+   200→  if (glideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(20, glideTo), t + duration);
+   201→  gain.gain.setValueAtTime(0.0001, t);
+   202→  gain.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0002), t + 0.012);
+   203→  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+   204→  osc.connect(gain).connect(bus ?? sfxBus ?? ac.destination);
+   205→  osc.start(t);
+   206→  osc.stop(t + duration + 0.06);
+   207→}
+   208→
+   209→/** Campanada tipo campana con parciales inarmónicos (para bells y éxito). */
+   210→function bell(freq: number, start: number, duration = 0.9, volume = 0.08) {
+   211→  const ac = ensureCtx();
+   212→  if (!ac || !enabled) return;
+   213→  const partials = [1, 2.76, 5.4];
+   214→  partials.forEach((p, i) => {
+   215→    tone(freq * p, start, duration / (1 + i * 0.4), volume / (i + 1.5), "sine");
+   216→  });
+   217→}
+   218→
+   219→/** Ráfaga de ruido filtrada (clics, olas, viento, aplausos). */
+   220→function noiseBurst(
+   221→  start: number,
+   222→  duration: number,
+   223→  filterFreq: number,
+   224→  volume = 0.06,
+   225→  type: BiquadFilterType = "bandpass",
+   226→  q = 1,
+   227→  bus: GainNode | null = null,
+   228→) {
+   229→  const ac = ensureCtx();
+   230→  if (!ac || !enabled || !noiseBuffer) return;
+   231→  const src = ac.createBufferSource();
+   232→  src.buffer = noiseBuffer;
+   233→  src.loop = true;
+   234→  const filter = ac.createBiquadFilter();
+   235→  filter.type = type;
+   236→  filter.frequency.value = filterFreq;
+   237→  filter.Q.value = q;
+   238→  const gain = ac.createGain();
+   239→  const t = ac.currentTime + start;
+   240→  gain.gain.setValueAtTime(0.0001, t);
+   241→  gain.gain.exponentialRampToValueAtTime(volume, t + Math.min(0.05, duration / 3));
+   242→  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+   243→  src.connect(filter).connect(gain).connect(bus ?? sfxBus ?? ac.destination);
+   244→  src.start(t, Math.random() * 1.5);
+   245→  src.stop(t + duration + 0.08);
+   246→}
+   247→
+   248→/* ============================== escenas musicales ============================== */
+   249→
+   250→interface SceneMusic {
+   251→  /** Nota raíz en Hz. */
+   252→  root: number;
+   253→  /** Escala en semitonos (siempre consonante). */
+   254→  scale: number[];
+   255→  /** Pulsos por minuto del pulso ambiental. */
+   256→  bpm: number;
+   257→  /** Progresión de acordes (índices sobre la escala, 3 notas cada uno). */
+   258→  chords: number[][];
+   259→  /** Probabilidad de nota de arpegio por contratiempo. */
+   260→  pluck: number;
+   261→  /** Textura de ruido de fondo. */
+   262→  texture: "wind" | "waves" | "hum" | "paper" | "crackle" | "air";
+   263→  /** Volumen de la textura (0-1). */
+   264→  textureLevel: number;
+   265→  /** Timbre del arpegio. */
+   266→  pluckType: OscillatorType;
+   267→  /** Nota más grave de apoyo cada compás. */
+   268→  bass: boolean;
+   269→}
+   270→
+   271→const A = 55;
+   272→const SCENES: Record<string, SceneMusic> = {
+   273→  /* Puerto de salida: calidez pentatónica en Do, viento suave */
+   274→  home: {
+   275→    root: 261.63,
+   276→    scale: [0, 2, 4, 7, 9, 12, 14, 16],
+   277→    bpm: 52,
+   278→    chords: [
+   279→      [0, 2, 4],
+   280→      [1, 3, 5],
+   281→      [0, 2, 4],
+   282→      [2, 4, 6],
+   283→    ],
+   284→    pluck: 0.5,
+   285→    texture: "wind",
+   286→    textureLevel: 0.05,
+   287→    pluckType: "sine",
+   288→    bass: true,
+   289→  },
+   290→  /* Bosque: pentatónica menor de La, gotas de agua y hojas */
+   291→  bosque: {
+   292→    root: A * 4,
+   293→    scale: [0, 3, 5, 7, 10, 12, 15],
+   294→    bpm: 48,
+   295→    chords: [
+   296→      [0, 2, 4],
+   297→      [0, 2, 3],
+   298→      [1, 3, 5],
+   299→      [0, 2, 4],
+   300→    ],
+   301→    pluck: 0.65,
+   302→    texture: "wind",
+   303→    textureLevel: 0.07,
+   304→    pluckType: "triangle",
+   305→    bass: true,
+   306→  },
+   307→  /* Ciudad: lidio brillante de Fa, murmullo urbano */
+   308→  ciudad: {
+   309→    root: 349.23,
+   310→    scale: [0, 2, 4, 6, 7, 9, 11, 12],
+   311→    bpm: 58,
+   312→    chords: [
+   313→      [0, 2, 4],
+   314→      [3, 5, 7],
+   315→      [1, 3, 5],
+   316→      [0, 2, 4],
+   317→    ],
+   318→    pluck: 0.55,
+   319→    texture: "hum",
+   320→    textureLevel: 0.04,
+   321→    pluckType: "square",
+   322→    bass: true,
+   323→  },
+   324→  /* Fortaleza: dórico de Re, yunque apagado y brasas */
+   325→  fortaleza: {
+   326→    root: 146.83,
+   327→    scale: [0, 2, 3, 5, 7, 9, 10, 12],
+   328→    bpm: 60,
+   329→    chords: [
+   330→      [0, 2, 4],
+   331→      [3, 5, 7],
+   332→      [1, 3, 5],
+   333→      [0, 2, 4],
+   334→    ],
+   335→    pluck: 0.4,
+   336→    texture: "crackle",
+   337→    textureLevel: 0.05,
+   338→    pluckType: "triangle",
+   339→    bass: true,
+   340→  },
+   341→  /* Biblioteca: pentatónica de Mi bemol, páginas y arpas */
+   342→  biblioteca: {
+   343→    root: 311.13,
+   344→    scale: [0, 2, 4, 7, 9, 12, 14],
+   345→    bpm: 44,
+   346→    chords: [
+   347→      [0, 2, 4],
+   348→      [1, 3, 5],
+   349→      [0, 2, 4],
+   350→      [2, 4, 6],
+   351→    ],
+   352→    pluck: 0.6,
+   353→    texture: "paper",
+   354→    textureLevel: 0.03,
+   355→    pluckType: "sine",
+   356→    bass: false,
+   357→  },
+   358→  /* Puerto: pentatónica mayor de Sol, olas y campana de boya */
+   359→  puerto: {
+   360→    root: 392.0,
+   361→    scale: [0, 2, 4, 7, 9, 12],
+   362→    bpm: 50,
+   363→    chords: [
+   364→      [0, 2, 4],
+   365→      [2, 4, 5],
+   366→      [1, 3, 5],
+   367→      [0, 2, 4],
+   368→    ],
+   369→    pluck: 0.5,
+   370→    texture: "waves",
+   371→    textureLevel: 0.08,
+   372→    pluckType: "sine",
+   373→    bass: true,
+   374→  },
+   375→  /* Torre: pentatónica menor de Si, reloj protagonista */
+   376→  torre: {
+   377→    root: 246.94,
+   378→    scale: [0, 3, 5, 7, 10, 12, 14],
+   379→    bpm: 54,
+   380→    chords: [
+   381→      [0, 2, 4],
+   382→      [0, 2, 3],
+   383→      [2, 4, 6],
+   384→      [0, 2, 4],
+   385→    ],
+   386→    pluck: 0.45,
+   387→    texture: "air",
+   388→    textureLevel: 0.045,
+   389→    pluckType: "triangle",
+   390→    bass: true,
+   391→  },
+   392→  /* Resultados: fanfarria cálida, mayor y luminosa */
+   393→  results: {
+   394→    root: 293.66,
+   395→    scale: [0, 2, 4, 5, 7, 9, 11, 12, 14, 16],
+   396→    bpm: 62,
+   397→    chords: [
+   398→      [0, 2, 4],
+   399→      [4, 6, 8],
+   400→      [3, 5, 7],
+   401→      [0, 2, 4],
+   402→    ],
+   403→    pluck: 0.7,
+   404→    texture: "air",
+   405→    textureLevel: 0.03,
+   406→    pluckType: "sine",
+   407→    bass: true,
+   408→  },
+   409→  /* Mapa: pentatónica aventurera de Sol, papel de pergamino */
+   410→  map: {
+   411→    root: 196,
+   412→    scale: [0, 2, 4, 7, 9, 12, 14, 16],
+   413→    bpm: 58,
+   414→    chords: [
+   415→      [0, 2, 4],
+   416→      [2, 4, 6],
+   417→      [1, 3, 5],
+   418→      [0, 2, 4],
+   419→    ],
+   420→    pluck: 0.55,
+   421→    texture: "paper",
+   422→    textureLevel: 0.035,
+   423→    pluckType: "triangle",
+   424→    bass: true,
+   425→  },
+   426→  /* Misiones: fanfarria dorada en La, chispa de confeti */
+   427→  missions: {
+   428→    root: 220,
+   429→    scale: [0, 2, 4, 7, 9, 11, 12, 14, 16],
+   430→    bpm: 66,
+   431→    chords: [
+   432→      [0, 2, 4],
+   433→      [4, 6, 8],
+   434→      [5, 7, 9],
+   435→      [0, 2, 4],
+   436→    ],
+   437→    pluck: 0.62,
+   438→    texture: "crackle",
+   439→    textureLevel: 0.03,
+   440→    pluckType: "sine",
+   441→    bass: true,
+   442→  },
+   443→  /* Colección: jardín pentatónico en Mi, brisa entre flores */
+   444→  collection: {
+   445→    root: 164.81,
+   446→    scale: [0, 2, 4, 7, 9, 12, 14],
+   447→    bpm: 56,
+   448→    chords: [
+   449→      [0, 2, 4],
+   450→      [1, 3, 5],
+   451→      [2, 4, 6],
+   452→      [0, 2, 4],
+   453→    ],
+   454→    pluck: 0.5,
+   455→    texture: "waves",
+   456→    textureLevel: 0.04,
+   457→    pluckType: "sine",
+   458→    bass: true,
+   459→  },
+   460→  /* Cuaderno de errores: introspección en Re menor, zumbido de estudio */
+   461→  errors: {
+   462→    root: 146.83,
+   463→    scale: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15],
+   464→    bpm: 50,
+   465→    chords: [
+   466→      [0, 2, 4],
+   467→      [5, 7, 9],
+   468→      [3, 5, 7],
+   469→      [0, 2, 4],
+   470→    ],
+   471→    pluck: 0.4,
+   472→    texture: "hum",
+   473→    textureLevel: 0.05,
+   474→    pluckType: "triangle",
+   475→    bass: true,
+   476→  },
+   477→  /* Estadísticas: dorian analítico en Si, aire limpio */
+   478→  stats: {
+   479→    root: 123.47,
+   480→    scale: [0, 2, 3, 5, 7, 9, 10, 12],
+   481→    bpm: 54,
+   482→    chords: [
+   483→      [0, 2, 4],
+   484→      [3, 5, 7],
+   485→      [0, 2, 4],
+   486→      [2, 4, 6],
+   487→    ],
+   488→    pluck: 0.45,
+   489→    texture: "air",
+   490→    textureLevel: 0.03,
+   491→    pluckType: "sine",
+   492→    bass: true,
+   493→  },
+   494→  /* Perfil: mixolidio brillante en Do#, viento cálido */
+   495→  profile: {
+   496→    root: 138.59,
+   497→    scale: [0, 2, 4, 5, 7, 9, 10, 12, 14, 16],
+   498→    bpm: 62,
+   499→    chords: [
+   500→      [0, 2, 4],
+   501→      [4, 6, 8],
+   502→      [0, 2, 4],
+   503→      [2, 4, 6],
+   504→    ],
+   505→    pluck: 0.5,
+   506→    texture: "wind",
+   507→    textureLevel: 0.04,
+   508→    pluckType: "sine",
+   509→    bass: true,
+   510→  },
+   511→  /* Biblioteca: eólico de páginas en La, susurro de papel */
+   512→  library: {
+   513→    root: 110,
+   514→    scale: [0, 2, 3, 5, 7, 8, 10, 12],
+   515→    bpm: 52,
+   516→    chords: [
+   517→      [0, 2, 4],
+   518→      [2, 4, 6],
+   519→      [1, 3, 5],
+   520→      [0, 2, 4],
+   521→    ],
+   522→    pluck: 0.42,
+   523→    texture: "paper",
+   524→    textureLevel: 0.05,
+   525→    pluckType: "triangle",
+   526→    bass: false,
+   527→  },
+   528→  /* Ajustes: calma diatónica en Re, marea lejana */
+   529→  settings: {
+   530→    root: 293.66,
+   531→    scale: [0, 2, 4, 7, 9, 12, 14],
+   532→    bpm: 54,
+   533→    chords: [
+   534→      [0, 2, 4],
+   535→      [1, 3, 5],
+   536→      [0, 2, 4],
+   537→      [2, 4, 6],
+   538→    ],
+   539→    pluck: 0.4,
+   540→    texture: "waves",
+   541→    textureLevel: 0.045,
+   542→    pluckType: "sine",
+   543→    bass: true,
+   544→  },
+   545→  /* Bienvenida: amanecer pentatónico en Mi, marea suave */
+   546→  welcome: {
+   547→    root: 164.81,
+   548→    scale: [0, 2, 4, 7, 9, 12, 16],
+   549→    bpm: 52,
+   550→    chords: [
+   551→      [0, 2, 4],
+   552→      [0, 2, 4],
+   553→      [1, 3, 5],
+   554→      [0, 2, 4],
+   555→    ],
+   556→    pluck: 0.5,
+   557→    texture: "waves",
+   558→    textureLevel: 0.05,
+   559→    pluckType: "sine",
+   560→    bass: true,
+   561→  },
+   562→  /* Evaluación: concentración en Sol lidio, aire de faro */
+   563→  placement: {
+   564→    root: 196,
+   565→    scale: [0, 2, 4, 6, 7, 9, 11, 12],
+   566→    bpm: 56,
+   567→    chords: [
+   568→      [0, 2, 4],
+   569→      [1, 3, 5],
+   570→      [2, 4, 6],
+   571→      [0, 2, 4],
+   572→    ],
+   573→    pluck: 0.45,
+   574→    texture: "air",
+   575→    textureLevel: 0.035,
+   576→    pluckType: "triangle",
+   577→    bass: true,
+   578→  },
+   579→  /* Estación del jugador: lo-fi cálido de Rece (la radio de la isla) */
+   580→  station: {
+   581→    root: 174.61,
+   582→    scale: [0, 3, 5, 7, 10, 12, 14, 17],
+   583→    bpm: 66,
+   584→    chords: [
+   585→      [0, 2, 4],
+   586→      [3, 4, 6],
+   587→      [1, 3, 5],
+   588→      [0, 2, 4],
+   589→    ],
+   590→    pluck: 0.7,
+   591→    texture: "crackle",
+   592→    textureLevel: 0.02,
+   593→    pluckType: "sine",
+   594→    bass: true,
+   595→  },
+   596→  /* Observatorio: lidio celeste de Mi, noche estrellada y silencio de cúpula */
+   597→  observatorio: {
+   598→    root: 329.63,
+   599→    scale: [0, 2, 4, 6, 7, 9, 11, 12, 16],
+   600→    bpm: 40,
+   601→    chords: [
+   602→      [0, 2, 4],
+   603→      [2, 4, 6],
+   604→      [1, 3, 5],
+   605→      [0, 3, 5],
+   606→    ],
+   607→    pluck: 0.55,
+   608→    texture: "air",
+   609→    textureLevel: 0.04,
+   610→    pluckType: "sine",
+   611→    bass: true,
+   612→  },
+   613→  /* Salón de Juegos: chispa arcade, mayor brillante de Sol, juguetón */
+   614→  arcade: {
+   615→    root: 392,
+   616→    scale: [0, 2, 4, 7, 9, 12, 14, 16, 19],
+   617→    bpm: 92,
+   618→    chords: [
+   619→      [0, 2, 4],
+   620→      [1, 3, 5],
+   621→      [0, 2, 4],
+   622→      [3, 4, 6],
+   623→    ],
+   624→    pluck: 0.8,
+   625→    texture: "air",
+   626→    textureLevel: 0,
+   627→    pluckType: "square",
+   628→    bass: true,
+   629→  },
+   630→};
+   631→
+   632→/* ======================= secuenciador generativo ======================= */
+   633→
+   634→let currentScene: string | null = null;
+   635→let schedulerId: ReturnType<typeof setInterval> | null = null;
+   636→let nextBeatTime = 0;
+   637→let beatIndex = 0;
+   638→let barIndex = 0;
+   639→let tension = 0; // 0 reposo · 1 clímax cronometrado
+   640→let clockOn = false;
+   641→let clockTickToggle = 0;
+   642→let textureNodes: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+   643→
+   644→const semitone = (root: number, s: number) => root * Math.pow(2, s / 12);
+   645→
+   646→/** Funda de entrada a la escena: acorde inicial y textura. */
+   647→function startScene(sceneId: string) {
+   648→  const ac = ensureCtx();
+   649→  if (!ac || !enabled) return;
+   650→  const scene = SCENES[sceneId] ?? SCENES.home;
+   651→  currentScene = sceneId;
+   652→  // Si la escena anterior se silenció (stopSceneMusic), recupera el volumen.
+   653→  if (musicBus) musicBus.gain.setTargetAtTime(musicVolume, ac.currentTime, 0.5);
+   654→  stopTexture();
+   655→  startTexture(scene);
+   656→  // Acorde de bienvenida
+   657→  scene.chords[0].forEach((d) => padNote(semitone(scene.root, scene.scale[d]), 0.02, 6, 0.05));
+   658→  if (!schedulerId) {
+   659→    nextBeatTime = ac.currentTime + 0.1;
+   660→    beatIndex = 0;
+   661→    barIndex = 0;
+   662→    schedulerId = setInterval(scheduleAhead, 240);
+   663→  }
+   664→}
+   665→
+   666→/** Cambia la música de escena con fundido. La escena ya activa no se re-inicia. */
+   667→export function setSceneMusic(sceneId: string | null) {
+   668→  if (!sceneId || sceneId === currentScene) return;
+   669→  if (!ctx || !unlocked) {
+   670→    currentScene = sceneId; // se aplicará al desbloquear
+   671→    return;
+   672→  }
+   673→  startScene(sceneId);
+   674→}
+   675→
+   676→/** Silencia la escena actual con fundido (partidas sin música de menú). */
+   677→export function stopSceneMusic() {
+   678→  currentScene = null;
+   679→  stopTexture();
+   680→  if (schedulerId) {
+   681→    clearInterval(schedulerId);
+   682→    schedulerId = null;
+   683→  }
+   684→  if (!ctx) return;
+   685→  musicBus?.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.35);
+   686→}
+   687→
+   688→function stopTexture() {
+   689→  if (textureNodes && ctx) {
+   690→    try {
+   691→      textureNodes.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.4);
+   692→      const src = textureNodes.src;
+   693→      setTimeout(() => {
+   694→        try {
+   695→          src.stop();
+   696→        } catch {
+   697→          /* ya parado */
+   698→        }
+   699→      }, 1500);
+   700→    } catch {
+   701→      /* ignorar */
+   702→    }
+   703→    textureNodes = null;
+   704→  }
+   705→}
+   706→
+   707→function startTexture(scene: SceneMusic) {
+   708→  // 🎵 Retirado por petición del navegante: sin ruido de lluvia, viento ni
+   709→  // ambiente de fondo. La banda sonora queda solo con la parte melódica
+   710→  // (pads, arpegios y bajo), mucho más limpia y agradable.
+   711→  void scene;
+   712→  void noiseBus;
+   713→  return;
+   714→}
+   715→
+   716→/** Colchón armónico suave (pad) con ataque largo y filtro móvil. */
+   717→function padNote(freq: number, start: number, duration: number, volume: number) {
+   718→  const ac = ctx;
+   719→  if (!ac || !enabled) return;
+   720→  const t = ac.currentTime + start;
+   721→  const gain = ac.createGain();
+   722→  gain.gain.setValueAtTime(0.0001, t);
+   723→  gain.gain.linearRampToValueAtTime(volume, t + duration * 0.35);
+   724→  gain.gain.setTargetAtTime(0.0001, t + duration * 0.6, 1.2);
+   725→  const filter = ac.createBiquadFilter();
+   726→  filter.type = "lowpass";
+   727→  filter.frequency.setValueAtTime(freq * 1.4, t);
+   728→  filter.frequency.linearRampToValueAtTime(freq * 0.9, t + duration);
+   729→  [0, 4, -5].forEach((detune) => {
+   730→    const osc = ac.createOscillator();
+   731→    osc.type = "sawtooth";
+   732→    osc.frequency.value = freq;
+   733→    osc.detune.value = detune * 3;
+   734→    osc.connect(filter);
+   735→    osc.start(t);
+   736→    osc.stop(t + duration + 1.8);
+   737→  });
+   738→  filter.connect(gain).connect(musicBus ?? ac.destination);
+   739→}
+   740→
+   741→/** Nota melódica breve (arpegio/pltuck) con carácter de la escena. */
+   742→function pluck(freq: number, start: number, volume: number, type: OscillatorType) {
+   743→  const ac = ctx;
+   744→  if (!ac || !enabled) return;
+   745→  const t = ac.currentTime + start;
+   746→  const osc = ac.createOscillator();
+   747→  const gain = ac.createGain();
+   748→  osc.type = type;
+   749→  osc.frequency.value = freq;
+   750→  gain.gain.setValueAtTime(0.0001, t);
+   751→  gain.gain.exponentialRampToValueAtTime(volume, t + 0.02);
+   752→  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+   753→  osc.connect(gain).connect(musicBus ?? ac.destination);
+   754→  osc.start(t);
+   755→  osc.stop(t + 0.65);
+   756→}
+   757→
+   758→/** El tic del Gran Reloj: madera seca y corta. */
+   759→function clockTick(high: boolean, start: number, volume: number) {
+   760→  const ac = ctx;
+   761→  if (!ac || !enabled) return;
+   762→  const t = ac.currentTime + start;
+   763→  const osc = ac.createOscillator();
+   764→  const gain = ac.createGain();
+   765→  osc.type = "square";
+   766→  osc.frequency.setValueAtTime(high ? 1980 : 1560, t);
+   767→  osc.frequency.exponentialRampToValueAtTime(high ? 1500 : 1180, t + 0.03);
+   768→  gain.gain.setValueAtTime(0.0001, t);
+   769→  gain.gain.exponentialRampToValueAtTime(volume, t + 0.004);
+   770→  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+   771→  const filter = ac.createBiquadFilter();
+   772→  filter.type = "bandpass";
+   773→  filter.frequency.value = 1900;
+   774→  filter.Q.value = 4;
+   775→  osc.connect(filter).connect(gain).connect(clockBus ?? ac.destination);
+   776→  osc.start(t);
+   777→  osc.stop(t + 0.07);
+   778→  // chasquido de mecánica
+   779→  noiseBurst(start, 0.018, 3400, volume * 0.4, "bandpass", 5, clockBus);
+   780→}
+   781→
+   782→function scheduleAhead() {
+   783→  const ac = ctx;
+   784→  const scene = SCENES[currentScene ?? "home"] ?? SCENES.home;
+   785→  if (!ac || !enabled) return;
+   786→  const beatDur = 60 / scene.bpm;
+   787→  while (nextBeatTime < ac.currentTime + 0.6) {
+   788→    const start = Math.max(0, nextBeatTime - ac.currentTime);
+   789→    const beatInBar = beatIndex % 4;
+   790→
+   791→    /* -- pulso: colchón en cada compás, bajo en el 1 -- */
+   792→    if (beatInBar === 0) {
+   793→      const chord = scene.chords[barIndex % scene.chords.length];
+   794→      chord.forEach((d) =>
+   795→        padNote(semitone(scene.root * 2, scene.scale[d % scene.scale.length]), start, beatDur * 4.2, 0.035),
+   796→      );
+   797→      if (scene.bass) padNote(scene.root / 2, start, beatDur * 4, 0.05);
+   798→    }
+   799→
+   800→    /* -- arpegios en los contratiempos (nunca en el pulso fuerte) -- */
+   801→    const offbeat = start + beatDur * 0.5;
+   802→    if (Math.random() < scene.pluck) {
+   803→      const deg = scene.scale[Math.floor(Math.random() * scene.scale.length)];
+   804→      const octave = Math.random() < 0.3 ? 24 : 12;
+   805→      pluck(semitone(scene.root, deg + octave), offbeat, 0.055, scene.pluckType);
+   806→    }
+   807→    if (beatInBar === 2 && Math.random() < scene.pluck * 0.7) {
+   808→      const deg = scene.scale[Math.floor(Math.random() * scene.scale.length)];
+   809→      pluck(semitone(scene.root, deg + 12), start + beatDur * 0.25, 0.04, "sine");
+   810→    }
+   811→
+   812→    /* -- EL GRAN RELOJ EN CONTRATIEMPO --
+   813→       tic-tac entre pulsos: en reposo muy sutil; con tensión se
+   814→       vuelve insistente (cada contratiempo) y sube de tono. */
+   815→    const clockBase = clockOn ? 0.055 : 0.018;
+   816→    const clockVol = clockBase * (0.35 + tension * 1.65) * (beatInBar % 2 === 0 ? 1 : 0.8);
+   817→    clockTick(clockTickToggle % 2 === 0, offbeat, clockVol);
+   818→    clockTickToggle++;
+   819→    if (tension > 0.55) {
+   820→      // doble tic nervioso en el segundo contratiempo del pulso
+   821→      clockTick(clockTickToggle % 2 === 0, offbeat + beatDur * 0.25, clockVol * 0.6);
+   822→    }
+   823→
+   824→    beatIndex++;
+   825→    if (beatInBar === 3) barIndex++;
+   826→    nextBeatTime += beatDur;
+   827→  }
+   828→}
+   829→
+   830→/** Enciende la capa del reloj (juegos cronometrados y climas de tensión). */
+   831→export function setClockActive(active: boolean) {
+   832→  clockOn = active;
+   833→}
+   834→
+   835→/** Tensión 0-1: acelera el reloj y lo vuelve protagonista. */
+   836→export function setTension(level: number) {
+   837→  tension = Math.min(1, Math.max(0, level));
+   838→  if (clockBus && ctx) {
+   839→    clockBus.gain.setTargetAtTime(0.35 + tension * 0.65, ctx.currentTime, 0.12);
+   840→  }
+   841→}
+   842→
+   843→/** ¿Hay música sonando? (para el indicador de ajustes) */
+   844→export function isMusicPlaying(): boolean {
+   845→  return !!schedulerId && !!currentScene;
+   846→}
+   847→
+   848→export function getAudioState() {
+   849→  return { unlocked, running: !!ctx && ctx.state === "running", scene: currentScene, tension };
+   850→}
+   851→
+   852→/* ============================== catálogo SFX ============================== */
+   853→
+   854→/** Variación ligera para no repetir: +-6% de afinación. */
+   855→const vary = (f: number) => f * (0.94 + Math.random() * 0.12);
+   856→
+   857→export const sfx = {
+   858→  /* ------- acierto: tres niveles con brillo creciente ------- */
+   859→  correct(level = 0) {
+   860→    if (!enabled) return;
+   861→    haptic(10 + level * 4);
+   862→    const base = [659, 880][Math.min(level, 1)];
+   863→    tone(vary(base), 0, 0.12, 0.075);
+   864→    tone(vary(base * 1.335), 0.08, 0.15, 0.06);
+   865→    if (level >= 2) bell(base * 2, 0.12, 0.5, 0.03);
+   866→  },
+   867→  wrong(soft = false) {
+   868→    if (!enabled) return;
+   869→    haptic([16, 30, 16]);
+   870→    if (soft) {
+   871→      tone(vary(240), 0, 0.14, 0.05, "triangle");
+   872→      tone(vary(180), 0.08, 0.18, 0.04, "triangle");
+   873→    } else {
+   874→      tone(196, 0, 0.2, 0.07, "sawtooth");
+   875→      tone(147, 0.07, 0.26, 0.06, "sawtooth");
+   876→      noiseBurst(0, 0.08, 500, 0.02, "lowpass");
+   877→    }
+   878→  },
+   879→  click() {
+   880→    if (!enabled) return;
+   881→    tone(vary(440), 0, 0.045, 0.04, "square");
+   882→  },
+   883→  tap() {
+   884→    if (!enabled) return;
+   885→    tone(vary(620), 0, 0.03, 0.03, "sine");
+   886→  },
+   887→  toggle() {
+   888→    if (!enabled) return;
+   889→    tone(520, 0, 0.04, 0.035, "square");
+   890→    tone(760, 0.045, 0.05, 0.035, "square");
+   891→  },
+   892→  levelUp() {
+   893→    if (!enabled) return;
+   894→    hapticFanfare();
+   895→    [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.09, 0.22, 0.07));
+   896→    bell(1047, 0.36, 1.1, 0.045);
+   897→  },
+   898→  achievement() {
+   899→    if (!enabled) return;
+   900→    tone(880, 0, 0.15, 0.07);
+   901→    tone(1319, 0.12, 0.25, 0.06);
+   902→    bell(1760, 0.26, 0.8, 0.03);
+   903→  },
+   904→  combo(level: number) {
+   905→    if (!enabled) return;
+   906→    const f = 500 + Math.min(level, 10) * 62;
+   907→    tone(vary(f), 0, 0.07, 0.05, "triangle");
+   908→    tone(vary(f * 1.5), 0.05, 0.06, 0.035, "triangle");
+   909→  },
+   910→  /** Navegación: ráfaga suave hacia arriba. */
+   911→  navigate() {
+   912→    if (!enabled) return;
+   913→    tone(392, 0, 0.07, 0.035);
+   914→    tone(523, 0.05, 0.09, 0.03);
+   915→  },
+   916→  back() {
+   917→    if (!enabled) return;
+   918→    tone(523, 0, 0.07, 0.035);
+   919→    tone(392, 0.05, 0.09, 0.03);
+   920→  },
+   921→  unlock() {
+   922→    if (!enabled) return;
+   923→    [440, 554, 659, 880].forEach((f, i) => tone(f, i * 0.08, 0.24, 0.075));
+   924→    bell(1109, 0.34, 0.34, 0.05);
+   925→  },
+   926→  sessionEnd() {
+   927→    if (!enabled) return;
+   928→    [523, 659, 784].forEach((f, i) => tone(f, i * 0.02, 0.3, 0.06, "triangle"));
+   929→    [659, 831, 988].forEach((f, i) => tone(f, 0.24 + i * 0.02, 0.32, 0.05, "triangle"));
+   930→  },
+   931→  sessionWin() {
+   932→    if (!enabled) return;
+   933→    [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.1, 0.3, 0.06));
+   934→    bell(1568, 0.5, 1.2, 0.04);
+   935→    noiseBurst(0.5, 0.5, 3000, 0.02, "highpass");
+   936→  },
+   937→  sessionLose() {
+   938→    if (!enabled) return;
+   939→    [392, 330, 262].forEach((f, i) => tone(f, i * 0.12, 0.3, 0.05, "triangle"));
+   940→    tone(196, 0.36, 0.4, 0.04, "sine");
+   941→  },
+   942→  /** Últimos segundos de un ítem cronometrado: tic alerta. */
+   943→  tick(urgent = false) {
+   944→    if (!enabled) return;
+   945→    tone(urgent ? 1400 : 1200, 0, 0.045, urgent ? 0.07 : 0.05, "square");
+   946→  },
+   947→  tock() {
+   948→    if (!enabled) return;
+   949→    tone(900, 0, 0.04, 0.04, "square");
+   950→  },
+   951→  /** Cuenta atrás 3·2·1: do-re-mi ascendente y ¡ya! */
+   952→  countdown(step: number) {
+   953→    if (!enabled) return;
+   954→    tone(vary([523, 587, 659][Math.max(0, Math.min(2, step))]), 0, 0.09, 0.06, "sine");
+   955→  },
+   956→  go() {
+   957→    if (!enabled) return;
+   958→    tone(880, 0, 0.12, 0.08);
+   959→    tone(1175, 0.08, 0.2, 0.06);
+   960→  },
+   961→  flip() {
+   962→    if (!enabled) return;
+   963→    tone(330, 0, 0.06, 0.04, "triangle");
+   964→    tone(494, 0.06, 0.1, 0.04, "triangle");
+   965→  },
+   966→  deal() {
+   967→    if (!enabled) return;
+   968→    noiseBurst(0, 0.12, 2200, 0.03, "bandpass", 1.5);
+   969→    tone(vary(740), 0.02, 0.05, 0.025, "triangle");
+   970→  },
+   971→  place() {
+   972→    if (!enabled) return;
+   973→    tone(vary(196), 0, 0.07, 0.06, "sine");
+   974→    noiseBurst(0, 0.05, 800, 0.02, "lowpass");
+   975→  },
+   976→  snap() {
+   977→    if (!enabled) return;
+   978→    tone(vary(330), 0, 0.04, 0.05, "square");
+   979→    tone(vary(660), 0.035, 0.05, 0.04, "square");
+   980→  },
+   981→  /** Moneda de XP: brillo metálico. */
+   982→  coin(big = false) {
+   983→    if (!enabled) return;
+   984→    tone(vary(big ? 1319 : 988), 0, 0.08, 0.05);
+   985→    tone(vary(big ? 1760 : 1319), 0.05, 0.12, 0.04);
+   986→  },
+   987→  /** Cascada de monedas al reclamar misión. */
+   988→  coins() {
+   989→    if (!enabled) return;
+   990→    [988, 1175, 1319, 1568, 1976].forEach((f, i) => tone(vary(f), i * 0.06, 0.14, 0.05));
+   991→  },
+   992→  streak() {
+   993→    if (!enabled) return;
+   994→    tone(784, 0, 0.14, 0.06);
+   995→    tone(1175, 0.11, 0.2, 0.05);
+   996→  },
+   997→  chime() {
+   998→    if (!enabled) return;
+   999→    bell(880, 0, 1.2, 0.06);
+  1000→    bell(1320, 0.15, 1, 0.04);
+  1001→  },
+  1002→  /** Campana de boya al entrar en el puerto / región. */
+  1003→  buoy() {
+  1004→    if (!enabled) return;
+  1005→    bell(392, 0, 1.6, 0.06);
+  1006→    bell(587, 0.3, 1.2, 0.03);
+  1007→  },
+  1008→  splash() {
+  1009→    if (!enabled) return;
+  1010→    noiseBurst(0, 0.3, 900, 0.06, "lowpass");
+  1011→    noiseBurst(0.05, 0.25, 2400, 0.02, "bandpass");
+  1012→  },
+  1013→  page() {
+  1014→    if (!enabled) return;
+  1015→    noiseBurst(0, 0.16, 3800, 0.035, "bandpass", 0.8);
+  1016→  },
+  1017→  /** Léxico habla: blip suave y curioso. */
+  1018→  tinta() {
+  1019→    if (!enabled) return;
+  1020→    tone(vary(620), 0, 0.05, 0.04, "sine");
+  1021→    tone(vary(830), 0.06, 0.06, 0.035, "sine");
+  1022→  },
+  1023→  pop() {
+  1024→    if (!enabled) return;
+  1025→    tone(vary(520), 0, 0.05, 0.05, "sine", null, 240);
+  1026→  },
+  1027→  confetti() {
+  1028→    if (!enabled) return;
+  1029→    noiseBurst(0, 0.2, 3200, 0.04, "highpass");
+  1030→    tone(vary(1200), 0.02, 0.08, 0.03);
+  1031→    tone(vary(1600), 0.1, 0.08, 0.03);
+  1032→  },
+  1033→  whoosh() {
+  1034→    if (!enabled) return;
+  1035→    noiseBurst(0, 0.22, 700, 0.035, "bandpass", 0.6);
+  1036→  },
+  1037→  error() {
+  1038→    if (!enabled) return;
+  1039→    tone(220, 0, 0.16, 0.05, "square");
+  1040→    tone(207, 0.14, 0.2, 0.04, "square");
+  1041→  },
+  1042→  /* ------- Hojas, diálogos y Bazar ------- */
+  1043→  /** Hoja o diálogo que se abre: deslizamiento ascendente suave. */
+  1044→  open() {
+  1045→    if (!enabled) return;
+  1046→    tone(vary(520), 0, 0.07, 0.04, "sine");
+  1047→    tone(vary(740), 0.05, 0.09, 0.035, "sine");
+  1048→  },
+  1049→  /** Hoja o diálogo que se cierra: deslizamiento descendente suave. */
+  1050→  close() {
+  1051→    if (!enabled) return;
+  1052→    tone(vary(740), 0, 0.07, 0.04, "sine");
+  1053→    tone(vary(520), 0.05, 0.09, 0.035, "sine");
+  1054→  },
+  1055→  /** Compra en el Bazar: caja registradora con brillo metálico. */
+  1056→  buy() {
+  1057→    if (!enabled) return;
+  1058→    tone(vary(659), 0, 0.09, 0.06);
+  1059→    tone(vary(880), 0.07, 0.12, 0.05);
+  1060→    bell(1319, 0.16, 0.5, 0.035);
+  1061→  },
+  1062→  /** Regalo diario reclamado: destello alegre junto a la tinta. */
+  1063→  gift() {
+  1064→    if (!enabled) return;
+  1065→    tone(vary(784), 0, 0.1, 0.055, "sine");
+  1066→    tone(vary(988), 0.09, 0.12, 0.05, "sine");
+  1067→    bell(1319, 0.18, 0.7, 0.03);
+  1068→  },
+  1069→  /* ------- Salón de Juegos Educativos ------- */
+  1070→  /** Pieza que avanza: golpe seco de madera. */
+  1071→  move() {
+  1072→    if (!enabled) return;
+  1073→    tone(vary(180), 0, 0.07, 0.07, "sine");
+  1074→    noiseBurst(0, 0.045, 600, 0.025, "lowpass");
+  1075→  },
+  1076→  /** Pieza capturada: golpe doble con brillo. */
+  1077→  capture() {
+  1078→    if (!enabled) return;
+  1079→    tone(vary(150), 0, 0.06, 0.07, "sine");
+  1080→    tone(vary(240), 0.05, 0.08, 0.06, "triangle");
+  1081→    noiseBurst(0, 0.07, 900, 0.03, "lowpass");
+  1082→  },
+  1083→  /** Ficha que resbala (2048, deslizables). */
+  1084→  slide() {
+  1085→    if (!enabled) return;
+  1086→    noiseBurst(0, 0.12, 1400, 0.03, "bandpass", 0.9);
+  1087→    tone(vary(300), 0.06, 0.05, 0.03, "sine");
+  1088→  },
+  1089→};
+  1090→
+  1091→/* ============================== voz (TTS) ============================== */
+  1092→
+  1093→/** ¿Soporta este navegador síntesis de voz en español? */
+  1094→export function ttsAvailable(): boolean {
+  1095→  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+  1096→  return true;
+  1097→}
+  1098→
+  1099→/** Velocidad global de la voz (configurable en Ajustes · Etapa 4). */
+  1100→let ttsRateGlobal = 1;
+  1101→
+  1102→/** Fija la velocidad global del TTS (0.5 - 1.3). */
+  1103→export function setTtsRate(v: number) {
+  1104→  ttsRateGlobal = Math.min(1.3, Math.max(0.5, v));
+  1105→}
+  1106→
+  1107→/** Háptics: vibración breve si el dispositivo la soporta (Etapa 4). */
+  1108→let hapticsEnabled = false;
+  1109→
+  1110→export function setHaptics(value: boolean) {
+  1111→  hapticsEnabled = value;
+  1112→}
+  1113→
+  1114→/** Vibra un patrón corto (aciertos y combos). Silencioso si no hay soporte. */
+  1115→export function haptic(pattern: number | number[] = 12) {
+  1116→  if (!hapticsEnabled) return;
+  1117→  try {
+  1118→    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+  1119→      navigator.vibrate(pattern);
+  1120→    }
+  1121→  } catch {
+  1122→    /* sin soporte: silencio */
+  1123→  }
+  1124→}
+  1125→
+  1126→/** Vibra un patrón largo (subida de nivel). */
+  1127→export function hapticFanfare() {
+  1128→  haptic([28, 40, 28, 40, 60]);
+  1129→}
+  1130→
+  1131→/**
+  1132→ * Lee un texto en voz alta (es-ES) si el navegador lo permite.
+  1133→ * Devuelve false si no está disponible: la UI debe ofrecer siempre
+  1134→ * la alternativa visual.
+  1135→ */
+  1136→export function speak(text: string, rate = 0.95): boolean {
+  1137→  if (!ttsAvailable()) return false;
+  1138→  try {
+  1139→    window.speechSynthesis.cancel();
+  1140→    const utter = new SpeechSynthesisUtterance(text);
+  1141→    utter.lang = "es-ES";
+  1142→    utter.rate = rate * ttsRateGlobal;
+  1143→    window.speechSynthesis.speak(utter);
+  1144→    return true;
+  1145→  } catch {
+  1146→    return false;
+  1147→  }
+  1148→}
+  1149→

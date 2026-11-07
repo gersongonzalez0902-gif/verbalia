@@ -20,13 +20,16 @@ import { cn } from "@/lib/utils";
 import {
   BookMarked,
   ChartColumn,
+  Dumbbell,
   Gamepad2,
   Home,
+  Keyboard,
   Library,
   ListChecks,
   ListMusic,
   Map as MapIcon,
   NotebookPen,
+  Quote,
   Settings,
   ShieldCheck,
   ShoppingBag,
@@ -45,8 +48,10 @@ const MOBILE_NAV: { screen: Screen; label: string; icon: React.ElementType }[] =
 
 /** Destinos extra disponibles en móvil a través del botón «Más» del muelle. */
 const MORE_NAV: { screen: Screen; label: string; hint: string; icon: React.ElementType }[] = [
+  { screen: { name: "arcade" }, label: "Salón de Juegos", hint: "21 retos de mente", icon: Gamepad2 },
+  { screen: { name: "writing" }, label: "Taller de Escritura", hint: "Mecanografía y tipeo", icon: Keyboard },
   { screen: { name: "stats" }, label: "Estadísticas", hint: "Gráficas, récords y evolución", icon: ChartColumn },
-  { screen: { name: "arcade" }, label: "Juegos educativos", hint: "Ajedrez, damas y 20 retos más", icon: Gamepad2 },
+  { screen: { name: "frases" }, label: "Bitácora de frases", hint: "Todas las frases del viaje", icon: Quote },
   { screen: { name: "shop" }, label: "El Bazar del Copista", hint: "Gasta tu tinta en estilo", icon: ShoppingBag },
   { screen: { name: "errors" }, label: "Cuaderno de errores", hint: "Repasa lo fallado", icon: NotebookPen },
   { screen: { name: "music" }, label: "Estación de música", hint: "Tus canciones, tu viaje", icon: ListMusic },
@@ -60,9 +65,16 @@ const SIDEBAR_NAV: { section: string; items: { screen: Screen; label: string; ic
     items: [
       { screen: { name: "home" }, label: "Inicio", icon: Home },
       { screen: { name: "map" }, label: "Mapa del Archipiélago", icon: MapIcon },
-      { screen: { name: "arcade" }, label: "Juegos educativos", icon: Gamepad2 },
       { screen: { name: "missions" }, label: "Misiones y logros", icon: ListChecks },
       { screen: { name: "collection" }, label: "Colección de palabras", icon: BookMarked },
+    ],
+  },
+  {
+    section: "Entrenar",
+    items: [
+      { screen: { name: "training" }, label: "Entrenamientos", icon: Dumbbell },
+      { screen: { name: "arcade" }, label: "Salón de Juegos", icon: Gamepad2 },
+      { screen: { name: "writing" }, label: "Taller de Escritura", icon: Keyboard },
     ],
   },
   {
@@ -77,6 +89,7 @@ const SIDEBAR_NAV: { section: string; items: { screen: Screen; label: string; ic
   {
     section: "Más",
     items: [
+      { screen: { name: "frases" }, label: "Bitácora de frases", icon: Quote },
       { screen: { name: "music" }, label: "Estación de música", icon: ListMusic },
       { screen: { name: "library" }, label: "Biblioteca y hoja de ruta", icon: Library },
       { screen: { name: "settings" }, label: "Ajustes", icon: Settings },
@@ -92,7 +105,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
       <span className="chip-icon anim-bob flex h-9 w-9 items-center justify-center rounded-xl">
-        <img src="/icon.svg" alt="" width={26} height={26} className="rounded-md" />
+        <img src="/icons/icon-192.png" alt="" width={26} height={26} className="rounded-md" />
       </span>
       <div className={cn("leading-tight", compact && "hidden lg:block")}>
         <p className="font-display title-sheen text-lg font-bold tracking-tight">VERBALIA</p>
@@ -265,7 +278,7 @@ export function AppShell({
         </nav>
 
         {/* Hoja «Más»: estadísticas, juegos, bazar y demás rincones del Archipiélago */}
-        <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <Sheet open={moreOpen} onOpenChange={(v) => { if (v) sfx.open(); else sfx.close(); setMoreOpen(v); }}>
           <SheetContent
             side="bottom"
             className="safe-bottom max-h-[78dvh] overflow-y-auto rounded-t-3xl px-4 pb-8 pt-4 sm:mx-auto sm:max-w-md"

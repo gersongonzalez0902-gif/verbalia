@@ -42,23 +42,26 @@ import {
   Check,
   Droplets,
   Image as ImageIcon,
+  Keyboard,
   Lock,
+  Medal,
   PenLine,
   Star,
   Trash2,
   X,
 } from "lucide-react";
 
-/** Banners predefinidos: gradientes del propio sistema de temas. */
+/** Banners predefinidos: composiciones escénicas por capas, nada de
+ *  gradientes planos. Cada banner cuenta un lugar del Archipiélago. */
 const BANNER_PRESETS: { id: string; label: string; css: string }[] = [
-  { id: "aurora", label: "Aurora", css: "linear-gradient(135deg, oklch(0.55 0.17 285), oklch(0.72 0.13 210) 60%, oklch(0.82 0.13 85))" },
-  { id: "coral", label: "Coral", css: "linear-gradient(135deg, oklch(0.6 0.17 25), oklch(0.75 0.13 50) 70%, oklch(0.9 0.08 85))" },
-  { id: "miel", label: "Miel", css: "linear-gradient(135deg, oklch(0.7 0.14 70), oklch(0.82 0.13 90) 55%, oklch(0.95 0.05 95))" },
-  { id: "lavanda", label: "Lavanda", css: "linear-gradient(135deg, oklch(0.5 0.16 305), oklch(0.7 0.13 280) 65%, oklch(0.88 0.08 320))" },
-  { id: "oceano", label: "Océano", css: "linear-gradient(135deg, oklch(0.4 0.11 250), oklch(0.6 0.11 215) 60%, oklch(0.85 0.09 195))" },
-  { id: "marea", label: "Marea", css: "linear-gradient(135deg, oklch(0.45 0.1 160), oklch(0.62 0.12 200) 55%, oklch(0.85 0.1 85))" },
-  { id: "biblioteca", label: "Biblioteca", css: "linear-gradient(135deg, oklch(0.35 0.07 60), oklch(0.5 0.09 40) 55%, oklch(0.82 0.12 85))" },
-  { id: "observatorio", label: "Observatorio", css: "linear-gradient(160deg, oklch(0.25 0.05 285), oklch(0.45 0.12 290) 60%, oklch(0.85 0.13 85))" },
+  { id: "aurora", label: "Aurora", css: "linear-gradient(115deg, oklch(0.55 0.17 285), oklch(0.72 0.13 210) 60%, oklch(0.82 0.13 85))" },
+  { id: "faro", label: "Faro al anochecer", css: "radial-gradient(circle at 80% 25%, oklch(0.92 0.11 95) 0%, oklch(0.7 0.14 55) 18%, oklch(0.35 0.1 300) 60%, oklch(0.22 0.05 280))" },
+  { id: "marea", label: "Marea baja", css: "linear-gradient(180deg, oklch(0.75 0.1 215) 0%, oklch(0.88 0.07 190) 45%, oklch(0.55 0.1 160) 46%, oklch(0.38 0.09 150) 100%)" },
+  { id: "bosque", label: "Sendero del bosque", css: "radial-gradient(80% 70% at 25% 0%, oklch(0.7 0.12 135 / 70%), transparent 65%), linear-gradient(160deg, oklch(0.42 0.11 150), oklch(0.55 0.12 120) 55%, oklch(0.28 0.06 150))" },
+  { id: "ciudad", label: "Ciudad dorada", css: "radial-gradient(circle at 70% 90%, oklch(0.85 0.13 75) 0%, transparent 55%), linear-gradient(140deg, oklch(0.4 0.09 60), oklch(0.72 0.12 65) 60%, oklch(0.9 0.09 90))" },
+  { id: "biblioteca", label: "Anaqueles", css: "repeating-linear-gradient(90deg, oklch(0.35 0.07 55) 0 14%, oklch(0.5 0.09 42) 14% 17%, oklch(0.82 0.1 80) 17% 22%), linear-gradient(180deg, oklch(0.85 0.09 85), oklch(0.7 0.08 60))" },
+  { id: "observatorio", label: "Cúpula estrellada", css: "radial-gradient(circle at 30% 30%, oklch(0.9 0.08 90 / 80%) 0%, transparent 12%), radial-gradient(circle at 68% 55%, oklch(0.85 0.09 200 / 60%) 0%, transparent 10%), linear-gradient(160deg, oklch(0.2 0.05 285), oklch(0.42 0.1 290) 65%, oklch(0.85 0.12 85) 130%)" },
+  { id: "forja", label: "Forja encendida", css: "radial-gradient(90% 80% at 50% 115%, oklch(0.72 0.19 32) 0%, transparent 62%), linear-gradient(180deg, oklch(0.22 0.04 30), oklch(0.36 0.11 26) 65%, oklch(0.58 0.17 30))" },
 ];
 
 /** Nivel de insignia según recompensa: bronce / plata / oro / platino. */
@@ -442,6 +445,39 @@ export function ProfileScreen() {
           </div>
         </section>
 
+        {/* ===== Taller de escritura y logros ===== */}
+        <section className="card-aurora mt-3 grid gap-3 rounded-3xl border bg-card p-4 sm:grid-cols-2">
+          <button
+            onClick={() => { sfx.whoosh(); navigate({ name: "writing" }); }}
+            className="tap-3d flex items-center gap-3 rounded-2xl border bg-card p-3 text-left transition hover:border-primary/50"
+          >
+            <span className="gloss flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white" style={{ background: "var(--region-biblioteca)" }} aria-hidden>
+              <Keyboard className="h-6 w-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold">Taller de Escritura</span>
+              <span className="numeric block text-[11px] text-muted-foreground">
+                {core.arcade.typing?.bestWpm ?? 0} PPM · {core.arcade.typing?.bestAccuracy ?? 0}% precisión · racha {core.arcade.typing?.streak ?? 0} día(s)
+              </span>
+            </span>
+            <span className="shrink-0 text-xs font-black text-primary">Abrir →</span>
+          </button>
+          <button
+            onClick={() => { sfx.whoosh(); navigate({ name: "missions" }); }}
+            className="tap-3d flex items-center gap-3 rounded-2xl border bg-card p-3 text-left transition hover:border-primary/50"
+          >
+            <ProgressRing value={unlockedCount / ACHIEVEMENTS.length} size={56} stroke={6}>
+              <span className="numeric text-[11px] font-black">{unlockedCount}/{ACHIEVEMENTS.length}</span>
+            </ProgressRing>
+            <span className="min-w-0 text-left">
+              <span className="block text-sm font-bold">Logros del navegante</span>
+              <span className="block text-[11px] text-muted-foreground">
+                {ACHIEVEMENTS.length - unlockedCount} tesoros por descubrir
+              </span>
+            </span>
+          </button>
+        </section>
+
         {/* ===== Habilidades (las 7 islas) ===== */}
         <section className="mt-6" aria-labelledby="skills-title">
           <h3 id="skills-title" className="font-display text-lg font-bold">Tus habilidades</h3>
@@ -493,64 +529,82 @@ export function ProfileScreen() {
           </div>
         </section>
 
-        {/* ===== Insignias por niveles ===== */}
+        {/* ===== Insignias: vitrina compacta (sin saturar la ficha) ===== */}
         <section className="mt-6" aria-labelledby="badges-title">
-          <h3 id="badges-title" className="font-display text-lg font-bold">
+          <h3 id="badges-title" className="font-display flex items-center gap-2 text-lg font-bold">
+            <Medal className="h-5 w-5 text-primary" aria-hidden />
             Insignias: {unlockedCount} / {ACHIEVEMENTS.length}
           </h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Bronce, plata, oro y platino según la talla del logro. Toca una insignia desbloqueada para destacarla en tu ficha.
-          </p>
 
           {/* Insignia destacada */}
           {featured && <FeaturedBadgeCard badge={featured} onRemove={() => toggleFeatured(featured.id)} />}
 
-          <div className="mt-3 grid grid-cols-4 gap-2.5 sm:grid-cols-6">
-            {ACHIEVEMENTS.map((a) => {
-              const got = Boolean(core.achievements[a.id]);
-              const tier = badgeTier(a.xpReward);
-              const Icon = getIcon(a.icon);
-              const isStarred = profile.featuredBadge === a.id && got;
+          {/* Distribución por tiers: resumen elegante de toda la colección */}
+          <div className="mt-3 grid grid-cols-4 gap-2">
+            {(["Bronce", "Plata", "Oro", "Platino"] as const).map((tierName) => {
+              const total = ACHIEVEMENTS.filter((a) => badgeTier(a.xpReward).label === tierName).length;
+              const got = ACHIEVEMENTS.filter((a) => core.achievements[a.id] && badgeTier(a.xpReward).label === tierName).length;
+              const tier = tierName === "Platino" ? { from: "oklch(0.85 0.06 240)", to: "oklch(0.95 0.03 240)" }
+                : tierName === "Oro" ? { from: "oklch(0.75 0.15 85)", to: "oklch(0.88 0.12 95)" }
+                : tierName === "Plata" ? { from: "oklch(0.62 0.05 250)", to: "oklch(0.82 0.03 250)" }
+                : { from: "oklch(0.55 0.09 55)", to: "oklch(0.72 0.09 65)" };
               return (
-                <button
-                  key={a.id}
-                  title={`${a.name}: ${a.description}`}
-                  aria-pressed={got ? isStarred : undefined}
-                  aria-label={got ? `${a.name}. Tocar para ${isStarred ? "quitar" : "destacar"} en la ficha.` : `${a.name} (bloqueada)`}
-                  onClick={() => got && toggleFeatured(a.id)}
-                  className={cn(
-                    "group relative flex aspect-square items-center justify-center rounded-2xl border p-1.5 transition",
-                    got ? "border-border" : "border-border/60 bg-muted/40",
-                    isStarred && "border-primary ring-2 ring-primary/50",
-                  )}
-                  style={
-                    got
-                      ? {
-                          background: `linear-gradient(150deg, color-mix(in oklch, ${tier.from} 32%, var(--card)), var(--card))`,
-                          boxShadow: `inset 0 0 0 1.5px color-mix(in oklch, ${tier.from} 55%, transparent)`,
-                        }
-                      : undefined
-                  }
-                >
-                  {got ? (
-                    <span
-                      className="flex h-9 w-9 items-center justify-center rounded-xl shadow-inner"
-                      style={{ background: `linear-gradient(140deg, ${tier.from}, ${tier.to})`, color: "oklch(0.25 0.03 260)" }}
-                    >
-                      <Icon className="h-4.5 w-4.5" aria-hidden />
-                    </span>
-                  ) : (
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-muted-foreground/60">
-                      <Lock className="h-4 w-4" aria-hidden />
-                    </span>
-                  )}
-                  {isStarred && (
-                    <Star className="absolute -right-1 -top-1 h-4 w-4 fill-primary text-primary drop-shadow" aria-hidden />
-                  )}
-                  <span className="sr-only">{a.name}</span>
-                </button>
+                <div key={tierName} className="card-aurora rounded-2xl border bg-card p-2.5 text-center">
+                  <span
+                    className="mx-auto flex h-8 w-8 items-center justify-center rounded-full"
+                    style={{ background: `linear-gradient(140deg, ${tier.from}, ${tier.to})`, opacity: got > 0 ? 1 : 0.35 }}
+                    aria-hidden
+                  >
+                    <Medal className="h-4 w-4" style={{ color: "oklch(0.25 0.03 260)" }} />
+                  </span>
+                  <p className="numeric mt-1.5 text-sm font-black leading-none">{got}<span className="text-muted-foreground/70">/{total}</span></p>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{tierName}</p>
+                </div>
               );
             })}
+          </div>
+
+          {/* Vitrina: las últimas 10 conseguidas (la colección completa
+              vive en Misiones y logros, que es donde se recogen). */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {[...ACHIEVEMENTS]
+              .filter((a) => core.achievements[a.id])
+              .sort((a, b) => (core.achievements[b.id] ?? 0) - (core.achievements[a.id] ?? 0))
+              .slice(0, 10)
+              .map((a) => {
+                const tier = badgeTier(a.xpReward);
+                const Icon = getIcon(a.icon);
+                const isStarred = profile.featuredBadge === a.id;
+                return (
+                  <button
+                    key={a.id}
+                    title={`${a.name}: ${a.description}`}
+                    onClick={() => toggleFeatured(a.id)}
+                    aria-label={`${a.name}. Tocar para ${isStarred ? "quitar el" : "fijarlo como"} destacado.`}
+                    className={cn(
+                      "tap-target relative flex h-10 w-10 items-center justify-center rounded-xl border transition hover:scale-110",
+                      isStarred && "border-primary ring-2 ring-primary/50",
+                    )}
+                    style={{ background: `linear-gradient(140deg, ${tier.from}, ${tier.to})` }}
+                  >
+                    <Icon className="h-4.5 w-4.5" style={{ color: "oklch(0.25 0.03 260)" }} aria-hidden />
+                    {isStarred && <Star className="absolute -right-1 -top-1 h-3.5 w-3.5 fill-primary text-primary drop-shadow" aria-hidden />}
+                  </button>
+                );
+              })}
+            {unlockedCount > 10 && (
+              <button
+                onClick={() => { sfx.click(); navigate({ name: "missions" }); }}
+                className="numeric tap-target flex h-10 items-center gap-1 rounded-xl border border-dashed px-3 text-[11px] font-bold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+              >
+                +{unlockedCount - 10} más <Star className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            )}
+            {unlockedCount === 0 && (
+              <p className="text-xs leading-snug text-muted-foreground">
+                Aún sin insignias: la primera llega pronto. Juega misiones y recoge logros.
+              </p>
+            )}
           </div>
           <Button variant="link" className="mt-1.5 h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "missions" }); }}>
             Ver misiones y logros →
@@ -561,7 +615,7 @@ export function ProfileScreen() {
         <section className="mt-6" aria-labelledby="data-title">
           <h3 id="data-title" className="font-display text-lg font-bold">Tus datos</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Todo vive en este dispositivo (IndexedDB). Sin cuentas, sin rastreadores.
+            Todo vive solo en este dispositivo. Sin cuentas, sin rastreadores.
             Para migrar a otro aparato: exporta aquí, importa allí.
           </p>
           <div className="mt-3 flex flex-wrap gap-2.5">
@@ -619,9 +673,14 @@ export function ProfileScreen() {
           </AlertDialog>
         </section>
 
-        <Button variant="outline" className="mt-4 w-full font-bold" onClick={() => { sfx.click(); navigate({ name: "settings" }); }}>
-          Ajustes de temas, sonido y datos →
-        </Button>
+        <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+          <Button variant="outline" className="font-bold" onClick={() => { sfx.click(); navigate({ name: "settings" }); }}>
+            Ajustes de temas, sonido y datos →
+          </Button>
+          <Button variant="outline" className="font-bold" onClick={() => { sfx.page(); navigate({ name: "legal" }); }}>
+            Privacidad y cookies →
+          </Button>
+        </div>
       </main>
     </div>
   );

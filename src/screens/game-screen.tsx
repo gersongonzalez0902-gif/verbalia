@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouterParams } from "@/screens/helpers";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
+import { ensureGamePool, ensureRegionPools } from "@/data/pool-loader";
 import {
   buildMissionSession,
   buildTrainingSession,
@@ -18,7 +19,7 @@ import {
   buildPlacementSession,
 } from "@/engine/session";
 import { GAMES } from "@/data/games";
-import { REGION_BY_ID } from "@/data/regions";
+import { REGIONS, REGION_BY_ID } from "@/data/regions";
 import type {
   AnswerRecord,
   Exercise,
@@ -29,8 +30,9 @@ import { GameHud, FeedbackOverlay, ExitConfirmDialog, type FeedbackPayload } fro
 import { LexicoMascot, type LexicoMood } from "@/components/game/lexico";
 import { useMusicStore } from "@/services/music-station";
 import { useSoundEffects } from "@/components/game/game-shell";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sfx } from "@/services/audio";
 import { FlashcardsSrs } from "@/games/flashcards-srs";
 import { TriviaSprint } from "@/games/trivia-sprint";
 import { SyntaxPuzzle } from "@/games/syntax-puzzle";
@@ -53,6 +55,16 @@ import { OyeGame } from "@/games/formats/oye-game";
 import { MemoriaGame } from "@/games/formats/memoria-game";
 import { ConectaGame } from "@/games/formats/conecta-game";
 import { MetaforasGame, RegistroGame, ConectoresGame, IroniaGame, CensuraGame } from "@/games/formats/forja-games";
+import {
+  EligeGame,
+  OrdenaGame,
+  ClasificaGame,
+  EscribeLibreGame,
+  MultiGame,
+  GrafiaGame,
+  OyeAcentoGame,
+  OyeNumeroGame,
+} from "@/games/formats/mega7-games";
 import { itemXp } from "@/engine/scoring";
 import { levelFromXp } from "@/engine/xp";
 import { dateKey } from "@/engine/missions";
@@ -132,14 +144,31 @@ export function GameScreen() {
   /* ---------------- Construcción de la sesión ---------------- */
   useEffect(() => {
     if (!core) return;
-    try {
-      const ctx = {
+    let cancelled = false;
+    void (async () => {
+      try {
+        // Mega-8: los bancos ampliados se cargan bajo demanda (dynamic import)
+        // antes de construir la sesión, sin engordar el paquete inicial.
+        if (params.mode === "mission" && params.regionId) {
+          const region = REGION_BY_ID[params.regionId];
+          if (region) await ensureRegionPools(region.games);
+        } else if (params.mode === "review") {
+          const gameIds = [...new Set(core.errors.map((e) => e.type))];
+          await Promise.all(gameIds.map((g) => ensureGamePool(g)));
+        } else if (params.gameId !== "srs") {
+          await ensureGamePool(params.gameId);
+        }
+        if (cancelled) return;
+        const ctx = {
         skills: core.skills,
         seenExercises: core.seenExercises,
         srs,
         now: Date.now(),
         newCardsPerDay: settings.newCardsPerDay,
       };
+      // Palabra del Día: se cuela la primera en el entrenamiento SRS.
+      const focusWordId = useUiStore.getState().srsFocusWordId;
+      if (focusWordId) useUiStore.getState().setSrsFocusWordId(null);
       let built: SessionSpec;
       if (params.mode === "placement") {
         built = buildPlacementSession();
@@ -148,7 +177,7 @@ export function GameScreen() {
       } else if (params.mode === "review") {
         built = buildReviewSession(ctx, core.errors.map((e) => e.exerciseId));
       } else {
-        built = buildTrainingSession(params.gameId, ctx);
+        built = buildTrainingSession(params.gameId, ctx, undefined, focusWordId ?? undefined);
       }
       if (built.items.length === 0) {
         setError("No hay material disponible para esta sesión todavía.");
@@ -164,9 +193,11 @@ export function GameScreen() {
       setLexicoNudge(null);
       startedAt.current = Date.now();
       itemStart.current = Date.now();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error inesperado al preparar la sesión.");
-    }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Error inesperado al preparar la sesión.");
+      }
+    })();
+    return () => { cancelled = true; };
   }, [params.gameId, params.mode, params.regionId]);
 
   const item = spec?.items[index];
@@ -302,6 +333,11 @@ export function GameScreen() {
   /* ---------------- Render ---------------- */
 
   if (error) {
+    // ¿Qué región le conviene entrenar ahora? (botón de rescate)
+    const weakestRegion = (REGIONS.filter((r) => r.games.length > 0) as typeof REGIONS).reduce(
+      (a, b) => (core?.skills[REGION_BY_ID[a.id].skill] ?? 0) <= (core?.skills[REGION_BY_ID[b.id].skill] ?? 0) ? a : b,
+      REGION_BY_ID.bosque,
+    );
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
         <AlertCircle className="h-12 w-12 text-destructive" aria-hidden />
@@ -309,9 +345,20 @@ export function GameScreen() {
           <h1 className="font-display text-xl font-bold">No se pudo preparar la sesión</h1>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">{error}</p>
         </div>
-        <Button onClick={() => navigate({ name: "home" })} className="font-bold">
-          Volver al inicio
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button onClick={() => navigate({ name: "home" })} variant="outline" className="font-bold">
+            Volver al inicio
+          </Button>
+          <Button
+            onClick={() => {
+              sfx.whoosh();
+              navigate({ name: "game", gameId: "trivia", mode: "mission", regionId: weakestRegion.id });
+            }}
+            className="font-bold"
+          >
+            <Sparkles className="mr-1.5 h-4 w-4" aria-hidden /> Misión de {weakestRegion.name}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -421,6 +468,60 @@ export function GameScreen() {
         return <IroniaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       case "titulos":
         return <CensuraGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      /* ---- Mega-7 · 45 juegos nuevos (motores compartidos) ---- */
+      case "analogias":
+      case "colocaciones":
+      case "polisemia":
+      case "concordancia":
+      case "serestar":
+      case "porpara":
+      case "subjuntivo":
+      case "tiempos":
+      case "pronombres":
+      case "relativos":
+      case "estilo":
+      case "pasiva":
+      case "genero":
+      case "homofonos":
+      case "cifras":
+      case "puntuacion":
+      case "titulo":
+      case "idea":
+      case "resumen":
+      case "tono":
+      case "inferencia":
+      case "secuencia":
+      case "proposito":
+      case "vocabctx":
+      case "regiones":
+      case "falsosamigos":
+      case "iniciadores":
+      case "cierre":
+      case "descripciones":
+        return <EligeGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "grados":
+      case "abecedario":
+      case "silabas":
+        return <OrdenaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "acentos":
+      case "entonacion":
+        return <ClasificaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "definiciones":
+      case "derivadas":
+        return <EscribeLibreGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "familias":
+      case "mayusculas":
+        return <MultiGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "bv":
+      case "gj":
+      case "hach":
+      case "lly":
+      case "csz":
+        return <GrafiaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "oye-acento":
+        return <OyeAcentoGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "oyenumero":
+        return <OyeNumeroGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       default:
         return null;
     }

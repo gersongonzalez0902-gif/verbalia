@@ -154,14 +154,18 @@ export function ResultsScreen() {
             const def = ACHIEVEMENTS_BY_ID[id];
             if (!def) return null;
             return (
-              <div key={id} className="flex items-center gap-3 rounded-2xl border border-[var(--xp)]/40 bg-[var(--xp)]/5 p-3">
+              <button
+                key={id}
+                onClick={() => { sfx.whoosh(); navigate({ name: "missions" }); }}
+                className="tap-3d flex w-full items-center gap-3 rounded-2xl border border-[var(--xp)]/40 bg-[var(--xp)]/5 p-3 text-left"
+              >
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--xp)]/20 text-lg" aria-hidden>🏅</span>
                 <div className="min-w-0">
                   <p className="text-sm font-bold">{def.name}</p>
-                  <p className="text-xs text-muted-foreground">{def.description}</p>
+                  <p className="text-xs text-muted-foreground">Recoge tu recompensa en Misiones y logros</p>
                 </div>
                 <span className="numeric ml-auto shrink-0 text-xs font-bold text-[var(--xp)]">+{def.xpReward} XP</span>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -170,12 +174,17 @@ export function ResultsScreen() {
       {/* Misiones completadas + escudo */}
       {(result.missionsCompleted.length > 0 || result.shieldUsed) && (
         <div className="mt-4 space-y-2">
-          {result.missionsCompleted.map((id) => (
-            <p key={id} className="card-aurora flex items-center gap-2 rounded-2xl border bg-card px-4 py-2.5 text-sm font-semibold">
+          {result.missionsCompleted.length > 0 && (
+            <button
+              onClick={() => { sfx.whoosh(); navigate({ name: "missions" }); }}
+              className="tap-3d card-aurora flex w-full items-center gap-2 rounded-2xl border border-primary/40 bg-card px-4 py-2.5 text-left text-sm font-semibold"
+            >
               <Zap className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-              Misión diaria completada: recompensa reclamada
-            </p>
-          ))}
+              {result.missionsCompleted.length === 1
+                ? "Una misión completada: pasa a recoger tu recompensa"
+                : `${result.missionsCompleted.length} misiones completadas: pasa a recoger tus recompensas`}
+            </button>
+          )}
           {result.shieldUsed && (
             <p className="card-aurora flex items-center gap-2 rounded-2xl border border-primary/40 bg-card px-4 py-2.5 text-sm font-semibold">
               <Shield className="h-4 w-4 shrink-0 text-primary" aria-hidden />

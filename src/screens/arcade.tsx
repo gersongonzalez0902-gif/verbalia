@@ -3,8 +3,8 @@
 /**
  * El Salón de Juegos Educativos · VERBALIA
  * ----------------------------------------------------------------
- * Un ala nueva del Archipiélago para entrenar la mente: ajedrez con
- * motor local y revisión de partidas, damas y 21 minijuegos más.
+ * Un ala del Archipiélago para entrenar la mente: cálculo mental,
+ * memoria, lógica, letras veloces y reflejos (21 minijuegos).
  *
  * - Desbloqueo con TINTA (nunca cuesta nivel ni XP: la tinta se gana
  *   jugando y el nivel queda intacto — economía honesta).
@@ -30,8 +30,6 @@ import {
   type ArcadeGameDef,
 } from "@/engine/arcade";
 import { levelProgress } from "@/engine/xp";
-import { ChessGame } from "@/games/arcade/chess";
-import { CheckersGame } from "@/games/arcade/checkers";
 import { MathGame, RomanGame, BinaryGame, DigitMemoryGame, TypingGame, AnagramGame, HangmanGame } from "@/games/arcade/quiz-games";
 import {
   LightsOutGame, HanoiGame, SudokuGame, MinesweeperGame,
@@ -42,13 +40,11 @@ import {
   ReactionGame, ArrowsDanceGame, WordSecretGame,
 } from "@/games/arcade/reflex-games";
 import { GameOverPanel, type FinishInfo } from "@/games/arcade/shared";
-import { Coins, Crown, Droplets, Lock, Play, Sparkles, Trophy, Zap } from "lucide-react";
+import { Coins, Droplets, Gamepad2, Lock, Play, Sparkles, Trophy, Zap } from "lucide-react";
 
-const CATEGORY_ORDER: ArcadeCategory[] = ["mesa", "calculo", "memoria", "logica", "palabras", "reflejos"];
+const CATEGORY_ORDER: ArcadeCategory[] = ["calculo", "memoria", "logica", "palabras", "reflejos"];
 
 const GAME_COMPONENTS: Record<string, React.ComponentType<{ def: ArcadeGameDef; best: number; onFinish: (score: number, extra?: { subtitle?: string }) => void; onExit: () => void }>> = {
-  ajedrez: ChessGame,
-  damas: CheckersGame,
   "mates-relampago": MathGame,
   "numeros-romanos": RomanGame,
   binario: BinaryGame,
@@ -144,7 +140,6 @@ export function ArcadeScreen() {
                 onReplay={() => { setRunKey((k) => k + 1); setFinish(null); }}
                 onExit={closeGame}
                 extraAction={
-                  finish.def.id === "ajedrez" ? null : (
                     <Button
                       variant="ghost"
                       className="w-full text-xs"
@@ -152,7 +147,6 @@ export function ArcadeScreen() {
                     >
                       <Coins className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Tinta ganada total: {finish.tinta}
                     </Button>
-                  )
                 }
               />
             </div>
@@ -171,7 +165,7 @@ export function ArcadeScreen() {
     <div>
       <ScreenHeader
         title="Salón de Juegos"
-        subtitle="Ajedrez, damas y 21 retos más"
+        subtitle="21 retos de cálculo, memoria, lógica y reflejos"
         backTo={{ name: "home" }}
       />
 
@@ -180,7 +174,7 @@ export function ArcadeScreen() {
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-4">
           <div className="flex flex-wrap items-center gap-4">
             <span className="gloss flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white" style={{ background: "linear-gradient(150deg, color-mix(in oklch, var(--region-fortaleza) 76%, white 18%), var(--region-fortaleza))" }} aria-hidden>
-              <Crown className="h-7 w-7" />
+              <Gamepad2 className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="font-display text-lg font-bold leading-tight">Entrena la mente, no solo la lengua</h2>
@@ -198,19 +192,8 @@ export function ArcadeScreen() {
             <StatMini icon={<Play className="h-3.5 w-3.5" aria-hidden />} value={`${stats.unlocked}/${stats.total}`} label="abiertos" />
             <StatMini icon={<Trophy className="h-3.5 w-3.5" aria-hidden />} value={String(stats.records)} label="récords" />
             <StatMini icon={<Zap className="h-3.5 w-3.5" aria-hidden />} value={String(core.arcade.xpEarned ?? 0)} label="XP aquí" />
-            <StatMini icon={<Sparkles className="h-3.5 w-3.5" aria-hidden />} value={String(core.arcade.chessElo ?? 1200)} label="ELO ajedrez" />
+            <StatMini icon={<Sparkles className="h-3.5 w-3.5" aria-hidden />} value={String(core.arcade.typing?.bestWpm ?? 0)} label="PPM récord" />
           </div>
-        </section>
-
-        {/* Registro de ajedrez */}
-        <section className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card px-4 py-3 text-xs">
-          <p className="font-bold">
-            <Crown className="mr-1.5 inline h-4 w-4 text-primary" aria-hidden />
-            Ajedrez: <span className="numeric">{core.arcade.chessRecord.w}</span> victorias ·
-            <span className="numeric"> {core.arcade.chessRecord.d}</span> tablas ·
-            <span className="numeric"> {core.arcade.chessRecord.l}</span> derrotas
-          </p>
-          <p className="text-muted-foreground">Revisión de partidas incluida, motor 100% local.</p>
         </section>
 
         {/* Categorías */}

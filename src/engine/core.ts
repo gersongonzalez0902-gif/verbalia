@@ -9,9 +9,9 @@ import type {
 import { levelFromXp } from "./xp";
 import { applySkillDelta } from "./xp";
 import { bestComboFrom, completionBonus, itemXp, DAILY_XP_SOFT_CAP } from "./scoring";
-import { updateStreak, grantShield } from "./streak";
+import { updateStreak } from "./streak";
 import { dateKey, weekKey, dailyMissions, weeklyMissions, metricValue, daysOfWeek } from "./missions";
-import { ACHIEVEMENTS, LEVEL_ACHIEVEMENTS, ACHIEVEMENTS_BY_ID } from "@/data/achievements";
+import { ACHIEVEMENTS, LEVEL_ACHIEVEMENTS } from "@/data/achievements";
 import { REPEAT_WINDOW_MS } from "./scoring";
 import { tintaForXp } from "./shop";
 
@@ -42,6 +42,7 @@ const DEFAULT_WALLET = (): GameCore["wallet"] => ({
   frame: "frame-none",
   title: "title-none",
   spent: 0,
+  lastGiftDay: '',
 });
 
 export function createCore(now = Date.now()): GameCore {
@@ -79,6 +80,8 @@ export function createCore(now = Date.now()): GameCore {
       weekly: { weekKey: "", claimed: [] },
     },
     achievements: {},
+    /** Logros con recompensa ya recogida por el jugador. */
+    achievementsClaimed: [],
     errors: [],
     seenExercises: {},
     sessions: [],
@@ -88,9 +91,8 @@ export function createCore(now = Date.now()): GameCore {
       best: {},
       plays: {},
       playsByDay: {},
-      chessElo: 1200,
-      chessRecord: { w: 0, d: 0, l: 0 },
       xpEarned: 0,
+      typing: { bestWpm: 0, bestAccuracy: 0, testsDone: 0, totalWords: 0, streak: 0, lastDay: "", drillsDone: 0 },
     },
   };
 }
@@ -151,6 +153,7 @@ export function reduceSessionComplete(
       weekly: { ...core.missions.weekly },
     },
     achievements: { ...core.achievements },
+    achievementsClaimed: [...(core.achievementsClaimed ?? [])],
     errors: [...core.errors],
     seenExercises: { ...core.seenExercises },
     sessions: [...core.sessions],
@@ -326,7 +329,9 @@ export function reduceSessionComplete(
     next.sessions = next.sessions.slice(0, MAX_SESSIONS);
   }
 
-  // ---------- Misiones: reclamo automático ----------
+  // ---------- Misiones: aviso de listas para recoger ----------
+  // El XP ya NO se reclama en automático: la notificación informa y el
+  // jugador recoge la recompensa en el apartado de Misiones (claim manual).
   const missionsCompleted: string[] = [];
   if (spec.mode !== "placement") {
     // Reinicio de listas al cambiar de día/semana.
@@ -341,9 +346,6 @@ export function reduceSessionComplete(
     for (const m of dailyMissions(dayKey, level)) {
       if (next.missions.daily.claimed.includes(m.id)) continue;
       if (metricValue(next, m.metric, { days: [dayKey] }) >= m.target) {
-        next.missions.daily.claimed.push(m.id);
-        next.xp += m.xpReward;
-        xpTotal += m.xpReward;
         missionsCompleted.push(m.id);
       }
     }
@@ -351,18 +353,12 @@ export function reduceSessionComplete(
     for (const m of weeklyMissions(wKey, level)) {
       if (next.missions.weekly.claimed.includes(m.id)) continue;
       if (metricValue(next, m.metric, { days: weekDays }) >= m.target) {
-        next.missions.weekly.claimed.push(m.id);
-        next.xp += m.xpReward;
-        xpTotal += m.xpReward;
         missionsCompleted.push(m.id);
-        if (m.shieldReward) {
-          next.streak.shields = grantShield(next);
-        }
       }
     }
   }
 
-  // ---------- Logros ----------
+  // ---------- Logros: se desbloquean, el XP se recoge a mano ----------
   const newAchievements: string[] = [];
   if (spec.mode !== "placement") {
     const levelAfter = levelFromXp(next.xp);
@@ -372,8 +368,6 @@ export function reduceSessionComplete(
       if (next.achievements[def.id]) continue;
       if (def.check(next, ctx)) {
         next.achievements[def.id] = now.getTime();
-        next.xp += def.xpReward;
-        xpTotal += def.xpReward;
         newAchievements.push(def.id);
       }
     }
@@ -381,10 +375,6 @@ export function reduceSessionComplete(
       if (next.achievements[id]) continue;
       if (levelAfter >= lvl) {
         next.achievements[id] = now.getTime();
-        const def = ACHIEVEMENTS_BY_ID[id];
-        const reward = def?.xpReward ?? 40;
-        next.xp += reward;
-        xpTotal += reward;
         newAchievements.push(id);
       }
     }
@@ -396,6 +386,13 @@ export function reduceSessionComplete(
   const tintaEarned = spec.mode === "placement" ? 0 : tintaForXp(xpTotal);
   if (tintaEarned > 0) {
     next.wallet.tinta = (next.wallet.tinta ?? 0) + tintaEarned;
+  }
+
+  // ---------- Mega-7 · recompensa de nivel: +5 de tinta por nivel ganado ----------
+  const levelsGained = Math.max(0, levelAfter - levelBefore);
+  if (levelsGained > 0) {
+    const tintaNivel = levelsGained * 5;
+    next.wallet.tinta = (next.wallet.tinta ?? 0) + tintaNivel;
   }
 
   // ---------- Limpieza de vistos hace mucho (> 30 días) ----------

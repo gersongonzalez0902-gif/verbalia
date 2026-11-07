@@ -12,7 +12,7 @@ import type { GameCore, Wallet } from "@/types";
 /** Ratio de conversión XP → tinta. */
 export const TINTA_PER_XP = 10;
 
-export type ShopKind = "frame" | "title" | "shield" | "banner";
+export type ShopKind = "frame" | "title" | "shield" | "banner" | "palette";
 
 /** Rareza de un artículo: define el color de su tarjeta. */
 export type Rarity = "comun" | "raro" | "epico" | "legendario";
@@ -81,28 +81,54 @@ export const FRAMES: { id: string; name: string; css: string; rarity: Rarity }[]
     css: "conic-gradient(from 45deg, oklch(0.9 0.1 90), oklch(0.6 0.19 300), oklch(0.9 0.1 90))",
     rarity: "legendario",
   },
+  // —— Mega-8: marcos escénicos, nada genéricos ——
+  {
+    id: "frame-mareaViva",
+    name: "Marea viva",
+    css: "linear-gradient(160deg, oklch(0.5 0.14 195) 0%, oklch(0.85 0.09 170) 35%, oklch(0.45 0.12 250) 100%)",
+    rarity: "epico",
+  },
+  {
+    id: "frame-atardecer",
+    name: "Atardecer del faro",
+    css: "linear-gradient(150deg, oklch(0.75 0.16 35), oklch(0.6 0.18 15) 45%, oklch(0.35 0.1 300) 100%)",
+    rarity: "epico",
+  },
+  {
+    id: "frame-constelacion",
+    name: "Constelación",
+    css: "conic-gradient(from 210deg, oklch(0.3 0.06 265), oklch(0.65 0.15 230) 25%, oklch(0.3 0.06 265) 50%, oklch(0.55 0.16 310) 75%, oklch(0.3 0.06 265))",
+    rarity: "legendario",
+  },
+  {
+    id: "frame-origen",
+    name: "Tinta y papel",
+    css: "linear-gradient(135deg, oklch(0.9 0.03 85), oklch(0.55 0.12 280) 60%, oklch(0.9 0.03 85) 90%)",
+    rarity: "raro",
+  },
 ];
 
-/** Banners premium para la ficha (se equipan desde el perfil). */
+/** Banners premium para la ficha (se equipan desde el perfil). Composiciones
+ *  escénicas por capas: cada uno cuenta un lugar del Archipiélago. */
 export const PREMIUM_BANNERS: { id: string; name: string; css: string; price: number; rarity: Rarity }[] = [
   {
     id: "pband-tinta",
     name: "Marea de tinta",
-    css: "linear-gradient(120deg, oklch(0.35 0.12 280), oklch(0.55 0.16 300) 45%, oklch(0.8 0.12 330))",
+    css: "radial-gradient(120% 90% at 85% 10%, oklch(0.7 0.15 300 / 55%) 0%, transparent 55%), linear-gradient(120deg, oklch(0.35 0.12 280), oklch(0.55 0.16 300) 45%, oklch(0.8 0.12 330))",
     price: 60,
     rarity: "raro",
   },
   {
     id: "pband-faro",
     name: "Halo del faro",
-    css: "radial-gradient(circle at 78% 22%, oklch(0.92 0.12 95) 0%, oklch(0.55 0.14 60) 34%, oklch(0.32 0.08 40) 68%, oklch(0.2 0.03 260))",
+    css: "radial-gradient(circle at 78% 22%, oklch(0.95 0.1 95) 0%, oklch(0.75 0.13 75) 12%, oklch(0.45 0.12 45) 34%, oklch(0.25 0.06 265) 70%), conic-gradient(from 200deg at 78% 22%, transparent 0deg, oklch(0.9 0.08 90 / 30%) 18deg, transparent 36deg)",
     price: 80,
     rarity: "epico",
   },
   {
     id: "pband-cosmos",
     name: "Archipiélago estelar",
-    css: "radial-gradient(circle at 20% 80%, oklch(0.5 0.15 250) 0%, transparent 45%), radial-gradient(circle at 72% 30%, oklch(0.55 0.16 320) 0%, transparent 40%), linear-gradient(140deg, oklch(0.22 0.04 280), oklch(0.3 0.07 310))",
+    css: "radial-gradient(circle at 20% 80%, oklch(0.5 0.15 250) 0%, transparent 45%), radial-gradient(circle at 72% 30%, oklch(0.55 0.16 320) 0%, transparent 40%), radial-gradient(circle at 50% 10%, oklch(0.85 0.1 90 / 60%) 0%, transparent 18%), linear-gradient(140deg, oklch(0.22 0.04 280), oklch(0.3 0.07 310))",
     price: 100,
     rarity: "epico",
   },
@@ -112,6 +138,34 @@ export const PREMIUM_BANNERS: { id: string; name: string; css: string; price: nu
     css: "linear-gradient(115deg, oklch(0.6 0.19 150), oklch(0.75 0.15 200) 30%, oklch(0.85 0.13 85) 62%, oklch(0.6 0.19 20))",
     price: 140,
     rarity: "legendario",
+  },
+  {
+    id: "pband-mareaBaja",
+    name: "Marea baja",
+    css: "linear-gradient(180deg, oklch(0.78 0.09 210) 0%, oklch(0.88 0.07 190) 42%, oklch(0.62 0.1 165) 43%, oklch(0.45 0.1 150) 100%)",
+    price: 70,
+    rarity: "raro",
+  },
+  {
+    id: "pband-sendero",
+    name: "Sendero del bosque",
+    css: "radial-gradient(80% 60% at 30% 0%, oklch(0.75 0.12 130 / 60%), transparent 60%), linear-gradient(160deg, oklch(0.45 0.11 150), oklch(0.55 0.12 120) 55%, oklch(0.3 0.06 150))",
+    price: 90,
+    rarity: "epico",
+  },
+  {
+    id: "pband-brasa",
+    name: "Forja encendida",
+    css: "radial-gradient(90% 70% at 50% 110%, oklch(0.7 0.19 35) 0%, transparent 60%), linear-gradient(180deg, oklch(0.24 0.04 30), oklch(0.35 0.1 25) 65%, oklch(0.55 0.17 30))",
+    price: 110,
+    rarity: "legendario",
+  },
+  {
+    id: "pband-copista",
+    name: "Escritorio del copista",
+    css: "repeating-linear-gradient(90deg, oklch(0.82 0.06 80) 0 18%, oklch(0.76 0.08 70) 18% 20%), radial-gradient(60% 80% at 80% 20%, oklch(0.9 0.08 95 / 70%), transparent 60%)",
+    price: 120,
+    rarity: "epico",
   },
 ];
 
@@ -132,6 +186,14 @@ export const TITLES: { id: string; text: string }[] = [
   { id: "title-comodin", text: "As de la bitácora" },
 ];
 
+/** Paletas premium desbloqueables con tinta (temas de la interfaz). */
+export const PREMIUM_PALETTES: { id: string; name: string; swatch: string; price: number; rarity: Rarity }[] = [
+  { id: "pal-midnight", name: "Medianoche", swatch: "linear-gradient(135deg, oklch(0.3 0.09 265), oklch(0.65 0.12 220))", price: 80, rarity: "epico" },
+  { id: "pal-selva", name: "Selva húmeda", swatch: "linear-gradient(135deg, oklch(0.42 0.11 155), oklch(0.8 0.13 120))", price: 80, rarity: "epico" },
+  { id: "pal-brasa", name: "Brasa", swatch: "linear-gradient(135deg, oklch(0.45 0.16 30), oklch(0.85 0.12 60))", price: 90, rarity: "epico" },
+  { id: "pal-perla", name: "Perla", swatch: "linear-gradient(135deg, oklch(0.55 0.02 260), oklch(0.9 0.015 260))", price: 100, rarity: "legendario" },
+];
+
 /** Precio de un artículo del catálogo (por id). */
 const PRICE_BY_ID: Record<string, number> = {
   // marcos
@@ -146,6 +208,15 @@ const PRICE_BY_ID: Record<string, number> = {
   "frame-eclipse": 110,
   "frame-pluma": 180,
   "frame-nova": 220,
+  "frame-mareaViva": 120,
+  "frame-atardecer": 120,
+  "frame-constelacion": 200,
+  "frame-origen": 90,
+  // paletas premium
+  "pal-midnight": 80,
+  "pal-selva": 80,
+  "pal-brasa": 90,
+  "pal-perla": 100,
   // títulos
   "title-tinta": 50,
   "title-faro": 50,
@@ -203,6 +274,17 @@ export const SHOP_ITEMS: ShopItem[] = [
     icon: "Shield",
     rarity: "comun",
   },
+  /* ---- Paletas premium: temas enteros de la interfaz ---- */
+  ...PREMIUM_PALETTES.map<ShopItem>((p) => ({
+    id: p.id,
+    kind: "palette",
+    name: `Tema · ${p.name}`,
+    description: "Paleta de color exclusiva para toda la interfaz (se activa en Ajustes).",
+    price: p.price,
+    icon: "Palette",
+    data: p.swatch,
+    rarity: p.rarity,
+  })),
 ];
 
 export function shopItemById(id: string): ShopItem | undefined {
@@ -234,6 +316,24 @@ export function applyPurchase(core: GameCore, itemId: string): PurchaseOutcome {
         ...core,
         streak: { ...core.streak, shields: core.streak.shields + 1 },
         wallet: { ...wallet, tinta: wallet.tinta - item.price, spent: wallet.spent + item.price },
+      },
+    };
+  }
+
+  // Las paletas no se «equipan»: se desbloquean y se eligen en Ajustes.
+  if (item.kind === "palette") {
+    if (wallet.owned.includes(itemId)) return { ok: false, reason: "ya-propietario" };
+    if (wallet.tinta < item.price) return { ok: false, reason: "sin-fondos" };
+    return {
+      ok: true,
+      core: {
+        ...core,
+        wallet: {
+          ...wallet,
+          tinta: wallet.tinta - item.price,
+          owned: [...wallet.owned, itemId],
+          spent: wallet.spent + item.price,
+        },
       },
     };
   }
@@ -291,4 +391,50 @@ export function frameCss(id: string): string {
 /** CSS de un banner premium comprado ("" si no existe). */
 export function premiumBannerCss(id: string): string {
   return PREMIUM_BANNERS.find((b) => b.id === id)?.css ?? "";
+}
+
+/* ================= Mega-7 · Regalo diario y destacado ================= */
+
+/** Tinta del regalo diario del Bazar. */
+export const DAILY_GIFT_TINTA = 12;
+
+function dayKeyNow(now = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+/** ¿Pendiente el regalo de hoy? */
+export function dailyGiftPending(core: GameCore, now = new Date()): boolean {
+  return (core.wallet.lastGiftDay ?? "") !== dayKeyNow(now);
+}
+
+/** Milisegundos hasta el próximo regalo (medianoche local). 0 = disponible. */
+export function msUntilNextGift(now = new Date()): number {
+  const next = new Date(now);
+  next.setHours(24, 0, 0, 0);
+  return Math.max(0, next.getTime() - now.getTime());
+}
+
+/** Reclama el regalo diario: +12 de tinta, una vez al día. */
+export function claimDailyGift(core: GameCore, now = new Date()): { ok: boolean; core: GameCore } {
+  if (!dailyGiftPending(core, now)) return { ok: false, core };
+  const day = dayKeyNow(now);
+  return {
+    ok: true,
+    core: {
+      ...core,
+      wallet: {
+        ...core.wallet,
+        tinta: (core.wallet.tinta ?? 0) + DAILY_GIFT_TINTA,
+        lastGiftDay: day,
+      },
+    },
+  };
+}
+
+/** Artículo destacado del día (rotación determinista por fecha). */
+export function featuredShopItem(now = new Date()): ShopItem | null {
+  const pool = SHOP_ITEMS.filter((i) => i.kind !== "shield");
+  if (pool.length === 0) return null;
+  const seed = Number(`${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`);
+  return pool[seed % pool.length];
 }

@@ -1,0 +1,543 @@
+     1→"use client";
+     2→
+     3→/**
+     4→ * Mapa del Archipiélago · Escena SVG con islas posicionadas como botones
+     5→ * accesibles + lista alternativa para lectores de pantalla. Al tocar una
+     6→ * isla se abre la ficha de región (misión, juegos y estadísticas).
+     7→ */
+     8→
+     9→import { useMemo, useState } from "react";
+    10→import { createElement } from "react";
+    11→import { useGameStore } from "@/store/game-store";
+    12→import { useUiStore } from "@/store/ui-store";
+    13→import { sfx } from "@/services/audio";
+    14→import { REGIONS, REGION_BY_ID, SKILL_LABELS } from "@/data/regions";
+    15→import { GAMES } from "@/data/games";
+    16→import { levelProgress } from "@/engine/xp";
+    17→import { getIcon } from "@/components/game/icons";
+    18→import { ScreenHeader } from "@/components/game/app-shell";
+    19→import { Button } from "@/components/ui/button";
+    20→import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+    21→import { ProgressRing } from "@/components/game/widgets";
+    22→import { cn } from "@/lib/utils";
+    23→import { Lock, Play, Sparkles } from "lucide-react";
+    24→import type { GameId, RegionId } from "@/types";
+    25→
+    26→export function MapScreen() {
+    27→  const core = useGameStore((s) => s.core);
+    28→  const navigate = useUiStore((s) => s.navigate);
+    29→  const [openRegion, setOpenRegion] = useState<RegionId | null>(null);
+    30→  const { level } = levelProgress(core.xp);
+    31→
+    32→  const regionProgress = (regionId: RegionId) => {
+    33→    const region = REGION_BY_ID[regionId];
+    34→    const days = Object.keys(core.stats.sessionsByDay);
+    35→    const played = days.filter((d) => (core.stats.regionsByDay[d] ?? []).includes(regionId)).length;
+    36→    // Progreso relativo: sesiones jugadas de esa región sobre 10 (sensación de avance).
+    37→    return { played, pct: Math.min(1, played / 10) };
+    38→  };
+    39→
+    40→  const regionAccuracy = (regionId: RegionId) => {
+    41→    const region = REGION_BY_ID[regionId];
+    42→    let answers = 0;
+    43→    let correct = 0;
+    44→    for (const g of region.games) {
+    45→      const s = core.stats.byGame[g];
+    46→      if (s) {
+    47→        answers += s.answers;
+    48→        correct += s.correct;
+    49→      }
+    50→    }
+    51→    return answers > 0 ? Math.round((correct / answers) * 100) : null;
+    52→  };
+    53→
+    54→  return (
+    55→    <div>
+    56→      <ScreenHeader title="El Archipiélago de las Palabras" subtitle="Ocho regiones, ocho caminos" backTo={{ name: "home" }} />
+    57→
+    58→      <main className="mx-auto w-full max-w-4xl px-4 pb-28">
+    59→        {/* ===== Escena del mapa ===== */}
+    60→        <div
+    61→          className="relative mt-4 h-[68dvh] max-h-[640px] min-h-[440px] w-full overflow-hidden rounded-3xl border-2 border-primary/20 shadow-md sm:h-auto sm:aspect-[16/10] sm:max-h-none sm:min-h-0"
+    62→          role="img"
+    63→          aria-label="Mapa del Archipiélago de las Palabras con ocho regiones"
+    64→        >
+    65→          <IslandScene />
+    66→
+    67→          {/* Botones-isla superpuestos (accesibles y táctiles) */}
+    68→          {REGIONS.map((r, index) => {
+    69→            const shipped = r.games.length > 0;
+    70→            const unlocked = shipped && level >= r.unlockLevel;
+    71→            const prog = regionProgress(r.id);
+    72→            const Icon = getIcon(r.icon);
+    73→            return (
+    74→              <button
+    75→                key={r.id}
+    76→                onClick={() => { if (unlocked) { sfx.buoy(); setOpenRegion(r.id); } }}
+    77→                disabled={!unlocked}
+    78→                aria-label={`${r.name}. ${unlocked ? `${prog.played} sesiones jugadas. Tocar para abrir la región.` : shipped ? `Se desbloquea al alcanzar el nivel ${r.unlockLevel}.` : `Región en desarrollo: llegará en la Etapa ${r.stage}.`}`}
+    79→                className={cn(
+    80→                  "group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-2xl p-2 transition-all duration-200",
+    81→                  unlocked ? "hover:scale-110 focus-visible:scale-110 focus-visible:outline-2 focus-visible:outline-primary" : "cursor-default",
+    82→                )}
+    83→                style={{ left: `${r.map.x}%`, top: `${r.map.y}%` }}
+    84→              >
+    85→                {/* Halo regional tras la isla desbloqueada */}
+    86→                {unlocked && (
+    87→                  <span
+    88→                    aria-hidden
+    89→                    className="anim-glow absolute left-1/2 top-1/2 -z-10 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full"
+    90→                    style={{ background: `color-mix(in oklch, var(${r.colorVar}) 32%, transparent)`, filter: "blur(18px)" }}
+    91→                  />
+    92→                )}
+    93→                <span
+    94→                  className={cn(
+    95→                    "gloss anim-bob relative flex h-16 w-16 items-center justify-center rounded-full border-4 text-white sm:h-[4.5rem] sm:w-[4.5rem]",
+    96→                    unlocked ? "border-white/90" : "border-white/50",
+    97→                  )}
+    98→                  style={{
+    99→                    background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 74 : 52}%, ${unlocked ? "white" : "#5a5a6e"} ${unlocked ? 18 : 26}%), var(${r.colorVar}) ${unlocked ? 55 : 60}%, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 80 : 62}%, #000 ${unlocked ? 18 : 38}%))`,
+   100→                    boxShadow: unlocked
+   101→                      ? `0 4px 0 0 color-mix(in oklch, var(${r.colorVar}) 50%, #000 30%), 0 8px 16px -8px color-mix(in oklch, var(${r.colorVar}) 55%, transparent)`
+   102→                      : `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) 35%, #000 45%)`,
+   103→                    animationDelay: `${index * 0.7}s`,
+   104→                  }}
+   105→                >
+   106→                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden />
+   107→                  {!unlocked && (
+   108→                    <span className="absolute -bottom-1.5 -right-2 flex items-center gap-0.5 rounded-full bg-card px-1 py-0.5 text-[9px] font-black shadow" aria-hidden>
+   109→                      <Lock className="h-3 w-3" />
+   110→                      <span className="numeric text-foreground">{r.unlockLevel}</span>
+   111→                    </span>
+   112→                  )}
+   113→                </span>
+   114→                <span
+   115→                  className={cn(
+   116→                    "font-display max-w-28 rounded-full px-2 py-0.5 text-center text-[10px] font-bold leading-tight shadow-sm sm:text-xs",
+   117→                    unlocked ? "bg-card text-foreground" : "bg-muted text-muted-foreground",
+   118→                  )}
+   119→                >
+   120→                  {r.name.replace(" de la ", " · ").replace(" del ", " · ")}
+   121→                </span>
+   122→              </button>
+   123→            );
+   124→          })}
+   125→
+   126→          {/* Brújula decorativa */}
+   127→          <div className="pointer-events-none absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full border-2 border-foreground/15 bg-card/70 backdrop-blur-sm" aria-hidden>
+   128→            <span className="text-lg">🧭</span>
+   129→          </div>
+   130→        </div>
+   131→
+   132→        {/* ===== Leyenda de estados ===== */}
+   133→        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+   134→          <span className="flex items-center gap-1.5">
+   135→            <span className="h-3 w-3 rounded-full bg-primary" aria-hidden /> Ocho islas jugables
+   136→          </span>
+   137→          <span className="flex items-center gap-1.5">
+   138→            <span className="h-3 w-3 rounded-full" style={{ background: "var(--region-forja)" }} aria-hidden /> Etapa 4 · la Forja del Escritor
+   139→          </span>
+   140→          <span className="flex items-center gap-1.5">
+   141→            <Lock className="h-3.5 w-3.5" aria-hidden /> Sube de nivel para desbloquear
+   142→          </span>
+   143→        </div>
+   144→
+   145→        {/* ===== Lista accesible de regiones ===== */}
+   146→        <section className="mt-6" aria-label="Lista de regiones">
+   147→          <h2 className="font-display mb-2.5 text-lg font-bold">Vista de lista</h2>
+   148→          <ul className="grid gap-2.5 sm:grid-cols-2">
+   149→            {REGIONS.map((r) => {
+   150→              const shipped = r.games.length > 0;
+   151→              const unlocked = shipped && level >= r.unlockLevel;
+   152→              const prog = regionProgress(r.id);
+   153→              const Icon = getIcon(r.icon);
+   154→              return (
+   155→                <li key={r.id}>
+   156→                  <button
+   157→                    onClick={() => { sfx.buoy(); setOpenRegion(r.id); }}
+   158→                    disabled={!unlocked}
+   159→                    className={cn(
+   160→                      "tap-3d flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left",
+   161→                      unlocked ? "hover:border-primary/40" : "cursor-default opacity-60",
+   162→                    )}
+   163→                  >
+   164→                    <span
+   165→                      className="gloss flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white"
+   166→                      style={{
+   167→                        background: `linear-gradient(150deg, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 76 : 50}%, ${unlocked ? "white" : "#5a5a6e"} ${unlocked ? 18 : 30}%), var(${r.colorVar}) ${unlocked ? 58 : 62}%, color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 82 : 60}%, #000 ${unlocked ? 16 : 40}%))`,
+   168→                        boxShadow: `0 3px 0 0 color-mix(in oklch, var(${r.colorVar}) ${unlocked ? 52 : 30}%, #000 ${unlocked ? 30 : 50}%)`,
+   169→                        filter: unlocked ? undefined : "saturate(0.55)",
+   170→                      }}
+   171→                      aria-hidden
+   172→                    >
+   173→                      <Icon className="h-5 w-5" />
+   174→                    </span>
+   175→                    <span className="min-w-0 flex-1">
+   176→                      <span className="block truncate text-sm font-bold">{r.name}</span>
+   177→                      <span className="block truncate text-xs text-muted-foreground">
+   178→                        {unlocked
+   179→                          ? `${prog.played} sesiones · disponible`
+   180→                          : !shipped
+   181→                            ? `Llega en la Etapa ${r.stage}`
+   182→                            : `Nivel ${r.unlockLevel} necesario`}
+   183→                      </span>
+   184→                    </span>
+   185→                    {unlocked && <Sparkles className="h-4 w-4 shrink-0 text-primary" aria-hidden />}
+   186→                  </button>
+   187→                </li>
+   188→              );
+   189→            })}
+   190→          </ul>
+   191→        </section>
+   192→      </main>
+   193→
+   194→      {/* ===== Ficha de región ===== */}
+   195→      <RegionSheet
+   196→        regionId={openRegion}
+   197→        onClose={() => setOpenRegion(null)}
+   198→        onPlayMissions={(rid) => {
+   199→          setOpenRegion(null);
+   200→          navigate({ name: "game", gameId: "trivia", mode: "mission", regionId: rid });
+   201→        }}
+   202→        onTrainGame={(gid) => {
+   203→          setOpenRegion(null);
+   204→          navigate({ name: "game", gameId: gid, mode: "training" });
+   205→        }}
+   206→        progressOf={regionProgress}
+   207→        accuracyOf={regionAccuracy}
+   208→      />
+   209→    </div>
+   210→  );
+   211→}
+   212→
+   213→/* ============ Ficha de región (hoja lateral) ============ */
+   214→
+   215→function RegionSheet({
+   216→  regionId,
+   217→  onClose,
+   218→  onPlayMissions,
+   219→  onTrainGame,
+   220→  progressOf,
+   221→  accuracyOf,
+   222→}: {
+   223→  regionId: RegionId | null;
+   224→  onClose: () => void;
+   225→  onPlayMissions: (regionId: RegionId) => void;
+   226→  onTrainGame: (gameId: GameId) => void;
+   227→  progressOf: (regionId: RegionId) => { played: number; pct: number };
+   228→  accuracyOf: (regionId: RegionId) => number | null;
+   229→}) {
+   230→  const region = regionId ? REGION_BY_ID[regionId] : null;
+   231→  const byGame = useGameStore((s) => s.core.stats.byGame);
+   232→  if (!region) return null;
+   233→  const prog = progressOf(region.id);
+   234→  const accuracy = accuracyOf(region.id);
+   235→  const skillLabel = SKILL_LABELS[region.skill] ?? region.skill;
+   236→
+   237→  return (
+   238→    <Sheet open={regionId !== null} onOpenChange={(v) => !v && onClose()}>
+   239→      <SheetContent side="bottom" className="safe-bottom max-h-[85dvh] overflow-y-auto rounded-t-3xl sm:max-w-lg sm:mx-auto sm:rounded-3xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2">
+   240→        <SheetHeader className="pb-0 text-left">
+   241→          <div className="flex items-center gap-3.5">
+   242→            <span
+   243→              className="gloss flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl p-3 text-white"
+   244→              style={{
+   245→                background: `linear-gradient(150deg, color-mix(in oklch, var(${region.colorVar}) 76%, white 18%), var(${region.colorVar}) 58%, color-mix(in oklch, var(${region.colorVar}) 82%, #000 16%))`,
+   246→                boxShadow: `0 3px 0 0 color-mix(in oklch, var(${region.colorVar}) 52%, #000 30%)`,
+   247→              }}
+   248→              aria-hidden
+   249→            >
+   250→              {createElement(getIcon(region.icon), { className: "h-6 w-6" })}
+   251→            </span>
+   252→            <div>
+   253→              <SheetTitle className="font-display text-xl font-bold leading-tight">{region.name}</SheetTitle>
+   254→              <SheetDescription>{region.subtitle}</SheetDescription>
+   255→            </div>
+   256→          </div>
+   257→        </SheetHeader>
+   258→
+   259→        <div className="space-y-5 px-4 pb-6 pt-3">
+   260→          <p className="text-sm leading-relaxed text-muted-foreground">{region.description}</p>
+   261→
+   262→          <p className="rounded-2xl bg-secondary px-4 py-2.5 text-xs font-semibold text-secondary-foreground">
+   263→            Habilidad que entrena: {skillLabel}
+   264→          </p>
+   265→
+   266→          <div className="flex items-center gap-4">
+   267→            <ProgressRing value={prog.pct} size={86} stroke={8} color={`var(${region.colorVar})`}>
+   268→              <span className="numeric font-display text-lg font-bold">{Math.round(prog.pct * 100)}%</span>
+   269→            </ProgressRing>
+   270→            <div className="text-sm">
+   271→              <p className="font-bold">{prog.played} sesiones jugadas</p>
+   272→              <p className="text-muted-foreground">
+   273→                {accuracy !== null ? `Exactitud media: ${accuracy}%` : "Aún sin datos en esta región"}
+   274→              </p>
+   275→            </div>
+   276→          </div>
+   277→
+   278→          <Button
+   279→            size="lg"
+   280→            className="w-full text-base"
+   281→            style={{
+   282→              background: `var(${region.colorVar})`,
+   283→              color: "white",
+   284→              ["--btn-edge" as string]: `color-mix(in oklch, var(${region.colorVar}) 50%, #000 32%)`,
+   285→            }}
+   286→            onClick={() => { sfx.whoosh(); onPlayMissions(region.id); }}
+   287→          >
+   288→            <Play className="mr-2 h-5 w-5" aria-hidden />
+   289→            Misión de la región (3-5 min)
+   290→          </Button>
+   291→
+   292→          <div>
+   293→            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+   294→              Entrenamientos
+   295→            </p>
+   296→            <div className="space-y-2">
+   297→              {region.games.map((gid) => {
+   298→                const g = GAMES[gid];
+   299→                if (!g) return null;
+   300→                const Icon = getIcon(g.icon);
+   301→                const stats = byGame[gid];
+   302→                return (
+   303→                  <button
+   304→                    key={gid}
+   305→                    onClick={() => { sfx.whoosh(); onTrainGame(gid); }}
+   306→                    className="tap-3d flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left"
+   307→                  >
+   308→                    <span className="chip-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+   309→                      <Icon className="h-5 w-5" aria-hidden />
+   310→                    </span>
+   311→                    <span className="min-w-0 flex-1">
+   312→                      <span className="block text-sm font-bold">{g.name}</span>
+   313→                      <span className="block truncate text-xs text-muted-foreground">{g.tagline}</span>
+   314→                    </span>
+   315→                    <span className="shrink-0 text-right text-[11px] text-muted-foreground">
+   316→                      {stats ? `${stats.plays} partidas` : "nuevo"}
+   317→                    </span>
+   318→                  </button>
+   319→                );
+   320→              })}
+   321→            </div>
+   322→          </div>
+   323→        </div>
+   324→      </SheetContent>
+   325→    </Sheet>
+   326→  );
+   327→}
+   328→
+   329→/* ============ Escena SVG de fondo ============ */
+   330→
+   331→function IslandScene() {
+   332→  return (
+   333→    <svg
+   334→      viewBox="0 0 800 600"
+   335→      className="absolute inset-0 h-full w-full"
+   336→      preserveAspectRatio="xMidYMid slice"
+   337→      aria-hidden
+   338→    >
+   339→      <defs>
+   340→        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+   341→          <stop offset="0" stopColor="var(--region-puerto)" stopOpacity="0.22" />
+   342→          <stop offset="1" stopColor="var(--region-puerto)" stopOpacity="0.38" />
+   343→        </linearGradient>
+   344→        <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+   345→          <stop offset="0" stopColor="var(--xp)" stopOpacity="0.5" />
+   346→          <stop offset="1" stopColor="var(--xp)" stopOpacity="0.25" />
+   347→        </linearGradient>
+   348→      </defs>
+   349→
+   350→      {/* Mar */}
+   351→      <rect width="800" height="600" fill="url(#sea)" />
+   352→      {/* Olas decorativas */}
+   353→      <g stroke="var(--region-puerto)" strokeOpacity="0.35" strokeWidth="3" fill="none" strokeLinecap="round">
+   354→        <path className="wave-line" d="M40 90 q20 -12 40 0 q20 12 40 0" />
+   355→        <path className="wave-line" style={{ animationDelay: "1.2s" }} d="M600 120 q18 -10 36 0 q18 10 36 0" />
+   356→        <path className="wave-line" style={{ animationDelay: "2s" }} d="M120 520 q22 -12 44 0 q22 12 44 0" />
+   357→        <path className="wave-line" style={{ animationDelay: "0.6s" }} d="M640 480 q20 -11 40 0 q20 11 40 0" />
+   358→        <path className="wave-line" style={{ animationDelay: "1.8s" }} d="M380 320 q18 -10 36 0 q18 10 36 0" />
+   359→        <path className="wave-line" style={{ animationDelay: "2.6s" }} d="M660 330 q18 -10 36 0 q18 10 36 0" />
+   360→      </g>
+   361→
+   362→      {/* Islas (formas orgánicas) */}
+   363→      {/* Bosque */}
+   364→      <g transform="translate(144,156)">
+   365→        <path d="M0 60 Q-18 28 8 6 Q34 -14 62 4 Q88 20 78 52 Q68 82 30 84 Q-2 86 0 60 Z" fill="url(#sand)" />
+   366→        <path d="M12 58 Q0 34 22 18 Q44 4 66 18 Q84 32 74 54 Q62 74 34 74 Q14 74 12 58 Z" fill="var(--region-bosque)" opacity="0.55" />
+   367→        <path d="M28 40 l10 -18 l10 18 Z M44 34 l8 -14 l8 14 Z" fill="var(--region-bosque)" opacity="0.8" />
+   368→      </g>
+   369→      {/* Ciudad */}
+   370→      <g transform="translate(360,84)">
+   371→        <path d="M0 40 Q-14 16 10 2 Q34 -10 58 4 Q80 16 72 40 Q64 62 32 62 Q4 62 0 40 Z" fill="url(#sand)" />
+   372→        <path d="M14 38 Q4 20 24 10 Q44 0 62 12 Q76 24 68 40 Q58 56 32 56 Q16 56 14 38 Z" fill="var(--region-ciudad)" opacity="0.5" />
+   373→        <g fill="var(--region-ciudad)" opacity="0.85">
+   374→          <rect x="22" y="18" width="7" height="26" /><rect x="32" y="10" width="8" height="34" />
+   375→          <rect x="44" y="22" width="7" height="22" /><rect x="53" y="14" width="6" height="30" />
+   376→        </g>
+   377→      </g>
+   378→      {/* Fortaleza */}
+   379→      <g transform="translate(592,144)">
+   380→        <path d="M0 56 Q-20 26 6 8 Q32 -8 64 6 Q92 20 84 50 Q76 78 36 80 Q4 80 0 56 Z" fill="url(#sand)" />
+   381→        <path d="M14 52 Q2 30 24 18 Q46 8 68 20 Q86 32 78 52 Q68 72 36 72 Q16 72 14 52 Z" fill="var(--region-fortaleza)" opacity="0.45" />
+   382→        <path d="M30 54 L30 30 L36 30 L36 24 L42 24 L42 30 L48 30 L48 24 L54 24 L54 30 L60 30 L60 54 Z" fill="var(--region-fortaleza)" opacity="0.9" />
+   383→      </g>
+   384→      {/* Biblioteca */}
+   385→      <g transform="translate(256,330)">
+   386→        <path d="M0 50 Q-16 24 8 10 Q32 -4 60 6 Q86 18 80 46 Q74 72 36 74 Q6 74 0 50 Z" fill="url(#sand)" />
+   387→        <path d="M12 48 Q2 28 24 18 Q46 8 66 20 Q82 32 74 50 Q64 68 34 68 Q16 68 12 48 Z" fill="var(--region-biblioteca)" opacity="0.45" />
+   388→        <g fill="var(--region-biblioteca)" opacity="0.85">
+   389→          <rect x="26" y="26" width="30" height="28" rx="2" />
+   390→          <rect x="30" y="20" width="22" height="6" rx="2" />
+   391→          <g stroke="white" strokeOpacity="0.5" strokeWidth="1.5">
+   392→            <path d="M31 30 h20 M31 36 h20 M31 42 h20 M31 48 h20" />
+   393→          </g>
+   394→        </g>
+   395→      </g>
+   396→      {/* Puerto */}
+   397→      <g transform="translate(504,288)">
+   398→        <path d="M0 56 Q-18 28 6 10 Q30 -6 60 4 Q88 18 82 48 Q76 76 38 78 Q6 78 0 56 Z" fill="url(#sand)" />
+   399→        <path d="M12 52 Q2 32 22 20 Q44 10 66 22 Q84 34 76 52 Q66 70 34 70 Q14 70 12 52 Z" fill="var(--region-puerto)" opacity="0.4" />
+   400→        <g stroke="var(--region-puerto)" strokeWidth="4" strokeLinecap="round" opacity="0.85">
+   401→          <path d="M34 40 L44 14" />
+   402→        </g>
+   403→        <path d="M44 14 Q56 18 58 30 L44 28 Z" fill="var(--region-puerto)" opacity="0.85" />
+   404→      </g>
+   405→      {/* Torre */}
+   406→      <g transform="translate(672,408)">
+   407→        <path d="M0 52 Q-16 26 8 10 Q30 -4 56 6 Q80 18 74 46 Q68 72 32 74 Q6 74 0 52 Z" fill="url(#sand)" />
+   408→        <path d="M12 48 Q2 30 22 20 Q42 10 62 22 Q78 34 70 50 Q60 66 32 66 Q16 66 12 48 Z" fill="var(--region-torre)" opacity="0.4" />
+   409→        <g fill="var(--region-torre)" opacity="0.85">
+   410→          <path d="M30 56 L30 26 L40 16 L50 26 L50 56 Z" />
+   411→          <path d="M26 26 L40 12 L54 26 Z" opacity="0.6" />
+   412→        </g>
+   413→      </g>
+   414→      {/* Observatorio */}
+   415→      <g transform="translate(96,456)">
+   416→        <path d="M0 50 Q-16 24 8 10 Q32 -4 60 6 Q86 18 80 46 Q74 72 36 74 Q6 74 0 50 Z" fill="url(#sand)" />
+   417→        <path d="M12 46 Q2 26 24 16 Q46 6 66 18 Q82 30 74 48 Q64 66 34 66 Q16 66 12 46 Z" fill="var(--region-observatorio)" opacity="0.35" />
+   418→        <g fill="var(--region-observatorio)" opacity="0.85">
+   419→          <path d="M22 56 A 24 24 0 0 1 70 56 Z" />
+   420→          <rect x="48" y="10" width="4" height="26" rx="2" transform="rotate(24 50 10)" />
+   421→        </g>
+   422→      </g>
+   423→      {/* Forja del Escritor (Etapa 4): isla volcánica con resplandor */}
+   424→      <g transform="translate(360,455)">
+   425→        <path d="M0 56 Q-20 26 8 6 Q36 -12 68 4 Q94 20 86 52 Q78 80 38 82 Q2 82 0 56 Z" fill="url(#sand)" />
+   426→        <path d="M14 52 Q4 30 26 16 Q50 4 70 18 Q88 32 80 52 Q70 72 38 72 Q18 72 14 52 Z" fill="var(--region-forja)" opacity="0.28" />
+   427→        {/* Volcán */}
+   428→        <path d="M18 66 L36 22 L44 12 L52 22 L70 66 Z" fill="var(--region-forja)" opacity="0.75" />
+   429→        {/* Cráter con brasa */}
+   430→        <path d="M36 22 L44 12 L52 22 Q44 27 36 22 Z" fill="var(--region-forja)" />
+   431→        <circle cx="44" cy="17" r="3.5" fill="var(--xp)" opacity="0.9" className="anim-glow" />
+   432→        {/* Chispas ascendiendo */}
+   433→        <g fill="var(--xp)" opacity="0.85">
+   434→          <circle cx="40" cy="6" r="1.8" className="anim-float" style={{ animationDuration: "5s" }} />
+   435→          <circle cx="50" cy="-2" r="1.4" className="anim-float" style={{ animationDuration: "6s", animationDelay: "-2s" }} />
+   436→          <circle cx="46" cy="0" r="1.1" className="anim-float" style={{ animationDuration: "7s", animationDelay: "-4s" }} />
+   437→        </g>
+   438→        {/* Yunque estilizado al pie */}
+   439→        <g fill="var(--region-forja)" opacity="0.85">
+   440→          <path d="M58 60 h14 v4 h-14 Z" />
+   441→          <path d="M62 64 h6 v6 h-6 Z" />
+   442→        </g>
+   443→      </g>
+   444→
+   445→      {/* Ruta de navegación (línea de puntos que fluye) */}
+   446→      <path
+   447→        id="route-path"
+   448→        d="M150 170 C 220 90, 300 80, 360 110 C 430 145, 520 130, 600 165 C 640 185, 610 230, 540 300 C 480 355, 400 330, 330 370 C 280 400, 300 430, 350 470 C 480 545, 620 520, 690 450"
+   449→        className="route-flow"
+   450→        stroke="var(--foreground)"
+   451→        strokeOpacity="0.28"
+   452→        strokeWidth="3"
+   453→        strokeDasharray="2 12"
+   454→        strokeLinecap="round"
+   455→        fill="none"
+   456→      />
+   457→
+   458→      {/* Barco de vela que recorre la ruta del Archipiélago */}
+   459→      <g opacity="0.9">
+   460→        <path
+   461→          d="M-7 4 Q0 7 7 4 L5 4 L-5 4 Z M0 4 L0 -6 L6 1 L0 1"
+   462→          fill="var(--foreground)"
+   463→          fillOpacity="0.55"
+   464→          stroke="var(--foreground)"
+   465→          strokeOpacity="0.55"
+   466→          strokeWidth="0.8"
+   467→          strokeLinejoin="round"
+   468→        >
+   469→          <animateMotion dur="26s" repeatCount="indefinite" rotate="auto">
+   470→            <mpath href="#route-path" />
+   471→          </animateMotion>
+   472→        </path>
+   473→      </g>
+   474→
+   475→      {/* Gaviotas perezosas */}
+   476→      <g stroke="var(--foreground)" strokeOpacity="0.3" strokeWidth="2.2" fill="none" strokeLinecap="round">
+   477→        <path className="anim-float" style={{ animationDuration: "7s" }} d="M620 70 q7 -7 14 0 q7 -7 14 0" />
+   478→        <path className="anim-float" style={{ animationDuration: "9s", animationDelay: "-3s" }} d="M100 260 q6 -6 12 0 q6 -6 12 0" />
+   479→        <path className="anim-float" style={{ animationDuration: "8s", animationDelay: "-5s" }} d="M480 520 q5 -5 10 0 q5 -5 10 0" />
+   480→      </g>
+   481→
+   482→      {/* Nubes perezosas que cruzan el cielo */}
+   483→      <g fill="var(--foreground)" fillOpacity="0.08">
+   484→        <g className="cloud-drift">
+   485→          <ellipse cx="150" cy="52" rx="34" ry="11" />
+   486→          <ellipse cx="180" cy="44" rx="22" ry="9" />
+   487→          <ellipse cx="126" cy="46" rx="16" ry="7" />
+   488→        </g>
+   489→        <g className="cloud-drift" style={{ animationDelay: "-14s", animationDuration: "46s" }}>
+   490→          <ellipse cx="520" cy="200" rx="30" ry="9" />
+   491→          <ellipse cx="548" cy="194" rx="18" ry="7" />
+   492→        </g>
+   493→        <g className="cloud-drift" style={{ animationDelay: "-30s", animationDuration: "56s" }}>
+   494→          <ellipse cx="330" cy="560" rx="36" ry="10" />
+   495→          <ellipse cx="358" cy="554" rx="20" ry="7" />
+   496→        </g>
+   497→      </g>
+   498→
+   499→      {/* Delfines saltando en grupo */}
+   500→      <g fill="var(--foreground)" fillOpacity="0.4">
+   501→        <path className="dolphin-jump" d="M0 0 q8 -12 16 0 q8 12 16 0 q-4 5 -16 5 q-12 0 -16 -5 Z" transform="translate(210,392)" />
+   502→        <path className="dolphin-jump" style={{ animationDelay: "-2.2s" }} d="M0 0 q6 -9 12 0 q6 9 12 0 q-3 4 -12 4 q-9 0 -12 -4 Z" transform="translate(248,404)" />
+   503→        <path className="dolphin-jump" style={{ animationDelay: "-4.1s" }} d="M0 0 q5 -8 10 0 q5 8 10 0 q-2 3 -10 3 q-8 0 -10 -3 Z" transform="translate(282,398)" />
+   504→      </g>
+   505→
+   506→      {/* Pececitos asomando bajo el puente del puerto */}
+   507→      <g fill="var(--region-puerto)" fillOpacity="0.6">
+   508→        <path className="fish-dart" d="M0 0 q5 -4 10 0 q-5 4 -10 0 Z" transform="translate(540,360)" />
+   509→        <path className="fish-dart" style={{ animationDelay: "-3s", animationDuration: "13s" }} d="M0 0 q4 -3 8 0 q-4 3 -8 0 Z" transform="translate(180,470)" />
+   510→      </g>
+   511→
+   512→      {/* Soplo de la ballena del observatorio */}
+   513→      <g stroke="var(--region-puerto)" strokeOpacity="0.5" strokeWidth="3" fill="none" strokeLinecap="round">
+   514→        <path className="whale-spout" d="M104 440 q-2 -14 0 -24 M110 440 q0 -12 8 -20 M98 440 q-6 -10 -12 -14" />
+   515→      </g>
+   516→      <path d="M86 446 q22 -8 42 0 q6 8 -4 10 q-18 4 -34 0 q-10 -2 -4 -10 Z" fill="var(--foreground)" fillOpacity="0.22" />
+   517→
+   518→      {/* Botella con mensaje derivando */}
+   519→      <g className="cloud-drift" style={{ animationDuration: "64s", animationDelay: "-20s" }}>
+   520→        <path d="M690 250 l4 -10 l3 10 l-3 2 Z" fill="var(--region-biblioteca)" fillOpacity="0.55" />
+   521→        <path d="M690 250 l4 -10 l3 10 Z" fill="none" stroke="var(--region-biblioteca)" strokeOpacity="0.7" strokeWidth="1.5" />
+   522→      </g>
+   523→
+   524→      {/* Estrella fugaz del observatorio */}
+   525→      <g stroke="var(--xp)" strokeWidth="2" strokeLinecap="round">
+   526→        <path className="shooting-star" d="M60 80 L84 56" />
+   527→      </g>
+   528→
+   529→      {/* Ondas concéntricas bajo las islas (vida en el mar) */}
+   530→      <g stroke="var(--region-puerto)" strokeOpacity="0.3" fill="none" strokeLinecap="round">
+   531→        <circle className="ripple-ring" cx="190" cy="250" r="8" />
+   532→        <circle className="ripple-ring" style={{ animationDelay: "-2s" }} cx="640" cy="210" r="10" />
+   533→        <circle className="ripple-ring" style={{ animationDelay: "-4s" }} cx="410" cy="470" r="9" />
+   534→        <circle className="ripple-ring" style={{ animationDelay: "-1s" }} cx="300" cy="410" r="7" />
+   535→      </g>
+   536→
+   537→      {/* Sol de tarde con halo suave */}
+   538→      <circle cx="706" cy="64" r="26" fill="var(--xp)" opacity="0.16" className="anim-glow" />
+   539→      <circle cx="706" cy="64" r="15" fill="var(--xp)" opacity="0.38" />
+   540→    </svg>
+   541→  );
+   542→}
+   543→

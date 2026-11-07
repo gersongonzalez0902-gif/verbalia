@@ -4,7 +4,7 @@
  * 100 + (n-1)·40 XP. Los rangos dan identidad al viaje.
  */
 
-export const MAX_LEVEL = 40;
+export const MAX_LEVEL = 60;
 
 /** XP necesario para pasar del nivel n al n+1. */
 export function xpForLevelUp(level: number): number {
@@ -64,6 +64,21 @@ export const RANKS: RankInfo[] = [
   { minLevel: 15, name: "Cronista del Archipiélago", description: "Tus frases ya tienen mareas propias." },
   { minLevel: 20, name: "Maestre del Lenguaje", description: "Dominio, oficio y una pizca de garbo." },
   { minLevel: 25, name: "Leyenda de VerbalIA", description: "Tu nombre está tallado en el faro principal." },
+  {
+    minLevel: 30,
+    name: "Almirante del Lenguaje",
+    description: "Las siete regiones saludan al pasar.",
+    names: { m: "Almirante del Lenguaje", f: "Almiranta del Lenguaje", x: "Almirante·a del Lenguaje" },
+  },
+  { minLevel: 36, name: "Guardián del Códice Infinito", description: "La Forja trabaja a tu nombre." },
+  { minLevel: 42, name: "Faro Vivo", description: "Tu luz guía a toda la flota del idioma." },
+  { minLevel: 50, name: "Mito del Archipiélago", description: "Los mapas nuevos se dibujan contigo." },
+  {
+    minLevel: 60,
+    name: "Palabra Eterna",
+    description: "Nivel máximo: el idioma te adoptó como propia letra.",
+    names: { m: "Palabra Eterna", f: "Palabra Eterna", x: "Palabra Eterna" },
+  },
 ];
 
 /** Nombre del rango adaptado al género elegido por el jugador. */

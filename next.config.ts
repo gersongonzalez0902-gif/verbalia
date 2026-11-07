@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
    */
   devIndicators: false,
   reactStrictMode: false,
+  /** Mega-7 · Optimización: barrel-eliminación para lucide-react. */
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
 };
 
 export default nextConfig;

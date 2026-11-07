@@ -103,6 +103,55 @@ export function initAudioUnlock(): void {
   window.addEventListener("keydown", unlock, { once: false });
   window.addEventListener("touchstart", unlock, { once: false, passive: true });
   unlockListeners = detach;
+  registerVisibilityGuard();
+}
+
+/* ================== guarda de visibilidad de la página ==================
+ * Cuando la pestaña se oculta o el teléfono se suspende, la música
+ * generativa debe callar (y el AudioContext congelarse para no gastar
+ * batería). Al volver, la escena se reanuda si sonaba antes. */
+
+let visibilityGuardOn = false;
+let pausedByVisibility = false;
+
+export function registerVisibilityGuard(): void {
+  if (typeof window === "undefined" || visibilityGuardOn) return;
+  visibilityGuardOn = true;
+
+  const pauseAll = () => {
+    if (pausedByVisibility) return;
+    pausedByVisibility = true;
+    // 1) Banda sonora generativa: se detiene el secuenciador y la textura
+    //    (la escena se recuerda para reanudarla al volver).
+    if (schedulerId) {
+      clearInterval(schedulerId);
+      schedulerId = null;
+    }
+    stopTexture();
+    // 2) El contexto entero se suspende: cero audio y cero batería mientras
+    //    la página no está visible (móvil bloqueado, app en segundo plano…).
+    if (ctx && ctx.state === "running") void ctx.suspend();
+  };
+
+  const resumeAll = () => {
+    if (!pausedByVisibility) return;
+    pausedByVisibility = false;
+    if (!enabled) return; // el jugador silenció el juego mientras no miraba
+    if (ctx && ctx.state === "suspended") void ctx.resume();
+    // La escena que sonaba antes del ocultado vuelve con fundido.
+    if (currentScene && unlocked) startScene(currentScene);
+  };
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") pauseAll();
+    else resumeAll();
+  });
+  // iOS y algunos navegadores: al minimizar o navegar fuera de la página.
+  window.addEventListener("pagehide", () => pauseAll());
+  window.addEventListener("pageshow", () => resumeAll());
+  // Congelar la pestaña (procesos en background) también detiene el audio.
+  document.addEventListener("freeze" as keyof DocumentEventMap, () => pauseAll());
+  document.addEventListener("resume" as keyof DocumentEventMap, () => resumeAll());
 }
 
 export function setSoundEnabled(value: boolean) {
@@ -990,6 +1039,33 @@ export const sfx = {
     tone(220, 0, 0.16, 0.05, "square");
     tone(207, 0.14, 0.2, 0.04, "square");
   },
+  /* ------- Hojas, diálogos y Bazar ------- */
+  /** Hoja o diálogo que se abre: deslizamiento ascendente suave. */
+  open() {
+    if (!enabled) return;
+    tone(vary(520), 0, 0.07, 0.04, "sine");
+    tone(vary(740), 0.05, 0.09, 0.035, "sine");
+  },
+  /** Hoja o diálogo que se cierra: deslizamiento descendente suave. */
+  close() {
+    if (!enabled) return;
+    tone(vary(740), 0, 0.07, 0.04, "sine");
+    tone(vary(520), 0.05, 0.09, 0.035, "sine");
+  },
+  /** Compra en el Bazar: caja registradora con brillo metálico. */
+  buy() {
+    if (!enabled) return;
+    tone(vary(659), 0, 0.09, 0.06);
+    tone(vary(880), 0.07, 0.12, 0.05);
+    bell(1319, 0.16, 0.5, 0.035);
+  },
+  /** Regalo diario reclamado: destello alegre junto a la tinta. */
+  gift() {
+    if (!enabled) return;
+    tone(vary(784), 0, 0.1, 0.055, "sine");
+    tone(vary(988), 0.09, 0.12, 0.05, "sine");
+    bell(1319, 0.18, 0.7, 0.03);
+  },
   /* ------- Salón de Juegos Educativos ------- */
   /** Pieza que avanza: golpe seco de madera. */
   move() {
@@ -1009,6 +1085,49 @@ export const sfx = {
     if (!enabled) return;
     noiseBurst(0, 0.12, 1400, 0.03, "bandpass", 0.9);
     tone(vary(300), 0.06, 0.05, 0.03, "sine");
+  },
+  /* ------- Mega-8 · capa sonora ampliada ------- */
+  /** Aleteo suave al pasar el cursor (muy bajo volumen). */
+  hover() {
+    if (!enabled) return;
+    tone(vary(720), 0, 0.025, 0.014, "sine");
+  },
+  /** Recogida de recompensa: caja fuerte + monedas. */
+  claim() {
+    if (!enabled) return;
+    tone(523, 0, 0.1, 0.06);
+    tone(784, 0.08, 0.12, 0.055);
+    [988, 1319, 1568].forEach((f, i) => tone(vary(f), 0.16 + i * 0.05, 0.12, 0.04));
+    haptic([18, 30, 24]);
+  },
+  /** Tecla de mecanografía: clac corto y seco. */
+  typeKey() {
+    if (!enabled) return;
+    noiseBurst(0, 0.018, 2600, 0.03, "bandpass", 2.2);
+  },
+  /** Palabra completa bien tecleada. */
+  typeWord() {
+    if (!enabled) return;
+    tone(vary(740), 0, 0.05, 0.03, "triangle");
+  },
+  /** Destello mágico (acierto brillante). */
+  sparkle() {
+    if (!enabled) return;
+    tone(vary(1568), 0, 0.07, 0.035);
+    tone(vary(2093), 0.05, 0.09, 0.028);
+    tone(vary(2637), 0.11, 0.1, 0.02);
+  },
+  /** Subida de peldaño (nivel de drill, hito). */
+  stepUp() {
+    if (!enabled) return;
+    tone(587, 0, 0.08, 0.05, "triangle");
+    tone(880, 0.07, 0.12, 0.045, "triangle");
+  },
+  /** Sello del cronista (guardar). */
+  stamp() {
+    if (!enabled) return;
+    noiseBurst(0, 0.09, 500, 0.05, "lowpass");
+    tone(vary(196), 0.02, 0.06, 0.04, "sine");
   },
 };
 

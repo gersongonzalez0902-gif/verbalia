@@ -148,6 +148,67 @@ function stopAudio() {
   }
 }
 
+/* ---- Guardián de visibilidad: la estación calla al ocultar la página ----
+ * (pestaña en segundo plano, teléfono bloqueado o app suspendida) y
+ * retoma la canción justo donde iba al volver. */
+let stationGuardOn = false;
+let stationPausedByVisibility = false;
+
+function registerStationVisibilityGuard() {
+  if (typeof window === "undefined" || stationGuardOn) return;
+  stationGuardOn = true;
+  document.addEventListener("visibilitychange", () => {
+    const a = getAudio();
+    if (!a) return;
+    if (document.visibilityState === "hidden") {
+      if (useMusicStore.getState().playing && !a.paused) {
+        stationPausedByVisibility = true;
+        a.pause(); // el estado «playing» del store se conserva: es un pausa técnica
+      }
+    } else if (stationPausedByVisibility) {
+      stationPausedByVisibility = false;
+      void a.play().catch(() => {
+        /* si el navegador lo impide, el jugador pulsa play */
+      });
+    }
+  });
+  window.addEventListener("pagehide", () => {
+    const a = getAudio();
+    if (a && !a.paused && useMusicStore.getState().playing) {
+      stationPausedByVisibility = true;
+      a.pause();
+    }
+  });
+  window.addEventListener("pageshow", () => {
+    const a = getAudio();
+    if (a && stationPausedByVisibility) {
+      stationPausedByVisibility = false;
+      void a.play().catch(() => {});
+    }
+  });
+}
+
+/** Metadatos para el sistema (MediaSession): título en la pantalla de bloqueo. */
+function syncMediaSession() {
+  if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+  const { currentId, tracks } = useMusicStore.getState();
+    const track = tracks.find((t) => t.id === currentId);
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track?.name ?? "Estación de VerbalIA",
+      artist: "VerbalIA · Estación del navegante",
+      album: "El Archipiélago de las Palabras",
+    });
+    navigator.mediaSession.playbackState = useMusicStore.getState().playing ? "playing" : "paused";
+    navigator.mediaSession.setActionHandler("play", () => useMusicStore.getState().toggle());
+    navigator.mediaSession.setActionHandler("pause", () => useMusicStore.getState().toggle());
+    navigator.mediaSession.setActionHandler("nexttrack", () => useMusicStore.getState().next());
+    navigator.mediaSession.setActionHandler("previoustrack", () => useMusicStore.getState().prev());
+  } catch {
+    /* sin MediaSession en este navegador */
+  }
+}
+
 export const useMusicStore = create<MusicStore>((set, get) => {
   const syncPlaying = (playing: boolean) => {
     set({ playing });
@@ -214,6 +275,7 @@ export const useMusicStore = create<MusicStore>((set, get) => {
     error: null,
 
     async load() {
+      registerStationVisibilityGuard();
       const rows = await dbList();
       const tracks = rows
         .map(({ blob, ...meta }) => {
@@ -274,6 +336,7 @@ export const useMusicStore = create<MusicStore>((set, get) => {
       try {
         await getAudio()!.play();
         syncPlaying(true);
+        syncMediaSession();
       } catch {
         syncPlaying(false);
         set({ error: "El navegador bloqueó la reproducción: pulsa play de nuevo." });

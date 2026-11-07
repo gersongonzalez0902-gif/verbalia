@@ -1,0 +1,754 @@
+     1→"use client";
+     2→
+     3→/**
+     4→ * Ajustes 2.0 · Tema (claro/oscuro/sistema), paleta de color,
+     5→ * tamaño de texto, lectura nocturna, movimiento reducido, sonido
+     6→ * (incluida la música dentro de partidas y la estación del jugador),
+     7→ * ritmo de juego y gestión completa de datos: exportar, importar,
+     8→ * borrados parciales, migración de dispositivo y bóveda cifrada.
+     9→ */
+    10→
+    11→import { useEffect, useRef, useState } from "react";
+    12→import { useGameStore } from "@/store/game-store";
+    13→import { useUiStore } from "@/store/ui-store";
+    14→import { sfx } from "@/services/audio";
+    15→import { ScreenHeader } from "@/components/game/app-shell";
+    16→import { Button } from "@/components/ui/button";
+    17→import { Label } from "@/components/ui/label";
+    18→import { Slider } from "@/components/ui/slider";
+    19→import { Switch } from "@/components/ui/switch";
+    20→import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    21→import {
+    22→  AlertDialog,
+    23→  AlertDialogAction,
+    24→  AlertDialogCancel,
+    25→  AlertDialogContent,
+    26→  AlertDialogDescription,
+    27→  AlertDialogFooter,
+    28→  AlertDialogHeader,
+    29→  AlertDialogTitle,
+    30→  AlertDialogTrigger,
+    31→} from "@/components/ui/alert-dialog";
+    32→import { useTheme } from "next-themes";
+    33→import { useToast } from "@/hooks/use-toast";
+    34→import { cn } from "@/lib/utils";
+    35→import type { ThemeColorId } from "@/types";
+    36→import { uploadVault, downloadVault } from "@/lib/crypto-vault";
+    37→import { Check, Database, Download, HardDrive, Lock, Moon, Palette, Sun, Trash2, Upload } from "lucide-react";
+    38→
+    39→const TEXT_SIZES = [
+    40→  { id: "md", label: "Normal" },
+    41→  { id: "lg", label: "Grande" },
+    42→  { id: "xl", label: "Muy grande" },
+    43→] as const;
+    44→
+    45→const PALETAS: { id: ThemeColorId; label: string; swatch: string[] }[] = [
+    46→  { id: "aurora", label: "Aurora", swatch: ["oklch(0.5 0.16 275)", "oklch(0.82 0.135 85)"] },
+    47→  { id: "coral", label: "Coral", swatch: ["oklch(0.5 0.16 30)", "oklch(0.82 0.135 85)"] },
+    48→  { id: "miel", label: "Miel", swatch: ["oklch(0.5 0.16 75)", "oklch(0.82 0.135 85)"] },
+    49→  { id: "lavanda", label: "Lavanda", swatch: ["oklch(0.5 0.16 305)", "oklch(0.82 0.135 85)"] },
+    50→  { id: "oceano", label: "Océano", swatch: ["oklch(0.5 0.16 235)", "oklch(0.82 0.135 85)"] },
+    51→  { id: "magenta", label: "Magenta", swatch: ["oklch(0.5 0.16 340)", "oklch(0.82 0.135 85)"] },
+    52→];
+    53→
+    54→export function SettingsScreen() {
+    55→  const { settings, updateSettings, profile, core, srs, resetAll, resetProgress, resetSrs, exportJson, importJson } = useGameStore();
+    56→  const navigate = useUiStore((s) => s.navigate);
+    57→  const { theme, setTheme } = useTheme();
+    58→  const { toast } = useToast();
+    59→  const importRef = useRef<HTMLInputElement>(null);
+    60→  const [storageInfo, setStorageInfo] = useState<{ usage: number; quota: number } | null>(null);
+    61→
+    62→  useEffect(() => {
+    63→    if (typeof navigator !== "undefined" && navigator.storage?.estimate) {
+    64→      navigator.storage
+    65→        .estimate()
+    66→        .then((e) => setStorageInfo({ usage: e.usage ?? 0, quota: e.quota ?? 0 }))
+    67→        .catch(() => setStorageInfo(null));
+    68→    }
+    69→  }, [core, srs]);
+    70→
+    71→  const fmtMB = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} MB`;
+    72→
+    73→  const doExport = () => {
+    74→    const json = exportJson();
+    75→    if (!json) return;
+    76→    const blob = new Blob([json], { type: "application/json" });
+    77→    const url = URL.createObjectURL(blob);
+    78→    const a = document.createElement("a");
+    79→    a.href = url;
+    80→    a.download = `verbalia-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    81→    a.click();
+    82→    URL.revokeObjectURL(url);
+    83→    toast({ title: "Copia exportada", description: "Guárdala bien: contiene todo tu progreso." });
+    84→  };
+    85→
+    86→  const doImport = async (file: File) => {
+    87→    const text = await file.text();
+    88→    const ok = await importJson(text);
+    89→    toast({
+    90→      title: ok ? "Copia restaurada" : "Archivo no válido",
+    91→      description: ok
+    92→        ? "Tu progreso importado se ha cargado."
+    93→        : "No hemos podido leer esa copia. Comprueba que es una exportación de VerbalIA.",
+    94→      variant: ok ? undefined : "destructive",
+    95→    });
+    96→  };
+    97→
+    98→  return (
+    99→    <div>
+   100→      <ScreenHeader title="Ajustes" backTo={{ name: "home" }} />
+   101→
+   102→      <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-28 pt-4">
+   103→        {/* ===== Apariencia ===== */}
+   104→        <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="apariencia">
+   105→          <h2 id="apariencia" className="font-display flex items-center gap-2 text-lg font-bold">
+   106→            <Palette className="h-5 w-5 text-primary" aria-hidden /> Apariencia
+   107→          </h2>
+   108→
+   109→          <div className="mt-4 space-y-5">
+   110→            {/* Tema claro/oscuro */}
+   111→            <div>
+   112→              <Label className="text-sm font-bold">Modo</Label>
+   113→              <div className="mt-2 grid grid-cols-3 gap-2" role="group" aria-label="Elegir modo">
+   114→                {[
+   115→                  { id: "light", label: "Claro", icon: Sun },
+   116→                  { id: "dark", label: "Oscuro", icon: Moon },
+   117→                  { id: "system", label: "Sistema", icon: null },
+   118→                ].map((opt) => (
+   119→                  <button
+   120→                    key={opt.id}
+   121→                    onClick={() => { sfx.click(); setTheme(opt.id); }}
+   122→                    aria-pressed={theme === opt.id}
+   123→                    className={cn(
+   124→                      "tap-target flex flex-col items-center gap-1 rounded-2xl border-2 p-3 text-xs font-bold transition",
+   125→                      theme === opt.id
+   126→                        ? "border-primary bg-primary/5"
+   127→                        : "border-border hover:border-primary/50",
+   128→                    )}
+   129→                  >
+   130→                    {opt.icon ? <opt.icon className="h-5 w-5" aria-hidden /> : <span aria-hidden>🖥️</span>}
+   131→                    {opt.label}
+   132→                  </button>
+   133→                ))}
+   134→              </div>
+   135→            </div>
+   136→
+   137→            {/* Paleta de color */}
+   138→            <div>
+   139→              <Label className="text-sm font-bold">Paleta de color</Label>
+   140→              <p className="text-xs text-muted-foreground">El tono del Archipiélago: elígelo como se elige un barco.</p>
+   141→              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6" role="group" aria-label="Elegir paleta de color">
+   142→                {PALETAS.map((p) => (
+   143→                  <button
+   144→                    key={p.id}
+   145→                    onClick={() => { sfx.click(); updateSettings({ themeColor: p.id }); }}
+   146→                    aria-pressed={settings.themeColor === p.id}
+   147→                    className={cn(
+   148→                      "tap-target flex flex-col items-center gap-1.5 rounded-2xl border-2 p-2 text-[11px] font-bold transition",
+   149→                      settings.themeColor === p.id
+   150→                        ? "border-primary bg-primary/5"
+   151→                        : "border-border hover:border-primary/50",
+   152→                    )}
+   153→                  >
+   154→                    <span
+   155→                      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30"
+   156→                      style={{ background: `linear-gradient(135deg, ${p.swatch[0]}, ${p.swatch[1]})` }}
+   157→                      aria-hidden
+   158→                    >
+   159→                      {settings.themeColor === p.id && <Check className="h-4 w-4 text-white" aria-hidden />}
+   160→                    </span>
+   161→                    {p.label}
+   162→                  </button>
+   163→                ))}
+   164→              </div>
+   165→            </div>
+   166→
+   167→            <div>
+   168→              <Label className="text-sm font-bold">Tamaño del texto</Label>
+   169→              <p className="text-xs text-muted-foreground">Escala toda la interfaz para leer cómodamente.</p>
+   170→              <Tabs
+   171→                value={settings.textSize}
+   172→                onValueChange={(v) => { sfx.tap(); updateSettings({ textSize: v as typeof settings.textSize }); }}
+   173→                className="mt-2"
+   174→              >
+   175→                <TabsList className="grid w-full grid-cols-3">
+   176→                  {TEXT_SIZES.map((o) => (
+   177→                    <TabsTrigger key={o.id} value={o.id} className="text-xs font-bold">
+   178→                      {o.label}
+   179→                    </TabsTrigger>
+   180→                  ))}
+   181→                </TabsList>
+   182→              </Tabs>
+   183→            </div>
+   184→
+   185→            <div className="flex items-center justify-between gap-4">
+   186→              <div>
+   187→                <Label htmlFor="night-mode" className="text-sm font-bold">Modo lectura nocturna</Label>
+   188→                <p className="text-xs text-muted-foreground">
+   189→                  Luz cálida y tenue para jugar de noche (compatible con claro y oscuro).
+   190→                </p>
+   191→              </div>
+   192→              <Switch
+   193→                id="night-mode"
+   194→                checked={settings.nightMode}
+   195→                onCheckedChange={(v) => { sfx.toggle(); updateSettings({ nightMode: v }); }}
+   196→                aria-label="Modo lectura nocturna"
+   197→              />
+   198→            </div>
+   199→
+   200→            <div className="flex items-center justify-between gap-4">
+   201→              <div>
+   202→                <Label htmlFor="reduce-motion" className="text-sm font-bold">Reducir movimiento</Label>
+   203→                <p className="text-xs text-muted-foreground">
+   204→                  Desactiva animaciones y celebraciones. Respeta también la preferencia de tu sistema.
+   205→                </p>
+   206→              </div>
+   207→              <Switch
+   208→                id="reduce-motion"
+   209→                checked={settings.reduceMotion}
+   210→                onCheckedChange={(v) => { if (v) sfx.toggle(); updateSettings({ reduceMotion: v }); }}
+   211→                aria-label="Reducir movimiento"
+   212→              />
+   213→            </div>
+   214→          </div>
+   215→        </section>
+   216→
+   217→        {/* ===== Sonido ===== */}
+   218→        <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="sonido">
+   219→          <h2 id="sonido" className="font-display text-lg font-bold">Sonido y música</h2>
+   220→
+   221→          <div className="mt-4 space-y-5">
+   222→            <div className="flex items-center justify-between gap-4">
+   223→              <div>
+   224→                <Label htmlFor="sound" className="text-sm font-bold">Sonido maestro</Label>
+   225→                <p className="text-xs text-muted-foreground">
+   226→                  Todo el audio del juego: música ambiental, efectos y reloj.
+   227→                </p>
+   228→              </div>
+   229→              <Switch
+   230→                id="sound"
+   231→                checked={settings.sound}
+   232→                onCheckedChange={(v) => {
+   233→                  updateSettings({ sound: v });
+   234→                  if (v) setTimeout(() => sfx.chime(), 80);
+   235→                }}
+   236→                aria-label="Sonido maestro"
+   237→              />
+   238→            </div>
+   239→
+   240→            {settings.sound && (
+   241→              <>
+   242→                <div>
+   243→                  <div className="flex items-baseline justify-between">
+   244→                    <Label className="text-sm font-bold">Música ambiental</Label>
+   245→                    <span className="numeric text-sm font-bold text-primary">{Math.round(settings.musicVolume * 100)}%</span>
+   246→                  </div>
+   247→                  <p className="text-xs text-muted-foreground">
+   248→                    Banda sonora generativa: cada región compone su propia música en vivo.
+   249→                  </p>
+   250→                  <Slider
+   251→                    className="mt-3"
+   252→                    value={[settings.musicVolume]}
+   253→                    min={0}
+   254→                    max={1}
+   255→                    step={0.05}
+   256→                    onValueChange={([v]) => updateSettings({ musicVolume: v })}
+   257→                    aria-label="Volumen de la música ambiental"
+   258→                  />
+   259→                </div>
+   260→
+   261→                <div className="flex items-center justify-between gap-4">
+   262→                  <div>
+   263→                    <Label htmlFor="music-in-games" className="text-sm font-bold">Música dentro de partidas</Label>
+   264→                    <p className="text-xs text-muted-foreground">
+   265→                      Desactívalo para jugar solo con efectos (recomendado: el menú calla, el juego suena).
+   266→                    </p>
+   267→                  </div>
+   268→                  <Switch
+   269→                    id="music-in-games"
+   270→                    checked={settings.musicInGames}
+   271→                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ musicInGames: v }); }}
+   272→                    aria-label="Música dentro de partidas"
+   273→                  />
+   274→                </div>
+   275→
+   276→                <div>
+   277→                  <div className="flex items-baseline justify-between">
+   278→                    <Label className="text-sm font-bold">Volumen de tu estación</Label>
+   279→                    <span className="numeric text-sm font-bold text-primary">{Math.round(settings.stationVolume * 100)}%</span>
+   280→                  </div>
+   281→                  <p className="text-xs text-muted-foreground">
+   282→                    Las canciones que cargues en la Estación del navegante.
+   283→                  </p>
+   284→                  <Slider
+   285→                    className="mt-3"
+   286→                    value={[settings.stationVolume]}
+   287→                    min={0}
+   288→                    max={1}
+   289→                    step={0.05}
+   290→                    onValueChange={([v]) => updateSettings({ stationVolume: v })}
+   291→                    aria-label="Volumen de la estación"
+   292→                  />
+   293→                </div>
+   294→
+   295→                <div className="flex items-center justify-between gap-4">
+   296→                  <div>
+   297→                    <Label htmlFor="station-in-games" className="text-sm font-bold">Tu música sigue en partidas</Label>
+   298→                    <p className="text-xs text-muted-foreground">
+   299→                      Si lo apagas, la estación se pausa al entrar a jugar.
+   300→                    </p>
+   301→                  </div>
+   302→                  <Switch
+   303→                    id="station-in-games"
+   304→                    checked={settings.stationInGames}
+   305→                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ stationInGames: v }); }}
+   306→                    aria-label="Estación de música durante las partidas"
+   307→                  />
+   308→                </div>
+   309→
+   310→                <div>
+   311→                  <div className="flex items-baseline justify-between">
+   312→                    <Label className="text-sm font-bold">Efectos y reloj</Label>
+   313→                    <span className="numeric text-sm font-bold text-primary">{Math.round(settings.sfxVolume * 100)}%</span>
+   314→                  </div>
+   315→                  <p className="text-xs text-muted-foreground">
+   316→                    Aciertos, fallos, combos, naipes… y el tic-tac de los retos cronometrados.
+   317→                  </p>
+   318→                  <Slider
+   319→                    className="mt-3"
+   320→                    value={[settings.sfxVolume]}
+   321→                    min={0}
+   322→                    max={1}
+   323→                    step={0.05}
+   324→                    onValueChange={([v]) => updateSettings({ sfxVolume: v })}
+   325→                    onValueCommit={() => sfx.tap()}
+   326→                    aria-label="Volumen de efectos"
+   327→                  />
+   328→                </div>
+   329→
+   330→                {/* Velocidad de la voz (Etapa 4) */}
+   331→                <div>
+   332→                  <div className="flex items-baseline justify-between">
+   333→                    <Label className="text-sm font-bold">Velocidad de la voz del navegador</Label>
+   334→                    <span className="numeric text-sm font-bold text-primary">×{settings.ttsRate.toFixed(2)}</span>
+   335→                  </div>
+   336→                  <p className="text-xs text-muted-foreground">
+   337→                    Dictados, tarjetas y lectura inmersiva: ajusta el ritmo del faro a tu oído.
+   338→                  </p>
+   339→                  <Slider
+   340→                    className="mt-3"
+   341→                    value={[settings.ttsRate]}
+   342→                    min={0.5}
+   343→                    max={1.3}
+   344→                    step={0.05}
+   345→                    onValueChange={([v]) => updateSettings({ ttsRate: v })}
+   346→                    onValueCommit={() => sfx.tap()}
+   347→                    aria-label="Velocidad de la voz"
+   348→                  />
+   349→                </div>
+   350→
+   351→                {/* Vibración / háptics (Etapa 4) */}
+   352→                <div className="flex items-center justify-between gap-3">
+   353→                  <div>
+   354→                    <Label htmlFor="haptics" className="text-sm font-bold">Vibración de aciertos</Label>
+   355→                    <p className="text-xs text-muted-foreground">
+   356→                      Un toque físico en aciertos, combos y subidas de nivel (si tu aparato lo permite).
+   357→                    </p>
+   358→                  </div>
+   359→                  <Switch
+   360→                    id="haptics"
+   361→                    checked={settings.haptics}
+   362→                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ haptics: v }); }}
+   363→                    aria-label="Vibración de aciertos"
+   364→                  />
+   365→                </div>
+   366→              </>
+   367→            )}
+   368→          </div>
+   369→        </section>
+   370→
+   371→        {/* ===== Ritmo de juego ===== */}
+   372→        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="ritmo">
+   373→          <h2 id="ritmo" className="font-display text-lg font-bold">Ritmo de juego</h2>
+   374→
+   375→          <div className="mt-4 space-y-5">
+   376→            <div>
+   377→              <div className="flex items-baseline justify-between">
+   378→                <Label className="text-sm font-bold">Objetivo diario de XP</Label>
+   379→                <span className="numeric text-sm font-bold text-primary">{settings.dailyGoalXp} XP</span>
+   380→              </div>
+   381→              <p className="text-xs text-muted-foreground">Ritmo diario que quieres mantener (recomendado: 120).</p>
+   382→              <Slider
+   383→                className="mt-3"
+   384→                value={[settings.dailyGoalXp]}
+   385→                min={60}
+   386→                max={300}
+   387→                step={10}
+   388→                onValueChange={([v]) => updateSettings({ dailyGoalXp: v })}
+   389→                aria-label="Objetivo diario de XP"
+   390→              />
+   391→            </div>
+   392→
+   393→            <div>
+   394→              <div className="flex items-baseline justify-between">
+   395→                <Label className="text-sm font-bold">Tarjetas nuevas al día</Label>
+   396→                <span className="numeric text-sm font-bold text-primary">{settings.newCardsPerDay}</span>
+   397→              </div>
+   398→              <p className="text-xs text-muted-foreground">
+   399→                Cuántas palabras nuevas introduce el jardín cada día. Menos palabras, más repaso.
+   400→              </p>
+   401→              <Slider
+   402→                className="mt-3"
+   403→                value={[settings.newCardsPerDay]}
+   404→                min={0}
+   405→                max={15}
+   406→                step={1}
+   407→                onValueChange={([v]) => updateSettings({ newCardsPerDay: v })}
+   408→                aria-label="Tarjetas nuevas por día"
+   409→              />
+   410→            </div>
+   411→          </div>
+   412→        </section>
+   413→
+   414→        {/* ===== Tus datos (gestión completa) ===== */}
+   415→        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="datos">
+   416→          <h2 id="datos" className="font-display flex items-center gap-2 text-lg font-bold">
+   417→            <Database className="h-5 w-5 text-primary" aria-hidden /> Tus datos
+   418→          </h2>
+   419→          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+   420→            Todo vive en este dispositivo: perfil, {core.stats.totalSessions} sesiones,{" "}
+   421→            {Object.keys(srs).length} tarjetas. Sin cuentas ni rastreadores.
+   422→          </p>
+   423→
+   424→          {storageInfo && (
+   425→            <p className="numeric mt-2 flex items-center gap-1.5 rounded-2xl bg-muted/60 px-3 py-2 text-xs font-semibold text-muted-foreground">
+   426→              <HardDrive className="h-3.5 w-3.5" aria-hidden />
+   427→              Espacio usado por el navegador: {fmtMB(storageInfo.usage)}
+   428→              {storageInfo.quota > 0 && ` de ${fmtMB(storageInfo.quota)} disponibles`}
+   429→            </p>
+   430→          )}
+   431→
+   432→          {/* Migrar a otro dispositivo */}
+   433→          <div className="mt-4 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-3.5">
+   434→            <p className="text-sm font-bold">Migrar a otro dispositivo</p>
+   435→            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+   436→              1) <strong>Exporta</strong> la copia aquí y guarda el archivo JSON.
+   437→              2) En el otro dispositivo, abre VerbalIA → Ajustes → <strong>Importar copia</strong>.
+   438→              La copia incluye perfil, ajustes, XP, logros, tarjetas y racha.
+   439→            </p>
+   440→          </div>
+   441→
+   442→          <div className="mt-4 flex flex-wrap gap-2.5">
+   443→            <Button variant="outline" onClick={() => { sfx.page(); doExport(); }}>
+   444→              <Download className="mr-2 h-4 w-4" aria-hidden /> Exportar copia
+   445→            </Button>
+   446→            <Button variant="outline" onClick={() => importRef.current?.click()}>
+   447→              <Upload className="mr-2 h-4 w-4" aria-hidden /> Importar copia
+   448→            </Button>
+   449→            <input
+   450→              ref={importRef}
+   451→              type="file"
+   452→              accept="application/json"
+   453→              className="hidden"
+   454→              aria-hidden
+   455→              onChange={(e) => {
+   456→                const f = e.target.files?.[0];
+   457→                if (f) void doImport(f);
+   458→                e.target.value = "";
+   459→              }}
+   460→            />
+   461→            <Button variant="outline" onClick={() => { sfx.click(); navigate({ name: "music" }); }}>
+   462→              Estación de música →
+   463→            </Button>
+   464→          </div>
+   465→
+   466→          {/* Borrados parciales */}
+   467→          <div className="mt-4 space-y-2.5">
+   468→            <p className="text-sm font-bold">Borrados finos (nada de sustos)</p>
+   469→            <div className="flex flex-wrap gap-2.5">
+   470→              <ConfirmButton
+   471→                label="Reiniciar progreso"
+   472→                description="Se borran XP, niveles, logros, misiones e historial. Tu perfil, ajustes y palabras plantadas permanecen."
+   473→                confirmLabel="Reiniciar progreso"
+   474→                onConfirm={() => {
+   475→                  void resetProgress();
+   476→                  toast({ title: "Progreso reiniciado", description: "La bitácora vuelve a la página uno: el navegante sigue siendo tú." });
+   477→                }}
+   478→              />
+   479→              <ConfirmButton
+   480→                label="Vaciar el jardín"
+   481→                description="Se borran todas las tarjetas de repetición espaciada (tu colección de palabras). El XP y el perfil no se tocan."
+   482→                confirmLabel="Vaciar jardín"
+   483→                onConfirm={() => {
+   484→                  void resetSrs();
+   485→                  toast({ title: "Jardín vaciado", description: "Las tarjetas volverán a brotar desde la primera semilla." });
+   486→                }}
+   487→              />
+   488→            </div>
+   489→          </div>
+   490→
+   491→          <AlertDialog>
+   492→            <AlertDialogTrigger asChild>
+   493→              <Button variant="destructive" className="mt-3 w-full font-bold">
+   494→                <Trash2 className="mr-2 h-4 w-4" aria-hidden /> Borrar todo (nueva vida pirata)
+   495→              </Button>
+   496→            </AlertDialogTrigger>
+   497→            <AlertDialogContent>
+   498→              <AlertDialogHeader>
+   499→                <AlertDialogTitle>¿Borrar todos tus datos?</AlertDialogTitle>
+   500→                <AlertDialogDescription>
+   501→                  Se eliminarán perfil ({profile.name}), XP ({core.xp}), tarjetas ({Object.keys(srs).length}),
+   502→                  logros e historial de este dispositivo. Esta acción no se puede deshacer.
+   503→                </AlertDialogDescription>
+   504→              </AlertDialogHeader>
+   505→              <AlertDialogFooter>
+   506→                <AlertDialogCancel>Conservar mis datos</AlertDialogCancel>
+   507→                <AlertDialogAction
+   508→                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+   509→                  onClick={() => {
+   510→                    sfx.error();
+   511→                    void resetAll();
+   512→                    navigate({ name: "welcome" });
+   513→                  }}
+   514→                >
+   515→                  Borrar todo
+   516→                </AlertDialogAction>
+   517→              </AlertDialogFooter>
+   518→            </AlertDialogContent>
+   519→          </AlertDialog>
+   520→        </section>
+   521→
+   522→        {/* ===== Bóveda cifrada ===== */}
+   523→        <VaultSection />
+   524→
+   525→        {/* ===== Sin conexión ===== */}
+   526→        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="offline">
+   527→          <div className="flex items-center justify-between gap-4">
+   528→            <div>
+   529→              <h2 id="offline" className="font-display text-lg font-bold">Modo sin conexión</h2>
+   530→              <p className="text-xs text-muted-foreground">
+   531→                {"serviceWorker" in navigator
+   532→                  ? "La aplicación puede instalarse y funcionar sin conexión (PWA). Las funciones de voz dependen del navegador."
+   533→                  : "Tu navegador no soporta instalación PWA; el juego seguirá funcionando con conexión normal."}
+   534→              </p>
+   535→            </div>
+   536→            <span className="anim-bob flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-xl" aria-hidden>
+   537→              📴
+   538→            </span>
+   539→          </div>
+   540→        </section>
+   541→
+   542→        {/* ===== Privacidad ===== */}
+   543→        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="privacidad">
+   544→          <h2 id="privacidad" className="font-display text-lg font-bold">Privacidad</h2>
+   545→          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+   546→            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin cuentas, sin correo, sin datos personales pedidos.</li>
+   547→            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Todo el progreso se guarda en tu dispositivo.</li>
+   548→            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin rastreadores ni analítica de terceros.</li>
+   549→            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> La síntesis de voz (opcional) la pone tu navegador; no enviamos audio a ningún sitio.</li>
+   550→            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Las canciones de tu estación jamás salen del dispositivo.</li>
+   551→          </ul>
+   552→        </section>
+   553→
+   554→        {/* ===== Acerca de ===== */}
+   555→        <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="acerca">
+   556→          <h2 id="acerca" className="font-display text-lg font-bold">Acerca de VerbalIA</h2>
+   557→          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+   558→            Etapa 3 · 51 minijuegos, 7 islas y 5 000 ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
+   559→            Los niveles MCER que se muestran son estimaciones orientativas: VerbalIA no certifica el
+   560→            dominio oficial de un idioma.
+   561→          </p>
+   562→          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+   563→            <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v3.0.0-etapa3</span>
+   564→            <button
+   565→              className="font-bold text-primary hover:underline"
+   566→              onClick={() => { sfx.page(); navigate({ name: "library" }); }}
+   567→            >
+   568→              Ver la hoja de ruta completa →
+   569→            </button>
+   570→          </div>
+   571→        </section>
+   572→
+   573→        <Button
+   574→          variant="outline"
+   575→          className="w-full font-bold"
+   576→          onClick={() =>
+   577→            toast({
+   578→              title: "Consejo de Léxico",
+   579→              description: "Los ajustes se aplican al momento y se guardan en tu dispositivo, incluso sin conexión.",
+   580→            })
+   581→          }
+   582→        >
+   583→          💾 Todo se guarda automáticamente
+   584→        </Button>
+   585→      </main>
+   586→    </div>
+   587→  );
+   588→}
+   589→
+   590→/** Botón de borrado con confirmación en dos pasos. */
+   591→function ConfirmButton({
+   592→  label,
+   593→  description,
+   594→  confirmLabel,
+   595→  onConfirm,
+   596→}: {
+   597→  label: string;
+   598→  description: string;
+   599→  confirmLabel: string;
+   600→  onConfirm: () => void;
+   601→}) {
+   602→  return (
+   603→    <AlertDialog>
+   604→      <AlertDialogTrigger asChild>
+   605→        <Button variant="outline" className="text-sm">
+   606→          {label}
+   607→        </Button>
+   608→      </AlertDialogTrigger>
+   609→      <AlertDialogContent>
+   610→        <AlertDialogHeader>
+   611→          <AlertDialogTitle>{confirmLabel}</AlertDialogTitle>
+   612→          <AlertDialogDescription>{description}</AlertDialogDescription>
+   613→        </AlertDialogHeader>
+   614→        <AlertDialogFooter>
+   615→          <AlertDialogCancel>Volver</AlertDialogCancel>
+   616→          <AlertDialogAction
+   617→            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+   618→            onClick={() => {
+   619→              sfx.error();
+   620→              onConfirm();
+   621→            }}
+   622→          >
+   623→            {confirmLabel}
+   624→          </AlertDialogAction>
+   625→        </AlertDialogFooter>
+   626→      </AlertDialogContent>
+   627→    </AlertDialog>
+   628→  );
+   629→}
+   630→
+   631→/* ============================ Bóveda cifrada ============================ */
+   632→
+   633→function VaultSection() {
+   634→  const exportJson = useGameStore((s) => s.exportJson);
+   635→  const importJson = useGameStore((s) => s.importJson);
+   636→  const { toast } = useToast();
+   637→  const [pass, setPass] = useState("");
+   638→  const [code, setCode] = useState("");
+   639→  const [busy, setBusy] = useState(false);
+   640→  const [lastCode, setLastCode] = useState<string | null>(null);
+   641→
+   642→  const saveToVault = async () => {
+   643→    if (pass.length < 8) {
+   644→      toast({ title: "Contraseña corta", description: "Usa al menos 8 caracteres: cierra bien el sobre.", variant: "destructive" });
+   645→      return;
+   646→    }
+   647→    const json = exportJson();
+   648→    if (!json) return;
+   649→    setBusy(true);
+   650→    try {
+   651→      const { id, expiresAt } = await uploadVault(json, pass);
+   652→      setLastCode(id);
+   653→      toast({
+   654→        title: "Sobre guardado en la bóveda",
+   655→        description: `Código ${id.slice(0, 10)}… Caduca el ${new Date(expiresAt).toLocaleDateString("es-ES")}. Anótalo junto a tu contraseña.`,
+   656→      });
+   657→    } catch (e) {
+   658→      toast({ title: "No se pudo guardar", description: e instanceof Error ? e.message : "Error inesperado", variant: "destructive" });
+   659→    } finally {
+   660→      setBusy(false);
+   661→    }
+   662→  };
+   663→
+   664→  const restoreFromVault = async () => {
+   665→    if (!/^\\S+$/.test(code.trim())) {
+   666→      toast({ title: "Falta el código", description: "Pega el código de 64 caracteres que te dieron al guardar.", variant: "destructive" });
+   667→      return;
+   668→    }
+   669→    if (!pass) {
+   670→      toast({ title: "Falta la contraseña", description: "La misma con la que sellaste el sobre.", variant: "destructive" });
+   671→      return;
+   672→    }
+   673→    setBusy(true);
+   674→    try {
+   675→      const json = await downloadVault(code.trim(), pass);
+   676→      const ok = await importJson(json);
+   677→      toast({
+   678→        title: ok ? "¡Bóveda abierta!" : "Sobre corrupto",
+   679→        description: ok ? "Tu progreso ha regresado del viaje." : "El contenido no era una copia de VerbalIA.",
+   680→        variant: ok ? undefined : "destructive",
+   681→      });
+   682→    } catch (e) {
+   683→      toast({ title: "La bóveda no abrió", description: e instanceof Error ? e.message : "Error inesperado", variant: "destructive" });
+   684→    } finally {
+   685→      setBusy(false);
+   686→    }
+   687→  };
+   688→
+   689→  return (
+   690→    <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="boveda">
+   691→      <h2 id="boveda" className="font-display flex items-center gap-2 text-lg font-bold">
+   692→        <Lock className="h-5 w-5 text-primary" aria-hidden /> Bóveda cifrada (zero-knowledge)
+   693→      </h2>
+   694→      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+   695→        Tu progreso se cifra <strong>en este dispositivo</strong> (AES-GCM, PBKDF2 con 600 000
+   696→        iteraciones) y el servidor solo guarda un sobre sellado que <em>no puede</em> abrir:
+   697→        ni la contraseña ni el contenido viajan en claro. Ideal como copia de emergencia
+   698→        con una contraseña que recuerdes.
+   699→      </p>
+   700→
+   701→      <div className="mt-4 space-y-3">
+   702→        <div>
+   703→          <Label htmlFor="vault-pass" className="text-sm font-bold">Contraseña del sobre</Label>
+   704→          <input
+   705→            id="vault-pass"
+   706→            type="password"
+   707→            value={pass}
+   708→            onChange={(e) => setPass(e.target.value)}
+   709→            autoComplete="new-password"
+   710→            aria-label="Contraseña de la bóveda"
+   711→            className="mt-1.5 h-10 w-full rounded-2xl border border-border bg-card px-3 text-sm font-semibold outline-none focus:border-primary"
+   712→            placeholder="Mínimo 8 caracteres"
+   713→          />
+   714→        </div>
+   715→        <div className="flex flex-wrap gap-2.5">
+   716→          <Button onClick={saveToVault} disabled={busy} className="font-bold">
+   717→            <Upload className="mr-2 h-4 w-4" aria-hidden /> Guardar copia cifrada
+   718→          </Button>
+   719→        </div>
+   720→
+   721→        {lastCode && (
+   722→          <div className="anim-pop rounded-2xl border border-success/50 bg-success/10 p-3">
+   723→            <p className="text-xs font-bold text-success">Código de tu sobre (anótalo):</p>
+   724→            <p className="mt-1 break-all rounded-lg bg-card px-2 py-1.5 font-mono text-[11px]">{lastCode}</p>
+   725→            <p className="mt-1 text-[11px] text-muted-foreground">
+   726→              Se borra de la bóveda a los 30 días. Sin la contraseña, nadie (ni nosotros) puede abrirlo.
+   727→            </p>
+   728→          </div>
+   729→        )}
+   730→
+   731→        <div>
+   732→          <Label htmlFor="vault-code" className="text-sm font-bold">Recuperar con código</Label>
+   733→          <input
+   734→            id="vault-code"
+   735→            value={code}
+   736→            onChange={(e) => setCode(e.target.value)}
+   737→            aria-label="Código del sobre guardado"
+   738→            className="mt-1.5 h-10 w-full rounded-2xl border border-border bg-card px-3 font-mono text-xs outline-none focus:border-primary"
+   739→            placeholder="Pega aquí el código de 64 caracteres"
+   740→          />
+   741→        </div>
+   742→        <Button variant="outline" onClick={restoreFromVault} disabled={busy} className="font-bold">
+   743→          <Download className="mr-2 h-4 w-4" aria-hidden /> Abrir sobre y restaurar
+   744→        </Button>
+   745→      </div>
+   746→
+   747→      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+   748→        El servidor no guarda contraseñas, correos ni cookies de sesión: solo sobres cifrados
+   749→        que caducan solos. Para máxima privacidad, sigue disponible la exportación manual de JSON.
+   750→      </p>
+   751→    </section>
+   752→  );
+   753→}
+   754→

@@ -1,0 +1,591 @@
+     1→"use client";
+     2→
+     3→/**
+     4→ * Estadísticas y evolución 2.0 · Resumen con récords, XP por día,
+     5→ * mapa de calor de constancia, radar de las 7 habilidades, exactitud
+     6→ * por isla, actividad por minijuego e historial de sesiones.
+     7→ */
+     8→
+     9→import { useMemo, useState } from "react";
+    10→import { useGameStore } from "@/store/game-store";
+    11→import { ScreenHeader } from "@/components/game/app-shell";
+    12→import { EmptyState } from "@/components/game/widgets";
+    13→import { cefrFromSkill, levelProgress } from "@/engine/xp";
+    14→import { REGIONS,  SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
+    15→import { GAMES, GAME_IDS } from "@/data/games";
+    16→import { dateKey } from "@/engine/missions";
+    17→import { getIcon } from "@/components/game/icons";
+    18→import { LexicoBubble } from "@/components/game/lexico";
+    19→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    20→import { Bar, BarChart, CartesianGrid, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+    21→import { Award, ChartColumn, Droplets, Flame, History, MapPin, Play, Timer, TrendingUp, Zap } from "lucide-react";
+    22→import { sfx } from "@/services/audio";
+    23→import { cn } from "@/lib/utils";
+    24→import { formatPlaytime } from "@/lib/format-time";
+    25→import type { GameId, SkillId } from "@/types";
+    26→
+    27→const DAY_MS = 86_400_000;
+    28→
+    29→/** Habilidad de cada juego (para exactitud por isla). */
+    30→const SKILL_OF_GAME = (g: GameId): SkillId => GAMES[g].skill;
+    31→
+    32→export function StatsScreen() {
+    33→  const core = useGameStore((s) => s.core);
+    34→  const [tab, setTab] = useState("resumen");
+    35→
+    36→  /* ---------- series y derivados ---------- */
+    37→
+    38→  const xpData = useMemo(() => {
+    39→    const days: { dia: string; xp: number }[] = [];
+    40→    for (let i = 13; i >= 0; i--) {
+    41→      const d = new Date(Date.now() - i * DAY_MS);
+    42→      const key = dateKey(d);
+    43→      days.push({ dia: d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }), xp: core.stats.xpByDay[key] ?? 0 });
+    44→    }
+    45→    return days;
+    46→  }, [core.stats.xpByDay]);
+    47→
+    48→  const radarData = useMemo(
+    49→    () =>
+    50→      (["vocabulario", "gramatica", "ortografia", "lectura", "audicion", "expresion", "cultura"] as const).map((s) => ({
+    51→        skill: SKILL_LABELS[s],
+    52→        nivel: +(core.skills[s] ?? 2).toFixed(1),
+    53→      })),
+    54→    [core.skills],
+    55→  );
+    56→
+    57→  const gameData = useMemo(
+    58→    () =>
+    59→      GAME_IDS.map((g) => ({
+    60→        id: g,
+    61→        name: GAMES[g].name,
+    62→        plays: core.stats.byGame[g]?.plays ?? 0,
+    63→        correct: core.stats.byGame[g]?.correct ?? 0,
+    64→        answers: core.stats.byGame[g]?.answers ?? 0,
+    65→      })).sort((a, b) => b.plays - a.plays),
+    66→    [core.stats.byGame],
+    67→  );
+    68→
+    69→  /** Mapa de calor: 16 semanas (7×16 celdas · Etapa 4). */
+    70→  const heatmap = useMemo(() => {
+    71→    const cells: { key: string; xp: number; date: Date }[] = [];
+    72→    const today = new Date();
+    73→    const offsetToMonday = (today.getDay() + 6) % 7; // lunes = 0
+    74→    for (let w = 15; w >= 0; w--) {
+    75→      for (let dow = 0; dow < 7; dow++) {
+    76→        const d = new Date(today.getTime() - (offsetToMonday + (w * 7) + (6 - dow)) * DAY_MS);
+    77→        const key = dateKey(d);
+    78→        cells.push({ key, xp: core.stats.xpByDay[key] ?? 0, date: d });
+    79→      }
+    80→    }
+    81→    const maxXp = Math.max(30, ...cells.map((c) => c.xp));
+    82→    return { cells, maxXp };
+    83→  }, [core.stats.xpByDay]);
+    84→
+    85→  const records = useMemo(() => {
+    86→    const byDay = Object.entries(core.stats.xpByDay);
+    87→    const bestDay = byDay.sort((a, b) => b[1] - a[1])[0] ?? null;
+    88→    const played = gameData.filter((g) => g.plays > 0);
+    89→    const favorite = played[0] ?? null;
+    90→    const hardest = played
+    91→      .filter((g) => g.answers >= 8)
+    92→      .sort((a, b) => a.correct / a.answers - b.correct / b.answers)[0] ?? null;
+    93→    const avgResponse =
+    94→      core.stats.totalAnswers > 0 && (core.stats.answerTimeSumMs ?? 0) > 0
+    95→        ? core.stats.answerTimeSumMs / core.stats.totalAnswers / 1000
+    96→        : null;
+    97→    return {
+    98→      bestDay: bestDay ? { date: bestDay[0], xp: bestDay[1] } : null,
+    99→      bestComboEver: core.stats.bestComboEver ?? 0,
+   100→      favorite,
+   101→      hardest,
+   102→      avgResponse,
+   103→      uniqueGames: (core.stats.uniqueGames ?? []).length,
+   104→      activeDays: core.stats.activeDays.length,
+   105→      tinta: (core.wallet?.tinta ?? 0) + (core.wallet?.spent ?? 0),
+   106→      tintaSpent: core.wallet?.spent ?? 0,
+   107→    };
+   108→  }, [core.stats, core.stats.byGame, gameData, core.wallet]);
+   109→
+   110→  /** Proyección de nivel: ritmo de XP diario (14 días) → días hasta el siguiente nivel. */
+   111→  const levelProjection = useMemo(() => {
+   112→    const { level: lvl, into, needed } = levelProgress(core.xp);
+   113→    if (needed <= 0) return null;
+   114→    const xp14 = xpData.reduce((acc, d) => acc + d.xp, 0);
+   115→    const activeDays14 = xpData.filter((d) => d.xp > 0).length;
+   116→    const perDay = activeDays14 > 0 ? xp14 / activeDays14 : 0;
+   117→    if (perDay <= 0) return null;
+   118→    const days = Math.ceil((needed - into) / perDay);
+   119→    return { perDay: Math.round(perDay), days, level: lvl };
+   120→  }, [core.xp, xpData]);
+   121→
+   122→  const hasData = core.stats.totalSessions > 0;
+   123→  const avgAccuracy =
+   124→    core.stats.totalAnswers > 0
+   125→      ? Math.round((core.stats.totalCorrect / core.stats.totalAnswers) * 100)
+   126→      : null;
+   127→
+   128→  /** Exactitud por isla (agregada desde los juegos). */
+   129→  const skillAccuracy = useMemo(() => {
+   130→    const acc: Partial<Record<SkillId, { correct: number; answers: number }>> = {};
+   131→    for (const g of gameData) {
+   132→      if (g.answers === 0) continue;
+   133→      const skill = SKILL_OF_GAME(g.id);
+   134→      const cur = (acc[skill] ??= { correct: 0, answers: 0 });
+   135→      cur.correct += g.correct;
+   136→      cur.answers += g.answers;
+   137→      acc[skill] = cur;
+   138→    }
+   139→    return (Object.keys(acc) as SkillId[])
+   140→      .filter((s) => (acc[s]?.answers ?? 0) >= 6)
+   141→      .map((s) => ({
+   142→        skill: s,
+   143→        label: SKILL_LABELS[s],
+   144→        pct: Math.round((acc[s]!.correct / Math.max(1, acc[s]!.answers)) * 100),
+   145→        color: SKILL_COLORS[s],
+   146→      }))
+   147→      .sort((a, b) => b.pct - a.pct);
+   148→  }, [gameData]);
+   149→
+   150→  return (
+   151→    <div>
+   152→      <ScreenHeader title="Estadísticas y evolución" backTo={{ name: "home" }} />
+   153→
+   154→      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+   155→        {!hasData ? (
+   156→          <div className="mt-6">
+   157→            <EmptyState
+   158→              icon={<ChartColumn />}
+   159→              title="Aún no hay datos"
+   160→              description="Tu evaluación ya suma XP, pero los gráficos necesitan partidas: juega una misión y aquí florecerá tu evolución completa."
+   161→            />
+   162→          </div>
+   163→        ) : (
+   164→          <>
+   165→            {/* Tarjetas resumen */}
+   166→            <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+   167→              <SummaryCard value={`${core.xp}`} label="XP total" />
+   168→              <SummaryCard value={formatPlaytime(core.stats.totalTimeMs ?? 0)} label="Tiempo jugado" />
+   169→              <SummaryCard value={avgAccuracy !== null ? `${avgAccuracy}%` : "—"} label="Exactitud global" />
+   170→              <SummaryCard value={`${records.bestComboEver}`} label="Mejor combo" />
+   171→            </div>
+   172→
+   173→            {/* Récords */}
+   174→            <section className="card-aurora mt-3 rounded-3xl border bg-card p-4" aria-labelledby="records-title">
+   175→              <h3 id="records-title" className="font-display mb-3 flex items-center gap-2 text-base font-bold">
+   176→                <Award className="h-4.5 w-4.5 text-[var(--xp)]" aria-hidden /> Récords del navegante
+   177→              </h3>
+   178→              <ul className="grid grid-cols-2 gap-2 text-sm">
+   179→                <RecordRow icon={<Flame className="h-4 w-4" aria-hidden />} label="Mejor día" value={records.bestDay ? `${records.bestDay.xp} XP` : "—"} hint={records.bestDay ? records.bestDay.date : undefined} />
+   180→                <RecordRow icon={<Zap className="h-4 w-4" aria-hidden />} label="Combo más largo" value={`${records.bestComboEver} seguidos`} hint="en una sola sesión" />
+   181→                <RecordRow icon={<TrendingUp className="h-4 w-4" aria-hidden />} label="Juego favorito" value={records.favorite ? records.favorite.name : "—"} hint={records.favorite ? `${records.favorite.plays} partidas` : undefined} />
+   182→                <RecordRow icon={<Timer className="h-4 w-4" aria-hidden />} label="Respuesta media" value={records.avgResponse ? `${records.avgResponse.toFixed(1)} s` : "—"} hint="por pregunta" />
+   183→                <RecordRow icon={<Play className="h-4 w-4" aria-hidden />} label="Formatos probados" value={`${records.uniqueGames} / ${GAME_IDS.length}`} hint="minijuegos distintos" />
+   184→                <RecordRow icon={<ChartColumn className="h-4 w-4" aria-hidden />} label="Días navegados" value={`${records.activeDays}`} hint="días con actividad" />
+   185→                <RecordRow icon={<Droplets className="h-4 w-4" aria-hidden />} label="Tinta ganada" value={`${records.tinta}`} hint={`${records.tintaSpent} gastada en el Bazar`} />
+   186→                <RecordRow
+   187→                  icon={<MapPin className="h-4 w-4" aria-hidden />}
+   188→                  label="Isla más afilada"
+   189→                  value={skillAccuracy.length > 0 ? skillAccuracy[0].label : "—"}
+   190→                  hint={skillAccuracy.length > 0 ? `${skillAccuracy[0].pct}% de acierto` : undefined}
+   191→                />
+   192→              </ul>
+   193→              {levelProjection && (
+   194→                <p className="mt-3 rounded-2xl bg-secondary px-3.5 py-2 text-xs leading-relaxed text-secondary-foreground">
+   195→                  A tu ritmo actual ({levelProjection.perDay} XP por día activo), alcanzarás el nivel {levelProjection.level + 1} en
+   196→                  unos <strong>{levelProjection.days} {levelProjection.days === 1 ? "día" : "días"}</strong>. El faro avisa: sin prisa,
+   197→                  pero sin pausa.
+   198→                </p>
+   199→              )}
+   200→              {records.hardest && records.hardest.answers >= 8 && (
+   201→                <p className="mt-3 rounded-2xl bg-secondary px-3.5 py-2 text-xs leading-relaxed text-secondary-foreground">
+   202→                  Tu isla más empinada ahora es <strong>{records.hardest.name}</strong> (
+   203→                  {Math.round((records.hardest.correct / Math.max(1, records.hardest.answers)) * 100)}% de acierto).
+   204→                  ¿Le damos otra vuelta para ablandar la cuesta?
+   205→                </p>
+   206→              )}
+   207→            </section>
+   208→
+   209→            <Tabs value={tab} onValueChange={(v) => { sfx.tap(); setTab(v); }} className="mt-5">
+   210→              <TabsList className="grid w-full grid-cols-3">
+   211→                <TabsTrigger value="resumen" className="font-bold">Resumen</TabsTrigger>
+   212→                <TabsTrigger value="constancia" className="font-bold">Constancia</TabsTrigger>
+   213→                <TabsTrigger value="historial" className="font-bold">Historial</TabsTrigger>
+   214→                <TabsTrigger value="patrones" className="font-bold">Patrones</TabsTrigger>
+   215→              </TabsList>
+   216→
+   217→              <TabsContent value="resumen" className="mt-4 space-y-6">
+   218→                {/* XP por día */}
+   219→                <section aria-labelledby="xp-chart-title">
+   220→                  <h3 id="xp-chart-title" className="font-display mb-2 text-base font-bold">
+   221→                    XP de los últimos 14 días
+   222→                  </h3>
+   223→                  <div className="card-aurora rounded-3xl border bg-card p-4" style={{ height: 200 }}>
+   224→                    <ResponsiveContainer width="100%" height="100%">
+   225→                      <BarChart data={xpData} margin={{ top: 4, right: 4, bottom: 0, left: -22 }}>
+   226→                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+   227→                        <XAxis dataKey="dia" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} interval={2} axisLine={false} tickLine={false} />
+   228→                        <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} allowDecimals={false} />
+   229→                        <Tooltip
+   230→                          contentStyle={{
+   231→                            background: "var(--popover)",
+   232→                            color: "var(--popover-foreground)",
+   233→                            border: "1px solid var(--border)",
+   234→                            borderRadius: 12,
+   235→                            fontSize: 12,
+   236→                          }}
+   237→                          formatter={(v) => [`${v} XP`, "Ganado"]}
+   238→                        />
+   239→                        <Bar dataKey="xp" fill="var(--xp)" radius={[6, 6, 0, 0]} maxBarSize={26} />
+   240→                      </BarChart>
+   241→                    </ResponsiveContainer>
+   242→                  </div>
+   243→                </section>
+   244→
+   245→                {/* Radar de habilidades (7 islas) */}
+   246→                <section aria-labelledby="radar-title">
+   247→                  <h3 id="radar-title" className="font-display mb-2 text-base font-bold">
+   248→                    Nivel por habilidad (de 10) · las 7 islas
+   249→                  </h3>
+   250→                  <div className="card-aurora rounded-3xl border bg-card p-4" style={{ height: 240 }}>
+   251→                    <ResponsiveContainer width="100%" height="100%">
+   252→                      <RadarChart data={radarData} outerRadius="70%">
+   253→                        <PolarGrid stroke="var(--border)" />
+   254→                        <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
+   255→                        <Radar dataKey="nivel" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
+   256→                        <Tooltip
+   257→                          contentStyle={{
+   258→                            background: "var(--popover)",
+   259→                            color: "var(--popover-foreground)",
+   260→                            border: "1px solid var(--border)",
+   261→                            borderRadius: 12,
+   262→                            fontSize: 12,
+   263→                          }}
+   264→                        />
+   265→                      </RadarChart>
+   266→                    </ResponsiveContainer>
+   267→                  </div>
+   268→                </section>
+   269→
+   270→                {/* Exactitud por isla */}
+   271→                {skillAccuracy.length > 0 && (
+   272→                  <section aria-labelledby="acc-title">
+   273→                    <h3 id="acc-title" className="font-display mb-2 text-base font-bold">
+   274→                      Exactitud por isla
+   275→                    </h3>
+   276→                    <div className="space-y-2">
+   277→                      {skillAccuracy.map((s) => (
+   278→                        <div key={s.skill} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
+   279→                          <span
+   280→                            className="gloss h-3 w-3 shrink-0 rounded-full"
+   281→                            style={{ background: s.color, boxShadow: `0 0 8px color-mix(in oklch, ${s.color} 60%, transparent)` }}
+   282→                            aria-hidden
+   283→                          />
+   284→                          <div className="min-w-0 flex-1">
+   285→                            <div className="flex items-baseline justify-between gap-2">
+   286→                              <p className="truncate text-sm font-bold">{s.label}</p>
+   287→                              <p className="numeric text-xs font-bold text-muted-foreground">{s.pct}%</p>
+   288→                            </div>
+   289→                            <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
+   290→                              <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${s.pct}%`, background: s.color }} />
+   291→                            </div>
+   292→                          </div>
+   293→                        </div>
+   294→                      ))}
+   295→                    </div>
+   296→                  </section>
+   297→                )}
+   298→
+   299→                {/* Distribución por juego (top 10) */}
+   300→                <section aria-labelledby="games-title">
+   301→                  <h3 id="games-title" className="font-display mb-2 text-base font-bold">
+   302→                    Minijuegos más jugados
+   303→                  </h3>
+   304→                  <div className="space-y-2">
+   305→                    {gameData.filter((g) => g.plays > 0).slice(0, 10).map((g) => {
+   306→                      const maxPlays = Math.max(1, gameData[0].plays);
+   307→                      const Icon = getIcon(GAMES[g.id].icon);
+   308→                      return (
+   309→                        <div key={g.id} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
+   310→                          <span className="chip-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+   311→                            <Icon className="h-4.5 w-4.5" aria-hidden />
+   312→                          </span>
+   313→                          <div className="min-w-0 flex-1">
+   314→                            <div className="flex items-baseline justify-between gap-2">
+   315→                              <p className="truncate text-sm font-bold">{g.name}</p>
+   316→                              <p className="numeric shrink-0 text-xs text-muted-foreground">
+   317→                                {g.plays} partidas · {g.answers > 0 ? `${Math.round((g.correct / g.answers) * 100)}% acierto` : "sin datos"}
+   318→                              </p>
+   319→                            </div>
+   320→                            <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
+   321→                              <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${(g.plays / maxPlays) * 100}%` }} />
+   322→                            </div>
+   323→                          </div>
+   324→                        </div>
+   325→                      );
+   326→                    })}
+   327→                  </div>
+   328→                </section>
+   329→              </TabsContent>
+   330→
+   331→              <TabsContent value="constancia" className="mt-4 space-y-4">
+   332→                <section aria-labelledby="heatmap-title">
+   333→                  <h3 id="heatmap-title" className="font-display mb-2 text-base font-bold">
+   334→                    Mapa de constancia · 16 semanas
+   335→                  </h3>
+   336→                  <div className="card-aurora rounded-3xl border bg-card p-4">
+   337→                    <div
+   338→                      className="grid grid-flow-col grid-rows-7 gap-1"
+   339→                      role="img"
+   340→                      aria-label={`Mapa de calor de actividad: ${records.activeDays} días con juego en los últimos tres meses`}
+   341→                    >
+   342→                      {heatmap.cells.map((c) => {
+   343→                        const intensity = c.xp / heatmap.maxXp;
+   344→                        return (
+   345→                          <span
+   346→                            key={c.key}
+   347→                            title={`${c.date.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}: ${c.xp} XP`}
+   348→                            className="aspect-square w-full rounded-[3px]"
+   349→                            style={{
+   350→                              background:
+   351→                                c.xp === 0
+   352→                                  ? "color-mix(in oklch, var(--muted) 70%, transparent)"
+   353→                                  : `color-mix(in oklch, var(--xp) ${Math.max(18, Math.round(18 + intensity * 72))}%, var(--muted))`,
+   354→                            }}
+   355→                          />
+   356→                        );
+   357→                      })}
+   358→                    </div>
+   359→                    <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+   360→                      <span>Hace 16 semanas</span>
+   361→                      <span className="flex items-center gap-1">
+   362→                        Menos
+   363→                        {[0.2, 0.45, 0.7, 1].map((i) => (
+   364→                          <span
+   365→                            key={i}
+   366→                            className="inline-block h-2.5 w-2.5 rounded-[3px]"
+   367→                            style={{ background: `color-mix(in oklch, var(--xp) ${i * 100}%, var(--muted))` }}
+   368→                            aria-hidden
+   369→                          />
+   370→                        ))}
+   371→                        Más
+   372→                      </span>
+   373→                      <span>Esta semana</span>
+   374→                    </div>
+   375→                  </div>
+   376→                </section>
+   377→
+   378→                <LexicoBubble
+   379→                  compact
+   380→                  mood={records.activeDays >= 10 ? "happy" : "idle"}
+   381→                  text={
+   382→                    records.activeDays >= 10
+   383→                      ? "Dieciséis semanas de mapa y sigues dejando huella: la constancia es tu segundo apellido."
+   384→                      : "Cada celda encendida es un día que elegiste zarpar. Pinta el mapa a tu ritmo: el mar no tiene prisa."
+   385→                  }
+   386→                />
+   387→              </TabsContent>
+   388→
+   389→              <TabsContent value="historial" className="mt-4">
+   390→                <section aria-labelledby="history-title">
+   391→                  <h3 id="history-title" className="font-display mb-2 flex items-center gap-2 text-base font-bold">
+   392→                    <History className="h-4 w-4" aria-hidden /> Historial de sesiones
+   393→                  </h3>
+   394→                  {core.sessions.length === 0 ? (
+   395→                    <EmptyState icon={<Play />} title="Sin sesiones todavía" description="Tu historial aparecerá aquí tras tu primera partida." />
+   396→                  ) : (
+   397→                    <ol className="stagger space-y-2">
+   398→                      {core.sessions.slice(0, 30).map((s) => (
+   399→                        <li key={s.id} className="card-aurora flex items-center gap-3 rounded-2xl border bg-card p-3">
+   400→                          <div
+   401→                            className={cn(
+   402→                              "numeric flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl text-[10px] font-black leading-none",
+   403→                              s.accuracy === null
+   404→                                ? "bg-secondary text-secondary-foreground"
+   405→                                : s.accuracy >= 0.8
+   406→                                  ? "bg-success/15 text-success"
+   407→                                  : s.accuracy >= 0.5
+   408→                                    ? "bg-[var(--xp)]/20 text-[var(--xp)]"
+   409→                                    : "bg-destructive/15 text-destructive",
+   410→                            )}
+   411→                            aria-hidden
+   412→                          >
+   413→                            <span className="text-sm">{s.accuracy === null ? `${s.total}` : `${Math.round(s.accuracy * 100)}%`}</span>
+   414→                            <span>{s.accuracy === null ? "cards" : "acierto"}</span>
+   415→                          </div>
+   416→                          <div className="min-w-0 flex-1">
+   417→                            <p className="truncate text-sm font-bold">{s.label}</p>
+   418→                            <p className="truncate text-xs text-muted-foreground">
+   419→                              {new Date(s.at).toLocaleDateString("es-ES", { day: "numeric", month: "short" })} a las{" "}
+   420→                              {new Date(s.at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+   421→                              {s.bestCombo >= 3 && ` · combo ${s.bestCombo}`}
+   422→                              {` · ${formatPlaytime(s.durationMs)}`}
+   423→                            </p>
+   424→                          </div>
+   425→                          <span className="numeric shrink-0 text-sm font-bold text-[var(--xp)]">+{s.xpEarned} XP</span>
+   426→                        </li>
+   427→                      ))}
+   428→                    </ol>
+   429→                  )}
+   430→                </section>
+   431→              </TabsContent>
+   432→
+   433→              <TabsContent value="patrones" className="mt-4 space-y-4">
+   434→                {/* XP por día de la semana */}
+   435→                <section aria-labelledby="weekday-title">
+   436→                  <h3 id="weekday-title" className="font-display mb-2 text-base font-bold">
+   437→                    ¿Qué día rinde más? · XP por día de la semana
+   438→                  </h3>
+   439→                  <div className="card-aurora rounded-3xl border bg-card p-4">
+   440→                    <div className="grid grid-cols-7 gap-1.5">
+   441→                      {(() => {
+   442→                        const names = ["L", "M", "X", "J", "V", "S", "D"];
+   443→                        const totals = [0, 0, 0, 0, 0, 0, 0];
+   444→                        for (const [key, xp] of Object.entries(core.stats.xpByDay)) {
+   445→                          const d = new Date(`${key}T12:00:00`);
+   446→                          totals[(d.getDay() + 6) % 7] += xp;
+   447→                        }
+   448→                        const max = Math.max(10, ...totals);
+   449→                        return totals.map((xp, i) => (
+   450→                          <div key={i} className="flex flex-col items-center gap-1">
+   451→                            <div className="flex h-20 w-full items-end justify-center">
+   452→                              <div
+   453→                                className="w-full rounded-t-md transition-all"
+   454→                                style={{
+   455→                                  height: `${Math.max(4, (xp / max) * 100)}%`,
+   456→                                  background: i >= 5
+   457→                                    ? "linear-gradient(180deg, color-mix(in oklch, var(--region-torre) 78%, white 15%), var(--region-torre))"
+   458→                                    : "linear-gradient(180deg, color-mix(in oklch, var(--primary) 78%, white 15%), var(--primary))",
+   459→                                }}
+   460→                                title={`${xp} XP`}
+   461→                              />
+   462→                            </div>
+   463→                            <span className="text-[10px] font-bold text-muted-foreground">{names[i]}</span>
+   464→                          </div>
+   465→                        ));
+   466→                      })()}
+   467→                    </div>
+   468→                  </div>
+   469→                </section>
+   470→
+   471→                {/* Hora del día favorita */}
+   472→                <section aria-labelledby="hour-title">
+   473→                  <h3 id="hour-title" className="font-display mb-2 text-base font-bold">
+   474→                    Tu hora del faro · cuándo juegas
+   475→                  </h3>
+   476→                  <div className="card-aurora rounded-3xl border bg-card p-4">
+   477→                    {(() => {
+   478→                      const hours = new Array(24).fill(0);
+   479→                      for (const s of core.sessions ?? []) hours[new Date(s.at).getHours()]++;
+   480→                      const total = core.sessions?.length ?? 0;
+   481→                      const peak = hours.indexOf(Math.max(...hours));
+   482→                      const morning = hours.slice(6, 12).reduce((a, b) => a + b, 0);
+   483→                      const afternoon = hours.slice(12, 19).reduce((a, b) => a + b, 0);
+   484→                      const night = hours.slice(19, 24).reduce((a, b) => a + b, 0) + hours.slice(0, 6).reduce((a, b) => a + b, 0);
+   485→                      if (total === 0) {
+   486→                        return <p className="text-sm text-muted-foreground">Aún sin sesiones: tu patrón horario se dibujará solo.</p>;
+   487→                      }
+   488→                      const pct = (n: number) => Math.round((n / total) * 100);
+   489→                      return (
+   490→                        <div className="space-y-2.5">
+   491→                          <p className="text-sm leading-snug">
+   492→                            Tu hora más activa es <b className="numeric">{peak}:00</b>.{" "}
+   493→                            {morning >= afternoon && morning >= night ? "Eres navegante de madrugada 🌅" : afternoon >= night ? "Eres navegante de tardes ☀️" : "Eres navegante nocturno 🌙"}
+   494→                          </p>
+   495→                          {[
+   496→                            { label: "Mañana (6-12)", n: morning },
+   497→                            { label: "Tarde (12-19)", n: afternoon },
+   498→                            { label: "Noche (19-6)", n: night },
+   499→                          ].map((row) => (
+   500→                            <div key={row.label} className="flex items-center gap-2">
+   501→                              <span className="w-32 shrink-0 text-xs font-bold text-muted-foreground">{row.label}</span>
+   502→                              <div className="groove h-2.5 flex-1 overflow-hidden rounded-full">
+   503→                                <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct(row.n)}%` }} />
+   504→                              </div>
+   505→                              <span className="numeric w-10 text-right text-[11px] font-bold text-muted-foreground">{pct(row.n)}%</span>
+   506→                            </div>
+   507→                          ))}
+   508→                        </div>
+   509→                      );
+   510→                    })()}
+   511→                  </div>
+   512→                </section>
+   513→
+   514→                {/* Dominio por región */}
+   515→                <section aria-labelledby="region-title">
+   516→                  <h3 id="region-title" className="font-display mb-2 text-base font-bold">
+   517→                    Dominio por región
+   518→                  </h3>
+   519→                  <div className="card-aurora space-y-2.5 rounded-3xl border bg-card p-4">
+   520→                    {REGIONS.map((r) => {
+   521→                      let answers = 0;
+   522→                      let correct = 0;
+   523→                      for (const g of r.games) {
+   524→                        const s = core.stats.byGame[g];
+   525→                        if (s) { answers += s.answers; correct += s.correct; }
+   526→                      }
+   527→                      const acc = answers > 0 ? Math.round((correct / answers) * 100) : 0;
+   528→                      return (
+   529→                        <div key={r.id} className="flex items-center gap-2">
+   530→                          <span className="w-36 shrink-0 truncate text-xs font-bold text-muted-foreground">{r.name.replace(" de la ", " · ").replace(" del ", " · ")}</span>
+   531→                          <div className="groove h-2.5 flex-1 overflow-hidden rounded-full">
+   532→                            <div
+   533→                              className="h-full rounded-full transition-[width] duration-500"
+   534→                              style={{ width: `${answers > 0 ? acc : 0}%`, background: `var(${r.colorVar})` }}
+   535→                            />
+   536→                          </div>
+   537→                          <span className="numeric w-10 text-right text-[11px] font-bold text-muted-foreground">
+   538→                            {answers > 0 ? `${acc}%` : "—"}
+   539→                          </span>
+   540→                        </div>
+   541→                      );
+   542→                    })}
+   543→                  </div>
+   544→                </section>
+   545→
+   546→                {/* Ficha de ajedrez */}
+   547→                <section aria-labelledby="chess-title">
+   548→                  <h3 id="chess-title" className="font-display mb-2 text-base font-bold">
+   549→                    Ajedrez del faro
+   550→                  </h3>
+   551→                  <div className="card-aurora grid grid-cols-2 gap-3 rounded-3xl border bg-card p-4 sm:grid-cols-4">
+   552→                    <SummaryCard value={String(core.arcade.chessElo ?? 1200)} label="Elo" />
+   553→                    <SummaryCard value={`${core.arcade.chessRecord.w}V`} label="victorias" />
+   554→                    <SummaryCard value={`${core.arcade.chessRecord.d}T`} label="tablas" />
+   555→                    <SummaryCard value={String(core.arcade.puzzles?.rating ?? 1200)} label="rating puzles" />
+   556→                  </div>
+   557→                </section>
+   558→              </TabsContent>
+   559→            </Tabs>
+   560→          </>
+   561→        )}
+   562→      </main>
+   563→    </div>
+   564→  );
+   565→}
+   566→
+   567→/* fin */
+   568→function RecordRow({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
+   569→  return (
+   570→    <li className="flex items-center gap-2.5 rounded-2xl bg-muted/50 px-3 py-2">
+   571→      <span className="chip-icon flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-primary" aria-hidden>
+   572→        {icon}
+   573→      </span>
+   574→      <div className="min-w-0">
+   575→        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+   576→        <p className="truncate text-sm font-bold">{value}</p>
+   577→        {hint && <p className="truncate text-[10px] text-muted-foreground">{hint}</p>}
+   578→      </div>
+   579→    </li>
+   580→  );
+   581→}
+   582→
+   583→function SummaryCard({ value, label }: { value: string; label: string }) {
+   584→  return (
+   585→    <div className="gloss card-aurora rounded-2xl border bg-card p-3 text-center">
+   586→      <p className="numeric font-display title-sheen truncate text-lg font-bold">{value}</p>
+   587→      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+   588→    </div>
+   589→  );
+   590→}
+   591→

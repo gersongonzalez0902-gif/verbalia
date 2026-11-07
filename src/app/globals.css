@@ -1604,6 +1604,15 @@ html.reduce-motion .flip-card.is-flipped {
 .anim-bounce-soft { animation: bounce-soft 1.5s cubic-bezier(0.34, 1.4, 0.5, 1) infinite; }
 html.reduce-motion .anim-bounce-soft { animation: none; }
 
+/* Parpadeo de Léxico (v3): transform-box moderno, mismo origen en
+   Chrome, Firefox y Safari, escritorio y móvil. */
+.lexico-lid {
+  transform-box: view-box;
+  transform-origin: var(--lid-origin, 45px 34px);
+  animation: blink 6s infinite;
+}
+html.reduce-motion .lexico-lid { animation: none; }
+
 /* ================================================================
    CAPA VIVA DE ESCRITORIO · Paridad de dinamismo PC ↔ móvil
    Solo se activa con puntero fino (ratón): el táctil no cambia.
@@ -1708,14 +1717,14 @@ html.reduce-motion .anim-bounce-soft { animation: none; }
       color 0.15s ease,
       opacity 0.2s ease;
   }
-  button:enabled:hover:not(.tap-3d):not(.row-soft):not(.dock-item):not(.tap-target):not(:disabled),
-  [role="button"]:enabled:hover:not(.tap-3d):not(.row-soft):not(.dock-item):not(.tap-target) {
+  button:enabled:hover:not(.tap-3d):not(.row-soft):not(.dock-item):not(.tap-target):not([class*="translate"]):not(:disabled),
+  [role="button"]:enabled:hover:not(.tap-3d):not(.row-soft):not(.dock-item):not(.tap-target):not([class*="translate"]) {
     translate: 0 -1px;
   }
 
   /* Botones protagonistas (fondo primario): elevación + halo */
-  button:enabled:hover[class~="bg-primary"]:not(.tap-3d):not(.tap-target),
-  [role="button"]:enabled:hover[class~="bg-primary"]:not(.tap-3d):not(.tap-target) {
+  button:enabled:hover[class~="bg-primary"]:not(.tap-3d):not(.tap-target):not([class*="translate"]),
+  [role="button"]:enabled:hover[class~="bg-primary"]:not(.tap-3d):not(.tap-target):not([class*="translate"]) {
     translate: 0 -2px;
     box-shadow:
       0 12px 24px -12px color-mix(in oklch, var(--primary) 70%, transparent),
@@ -1887,3 +1896,932 @@ html.reduce-motion .reveal {
     filter: blur(0);
   }
 }
+/* ================= Mega-8 · Temas de color (10 nuevos) ================= */
+[data-theme="bosque"] {
+  /* Modo claro · paleta bosque */
+  --background: oklch(0.968 0.014 150);
+  --foreground: oklch(0.27 0.04 152);
+  --card: oklch(0.99 0.007 150);
+  --card-foreground: oklch(0.27 0.04 152);
+  --popover: oklch(0.99 0.007 150);
+  --popover-foreground: oklch(0.27 0.04 152);
+
+  --primary: oklch(0.5 0.13 152);
+  --primary-foreground: oklch(0.985 0.008 150);
+  --secondary: oklch(0.935 0.026 152);
+  --secondary-foreground: oklch(0.34 0.05 152);
+  --muted: oklch(0.945 0.015 150);
+  --muted-foreground: oklch(0.48 0.038 152);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 150);
+
+  --border: oklch(0.885 0.022 152);
+  --input: oklch(0.885 0.022 152);
+  --ring: oklch(0.5 0.13 152);
+
+  --chart-1: oklch(0.5 0.13 152);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 152);
+  --sidebar-foreground: oklch(0.27 0.04 152);
+  --sidebar-primary: oklch(0.5 0.13 152);
+  --sidebar-primary-foreground: oklch(0.985 0.008 150);
+  --sidebar-accent: oklch(0.9 0.032 152);
+  --sidebar-accent-foreground: oklch(0.34 0.05 152);
+  --sidebar-border: oklch(0.885 0.022 152);
+  --sidebar-ring: oklch(0.5 0.13 152);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="bosque"].dark {
+  /* Modo noche · bosque: profundidad verde musgo */
+  --background: oklch(0.17 0.025 152);
+  --foreground: oklch(0.93 0.014 152);
+  --card: oklch(0.23 0.034 152);
+  --card-foreground: oklch(0.93 0.014 152);
+  --popover: oklch(0.245 0.034 152);
+  --popover-foreground: oklch(0.93 0.014 152);
+
+  --primary: oklch(0.74 0.13 152);
+  --primary-foreground: oklch(0.19 0.045 152);
+  --secondary: oklch(0.29 0.038 152);
+  --secondary-foreground: oklch(0.91 0.012 152);
+  --muted: oklch(0.275 0.032 152);
+  --muted-foreground: oklch(0.72 0.028 152);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.74 0.13 152);
+
+  --chart-1: oklch(0.74 0.13 152);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.215 0.03 152);
+  --sidebar-foreground: oklch(0.93 0.014 152);
+  --sidebar-primary: oklch(0.74 0.13 152);
+  --sidebar-primary-foreground: oklch(0.19 0.045 152);
+  --sidebar-accent: oklch(0.285 0.036 152);
+  --sidebar-accent-foreground: oklch(0.91 0.012 152);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.74 0.13 152);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 152 / 72%);
+}
+
+[data-theme="atardecer"] {
+  /* Modo claro · paleta atardecer */
+  --background: oklch(0.973 0.015 55);
+  --foreground: oklch(0.27 0.04 38);
+  --card: oklch(0.99 0.007 55);
+  --card-foreground: oklch(0.27 0.04 38);
+  --popover: oklch(0.99 0.007 55);
+  --popover-foreground: oklch(0.27 0.04 38);
+
+  --primary: oklch(0.56 0.17 38);
+  --primary-foreground: oklch(0.985 0.008 55);
+  --secondary: oklch(0.935 0.026 38);
+  --secondary-foreground: oklch(0.34 0.05 38);
+  --muted: oklch(0.945 0.015 55);
+  --muted-foreground: oklch(0.48 0.038 38);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 55);
+
+  --border: oklch(0.885 0.022 38);
+  --input: oklch(0.885 0.022 38);
+  --ring: oklch(0.56 0.17 38);
+
+  --chart-1: oklch(0.56 0.17 38);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 38);
+  --sidebar-foreground: oklch(0.27 0.04 38);
+  --sidebar-primary: oklch(0.56 0.17 38);
+  --sidebar-primary-foreground: oklch(0.985 0.008 55);
+  --sidebar-accent: oklch(0.9 0.032 38);
+  --sidebar-accent-foreground: oklch(0.34 0.05 38);
+  --sidebar-border: oklch(0.885 0.022 38);
+  --sidebar-ring: oklch(0.56 0.17 38);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="atardecer"].dark {
+  /* Modo noche · atardecer: rescoldo naranja */
+  --background: oklch(0.19 0.028 35);
+  --foreground: oklch(0.93 0.014 35);
+  --card: oklch(0.23 0.034 35);
+  --card-foreground: oklch(0.93 0.014 35);
+  --popover: oklch(0.245 0.034 35);
+  --popover-foreground: oklch(0.93 0.014 35);
+
+  --primary: oklch(0.76 0.15 48);
+  --primary-foreground: oklch(0.19 0.045 48);
+  --secondary: oklch(0.29 0.038 48);
+  --secondary-foreground: oklch(0.91 0.012 35);
+  --muted: oklch(0.275 0.032 35);
+  --muted-foreground: oklch(0.72 0.028 48);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.76 0.15 48);
+
+  --chart-1: oklch(0.76 0.15 48);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.215 0.03 48);
+  --sidebar-foreground: oklch(0.93 0.014 35);
+  --sidebar-primary: oklch(0.76 0.15 48);
+  --sidebar-primary-foreground: oklch(0.19 0.045 48);
+  --sidebar-accent: oklch(0.285 0.036 48);
+  --sidebar-accent-foreground: oklch(0.91 0.012 35);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.76 0.15 48);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 35 / 72%);
+}
+
+[data-theme="turquesa"] {
+  /* Modo claro · paleta turquesa */
+  --background: oklch(0.97 0.013 195);
+  --foreground: oklch(0.27 0.04 195);
+  --card: oklch(0.99 0.007 195);
+  --card-foreground: oklch(0.27 0.04 195);
+  --popover: oklch(0.99 0.007 195);
+  --popover-foreground: oklch(0.27 0.04 195);
+
+  --primary: oklch(0.52 0.11 195);
+  --primary-foreground: oklch(0.985 0.008 195);
+  --secondary: oklch(0.935 0.026 195);
+  --secondary-foreground: oklch(0.34 0.05 195);
+  --muted: oklch(0.945 0.015 195);
+  --muted-foreground: oklch(0.48 0.038 195);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 195);
+
+  --border: oklch(0.885 0.022 195);
+  --input: oklch(0.885 0.022 195);
+  --ring: oklch(0.52 0.11 195);
+
+  --chart-1: oklch(0.52 0.11 195);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 195);
+  --sidebar-foreground: oklch(0.27 0.04 195);
+  --sidebar-primary: oklch(0.52 0.11 195);
+  --sidebar-primary-foreground: oklch(0.985 0.008 195);
+  --sidebar-accent: oklch(0.9 0.032 195);
+  --sidebar-accent-foreground: oklch(0.34 0.05 195);
+  --sidebar-border: oklch(0.885 0.022 195);
+  --sidebar-ring: oklch(0.52 0.11 195);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="turquesa"].dark {
+  /* Modo noche · turquesa: agua profunda */
+  --background: oklch(0.175 0.026 215);
+  --foreground: oklch(0.93 0.014 215);
+  --card: oklch(0.23 0.034 215);
+  --card-foreground: oklch(0.93 0.014 215);
+  --popover: oklch(0.245 0.034 215);
+  --popover-foreground: oklch(0.93 0.014 215);
+
+  --primary: oklch(0.75 0.11 192);
+  --primary-foreground: oklch(0.19 0.045 192);
+  --secondary: oklch(0.29 0.038 192);
+  --secondary-foreground: oklch(0.91 0.012 215);
+  --muted: oklch(0.275 0.032 215);
+  --muted-foreground: oklch(0.72 0.028 192);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.75 0.11 192);
+
+  --chart-1: oklch(0.75 0.11 192);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.215 0.03 192);
+  --sidebar-foreground: oklch(0.93 0.014 215);
+  --sidebar-primary: oklch(0.75 0.11 192);
+  --sidebar-primary-foreground: oklch(0.19 0.045 192);
+  --sidebar-accent: oklch(0.285 0.036 192);
+  --sidebar-accent-foreground: oklch(0.91 0.012 215);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.75 0.11 192);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 215 / 72%);
+}
+
+[data-theme="ciruela"] {
+  /* Modo claro · paleta ciruela */
+  --background: oklch(0.968 0.015 330);
+  --foreground: oklch(0.27 0.04 325);
+  --card: oklch(0.99 0.007 330);
+  --card-foreground: oklch(0.27 0.04 325);
+  --popover: oklch(0.99 0.007 330);
+  --popover-foreground: oklch(0.27 0.04 325);
+
+  --primary: oklch(0.5 0.15 325);
+  --primary-foreground: oklch(0.985 0.008 330);
+  --secondary: oklch(0.935 0.026 325);
+  --secondary-foreground: oklch(0.34 0.05 325);
+  --muted: oklch(0.945 0.015 330);
+  --muted-foreground: oklch(0.48 0.038 325);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 330);
+
+  --border: oklch(0.885 0.022 325);
+  --input: oklch(0.885 0.022 325);
+  --ring: oklch(0.5 0.15 325);
+
+  --chart-1: oklch(0.5 0.15 325);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 325);
+  --sidebar-foreground: oklch(0.27 0.04 325);
+  --sidebar-primary: oklch(0.5 0.15 325);
+  --sidebar-primary-foreground: oklch(0.985 0.008 330);
+  --sidebar-accent: oklch(0.9 0.032 325);
+  --sidebar-accent-foreground: oklch(0.34 0.05 325);
+  --sidebar-border: oklch(0.885 0.022 325);
+  --sidebar-ring: oklch(0.5 0.15 325);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="ciruela"].dark {
+  /* Modo noche · ciruela: terciopelo violeta */
+  --background: oklch(0.19 0.03 315);
+  --foreground: oklch(0.93 0.014 315);
+  --card: oklch(0.23 0.034 315);
+  --card-foreground: oklch(0.93 0.014 315);
+  --popover: oklch(0.245 0.034 315);
+  --popover-foreground: oklch(0.93 0.014 315);
+
+  --primary: oklch(0.74 0.14 322);
+  --primary-foreground: oklch(0.19 0.045 322);
+  --secondary: oklch(0.29 0.038 322);
+  --secondary-foreground: oklch(0.91 0.012 315);
+  --muted: oklch(0.275 0.032 315);
+  --muted-foreground: oklch(0.72 0.028 322);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.74 0.14 322);
+
+  --chart-1: oklch(0.74 0.14 322);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.215 0.03 322);
+  --sidebar-foreground: oklch(0.93 0.014 315);
+  --sidebar-primary: oklch(0.74 0.14 322);
+  --sidebar-primary-foreground: oklch(0.19 0.045 322);
+  --sidebar-accent: oklch(0.285 0.036 322);
+  --sidebar-accent-foreground: oklch(0.91 0.012 315);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.74 0.14 322);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 315 / 72%);
+}
+
+[data-theme="midnight"] {
+  /* Modo claro · paleta medianoche (premium) */
+  --background: oklch(0.93 0.015 265);
+  --foreground: oklch(0.27 0.04 268);
+  --card: oklch(0.972 0.012 265);
+  --card-foreground: oklch(0.27 0.04 268);
+  --popover: oklch(0.972 0.012 265);
+  --popover-foreground: oklch(0.27 0.04 268);
+
+  --primary: oklch(0.45 0.13 268);
+  --primary-foreground: oklch(0.985 0.008 265);
+  --secondary: oklch(0.935 0.026 268);
+  --secondary-foreground: oklch(0.34 0.05 268);
+  --muted: oklch(0.945 0.015 265);
+  --muted-foreground: oklch(0.48 0.038 268);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 265);
+
+  --border: oklch(0.885 0.022 268);
+  --input: oklch(0.885 0.022 268);
+  --ring: oklch(0.45 0.13 268);
+
+  --chart-1: oklch(0.45 0.13 268);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 268);
+  --sidebar-foreground: oklch(0.27 0.04 268);
+  --sidebar-primary: oklch(0.45 0.13 268);
+  --sidebar-primary-foreground: oklch(0.985 0.008 265);
+  --sidebar-accent: oklch(0.9 0.032 268);
+  --sidebar-accent-foreground: oklch(0.34 0.05 268);
+  --sidebar-border: oklch(0.885 0.022 268);
+  --sidebar-ring: oklch(0.45 0.13 268);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="midnight"].dark {
+  /* Modo noche · medianoche: tinta índigo (premium) */
+  --background: oklch(0.155 0.03 268);
+  --foreground: oklch(0.93 0.014 268);
+  --card: oklch(0.2 0.03 268);
+  --card-foreground: oklch(0.93 0.014 268);
+  --popover: oklch(0.215 0.03 268);
+  --popover-foreground: oklch(0.93 0.014 268);
+
+  --primary: oklch(0.72 0.13 250);
+  --primary-foreground: oklch(0.19 0.045 250);
+  --secondary: oklch(0.29 0.038 250);
+  --secondary-foreground: oklch(0.91 0.012 268);
+  --muted: oklch(0.275 0.032 268);
+  --muted-foreground: oklch(0.72 0.028 250);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.72 0.13 250);
+
+  --chart-1: oklch(0.72 0.13 250);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.18 0.028 268);
+  --sidebar-foreground: oklch(0.93 0.014 268);
+  --sidebar-primary: oklch(0.72 0.13 250);
+  --sidebar-primary-foreground: oklch(0.19 0.045 250);
+  --sidebar-accent: oklch(0.285 0.036 250);
+  --sidebar-accent-foreground: oklch(0.91 0.012 268);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.72 0.13 250);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 268 / 72%);
+}
+
+[data-theme="selva"] {
+  /* Modo claro · paleta selva (premium) */
+  --background: oklch(0.962 0.02 140);
+  --foreground: oklch(0.27 0.04 148);
+  --card: oklch(0.99 0.007 140);
+  --card-foreground: oklch(0.27 0.04 148);
+  --popover: oklch(0.99 0.007 140);
+  --popover-foreground: oklch(0.27 0.04 148);
+
+  --primary: oklch(0.46 0.12 148);
+  --primary-foreground: oklch(0.985 0.008 140);
+  --secondary: oklch(0.935 0.026 148);
+  --secondary-foreground: oklch(0.34 0.05 148);
+  --muted: oklch(0.945 0.015 140);
+  --muted-foreground: oklch(0.48 0.038 148);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 140);
+
+  --border: oklch(0.885 0.022 148);
+  --input: oklch(0.885 0.022 148);
+  --ring: oklch(0.46 0.12 148);
+
+  --chart-1: oklch(0.46 0.12 148);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 148);
+  --sidebar-foreground: oklch(0.27 0.04 148);
+  --sidebar-primary: oklch(0.46 0.12 148);
+  --sidebar-primary-foreground: oklch(0.985 0.008 140);
+  --sidebar-accent: oklch(0.9 0.032 148);
+  --sidebar-accent-foreground: oklch(0.34 0.05 148);
+  --sidebar-border: oklch(0.885 0.022 148);
+  --sidebar-ring: oklch(0.46 0.12 148);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="selva"].dark {
+  /* Modo noche · selva: hojarasca luminosa (premium) */
+  --background: oklch(0.16 0.028 145);
+  --foreground: oklch(0.93 0.014 145);
+  --card: oklch(0.215 0.032 145);
+  --card-foreground: oklch(0.93 0.014 145);
+  --popover: oklch(0.23 0.032 145);
+  --popover-foreground: oklch(0.93 0.014 145);
+
+  --primary: oklch(0.7 0.14 140);
+  --primary-foreground: oklch(0.19 0.045 140);
+  --secondary: oklch(0.29 0.038 140);
+  --secondary-foreground: oklch(0.91 0.012 145);
+  --muted: oklch(0.275 0.032 145);
+  --muted-foreground: oklch(0.72 0.028 140);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.7 0.14 140);
+
+  --chart-1: oklch(0.7 0.14 140);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.195 0.03 145);
+  --sidebar-foreground: oklch(0.93 0.014 145);
+  --sidebar-primary: oklch(0.7 0.14 140);
+  --sidebar-primary-foreground: oklch(0.19 0.045 140);
+  --sidebar-accent: oklch(0.285 0.036 140);
+  --sidebar-accent-foreground: oklch(0.91 0.012 145);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.7 0.14 140);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 145 / 72%);
+}
+
+[data-theme="brasa"] {
+  /* Modo claro · paleta brasa (premium) */
+  --background: oklch(0.962 0.018 35);
+  --foreground: oklch(0.27 0.04 30);
+  --card: oklch(0.99 0.007 35);
+  --card-foreground: oklch(0.27 0.04 30);
+  --popover: oklch(0.99 0.007 35);
+  --popover-foreground: oklch(0.27 0.04 30);
+
+  --primary: oklch(0.52 0.18 30);
+  --primary-foreground: oklch(0.985 0.008 35);
+  --secondary: oklch(0.935 0.026 30);
+  --secondary-foreground: oklch(0.34 0.05 30);
+  --muted: oklch(0.945 0.015 35);
+  --muted-foreground: oklch(0.48 0.038 30);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 35);
+
+  --border: oklch(0.885 0.022 30);
+  --input: oklch(0.885 0.022 30);
+  --ring: oklch(0.52 0.18 30);
+
+  --chart-1: oklch(0.52 0.18 30);
+  --chart-2: oklch(0.75 0.14 80);
+  --chart-3: oklch(0.6 0.1 195);
+  --chart-4: oklch(0.55 0.15 322);
+  --chart-5: oklch(0.6 0.15 20);
+
+  --sidebar: oklch(0.955 0.018 30);
+  --sidebar-foreground: oklch(0.27 0.04 30);
+  --sidebar-primary: oklch(0.52 0.18 30);
+  --sidebar-primary-foreground: oklch(0.985 0.008 35);
+  --sidebar-accent: oklch(0.9 0.032 30);
+  --sidebar-accent-foreground: oklch(0.34 0.05 30);
+  --sidebar-border: oklch(0.885 0.022 30);
+  --sidebar-ring: oklch(0.52 0.18 30);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="brasa"].dark {
+  /* Modo noche · brasa: carbón encendido (premium) */
+  --background: oklch(0.175 0.03 28);
+  --foreground: oklch(0.93 0.014 28);
+  --card: oklch(0.22 0.034 28);
+  --card-foreground: oklch(0.93 0.014 28);
+  --popover: oklch(0.235 0.034 28);
+  --popover-foreground: oklch(0.93 0.014 28);
+
+  --primary: oklch(0.72 0.16 38);
+  --primary-foreground: oklch(0.19 0.045 38);
+  --secondary: oklch(0.29 0.038 38);
+  --secondary-foreground: oklch(0.91 0.012 28);
+  --muted: oklch(0.275 0.032 28);
+  --muted-foreground: oklch(0.72 0.028 38);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.72 0.16 38);
+
+  --chart-1: oklch(0.72 0.16 38);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.7 0.1 195);
+  --chart-4: oklch(0.66 0.15 322);
+  --chart-5: oklch(0.7 0.14 20);
+
+  --sidebar: oklch(0.205 0.032 28);
+  --sidebar-foreground: oklch(0.93 0.014 28);
+  --sidebar-primary: oklch(0.72 0.16 38);
+  --sidebar-primary-foreground: oklch(0.19 0.045 38);
+  --sidebar-accent: oklch(0.285 0.036 38);
+  --sidebar-accent-foreground: oklch(0.91 0.012 28);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.72 0.16 38);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.034 28 / 72%);
+}
+
+[data-theme="perla"] {
+  /* Modo claro · paleta perla, monocromo (premium) */
+  --background: oklch(0.965 0.005 260);
+  --foreground: oklch(0.27 0.014 260);
+  --card: oklch(0.99 0.003 260);
+  --card-foreground: oklch(0.27 0.014 260);
+  --popover: oklch(0.99 0.003 260);
+  --popover-foreground: oklch(0.27 0.014 260);
+
+  --primary: oklch(0.5 0.03 260);
+  --primary-foreground: oklch(0.985 0.008 260);
+  --secondary: oklch(0.935 0.008 260);
+  --secondary-foreground: oklch(0.34 0.016 260);
+  --muted: oklch(0.945 0.004 260);
+  --muted-foreground: oklch(0.48 0.013 260);
+  --accent: oklch(0.82 0.135 85);
+  --accent-foreground: oklch(0.3 0.06 85);
+
+  --destructive: oklch(0.577 0.18 30);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --success: oklch(0.55 0.12 168);
+  --success-foreground: oklch(0.985 0.008 260);
+
+  --border: oklch(0.885 0.006 260);
+  --input: oklch(0.885 0.006 260);
+  --ring: oklch(0.5 0.03 260);
+
+  --chart-1: oklch(0.5 0.03 260);
+  --chart-2: oklch(0.75 0.005 260);
+  --chart-3: oklch(0.6 0.005 260);
+  --chart-4: oklch(0.55 0.006 260);
+  --chart-5: oklch(0.65 0.005 260);
+
+  --sidebar: oklch(0.955 0.005 260);
+  --sidebar-foreground: oklch(0.27 0.014 260);
+  --sidebar-primary: oklch(0.5 0.03 260);
+  --sidebar-primary-foreground: oklch(0.985 0.008 260);
+  --sidebar-accent: oklch(0.9 0.008 260);
+  --sidebar-accent-foreground: oklch(0.34 0.016 260);
+  --sidebar-border: oklch(0.885 0.006 260);
+  --sidebar-ring: oklch(0.5 0.03 260);
+
+  --xp: oklch(0.73 0.15 82);
+  --xp-foreground: oklch(0.25 0.05 80);
+  --region-bosque: oklch(0.52 0.13 150);
+  --region-ciudad: oklch(0.6 0.125 72);
+  --region-fortaleza: oklch(0.5 0.06 65);
+  --region-biblioteca: oklch(0.5 0.15 322);
+  --region-puerto: oklch(0.52 0.09 200);
+  --region-torre: oklch(0.56 0.15 22);
+  --region-observatorio: oklch(0.5 0.15 290);
+  --region-forja: oklch(0.52 0.17 28);
+
+  --surface-glass: oklch(1 0 0 / 62%);
+}
+
+[data-theme="perla"].dark {
+  /* Modo noche · perla: gris nácar (premium) */
+  --background: oklch(0.18 0.008 260);
+  --foreground: oklch(0.93 0.004 260);
+  --card: oklch(0.225 0.006 260);
+  --card-foreground: oklch(0.93 0.004 260);
+  --popover: oklch(0.24 0.006 260);
+  --popover-foreground: oklch(0.93 0.004 260);
+
+  --primary: oklch(0.74 0.02 260);
+  --primary-foreground: oklch(0.19 0.012 260);
+  --secondary: oklch(0.29 0.01 260);
+  --secondary-foreground: oklch(0.91 0.004 260);
+  --muted: oklch(0.275 0.008 260);
+  --muted-foreground: oklch(0.72 0.008 260);
+  --accent: oklch(0.8 0.14 85);
+  --accent-foreground: oklch(0.24 0.05 80);
+
+  --destructive: oklch(0.67 0.17 28);
+  --destructive-foreground: oklch(0.16 0.02 30);
+  --success: oklch(0.74 0.13 168);
+  --success-foreground: oklch(0.18 0.04 160);
+
+  --border: oklch(1 0 0 / 13%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.74 0.02 260);
+
+  --chart-1: oklch(0.74 0.02 260);
+  --chart-2: oklch(0.8 0.005 260);
+  --chart-3: oklch(0.7 0.005 260);
+  --chart-4: oklch(0.66 0.006 260);
+  --chart-5: oklch(0.6 0.005 260);
+
+  --sidebar: oklch(0.21 0.005 260);
+  --sidebar-foreground: oklch(0.93 0.004 260);
+  --sidebar-primary: oklch(0.74 0.02 260);
+  --sidebar-primary-foreground: oklch(0.19 0.012 260);
+  --sidebar-accent: oklch(0.285 0.01 260);
+  --sidebar-accent-foreground: oklch(0.91 0.004 260);
+  --sidebar-border: oklch(1 0 0 / 13%);
+  --sidebar-ring: oklch(0.74 0.02 260);
+
+  --xp: oklch(0.8 0.15 84);
+  --xp-foreground: oklch(0.24 0.05 80);
+  --region-bosque: oklch(0.72 0.15 152);
+  --region-ciudad: oklch(0.78 0.13 80);
+  --region-fortaleza: oklch(0.7 0.055 70);
+  --region-biblioteca: oklch(0.68 0.15 324);
+  --region-puerto: oklch(0.7 0.1 198);
+  --region-torre: oklch(0.7 0.15 20);
+  --region-observatorio: oklch(0.68 0.14 290);
+  --region-forja: oklch(0.66 0.17 28);
+
+  --surface-glass: oklch(0.2 0.008 260 / 72%);
+}
+
+/* ================= Mega-8 · Fondo de escritorio enriquecido ================= */
+.ambient-ghost-letter {
+  position: absolute;
+  font-weight: 900;
+  color: color-mix(in oklch, var(--primary) 26%, transparent);
+  opacity: 0.12;
+  animation: ghost-drift 40s ease-in-out infinite alternate;
+  user-select: none;
+}
+html.dark .ambient-ghost-letter { color: color-mix(in oklch, var(--primary) 38%, transparent); opacity: 0.09; }
+@keyframes ghost-drift {
+  0% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+  50% { transform: translate3d(2.5vw, -1.5vh, 0) rotate(2deg); }
+  100% { transform: translate3d(-1.5vw, 1vh, 0) rotate(-1deg); }
+}
+.ambient-rays {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 120%;
+  background: linear-gradient(104deg, transparent 30%, color-mix(in oklch, var(--xp) 7%, transparent) 42%, transparent 46%), linear-gradient(100deg, transparent 58%, color-mix(in oklch, var(--primary) 6%, transparent) 66%, transparent 70%);
+  opacity: 0.8;
+}
+html.dark .ambient-rays { opacity: 0.55; }
+.ambient-islands { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 200px; opacity: 0.5; }
+.ambient-island-fill { fill: color-mix(in oklch, var(--region-bosque) 32%, var(--background) 60%); }
+.ambient-island-near { fill: color-mix(in oklch, var(--primary) 22%, var(--background) 70%); opacity: 0.7; }
+html.dark .ambient-island-fill { fill: color-mix(in oklch, var(--region-bosque) 20%, var(--background) 75%); }
+html.dark .ambient-island-near { fill: color-mix(in oklch, var(--primary) 16%, var(--background) 80%); }
+.ambient-vignette { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, color-mix(in oklch, var(--foreground) 7%, transparent) 100%); }
+html.dark .ambient-vignette { background: radial-gradient(120% 90% at 50% 40%, transparent 55%, color-mix(in oklch, #000 32%, transparent) 100%); }
+@media (prefers-reduced-motion: reduce) { .ambient-ghost-letter { animation: none; } }
+

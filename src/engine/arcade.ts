@@ -15,7 +15,7 @@ import { tintaForXp } from "./shop";
  * - Todo es función pura: se prueba en tests/engine.test.ts.
  */
 
-export type ArcadeCategory = "mesa" | "calculo" | "memoria" | "logica" | "palabras" | "reflejos";
+export type ArcadeCategory = "calculo" | "memoria" | "logica" | "palabras" | "reflejos";
 
 export interface ArcadeGameDef {
   id: string;
@@ -35,7 +35,6 @@ export interface ArcadeGameDef {
 }
 
 export const ARCADE_CATEGORY_LABEL: Record<ArcadeCategory, string> = {
-  mesa: "Juegos de mesa",
   calculo: "Cálculo y números",
   memoria: "Memoria",
   logica: "Lógica y puzles",
@@ -44,7 +43,6 @@ export const ARCADE_CATEGORY_LABEL: Record<ArcadeCategory, string> = {
 };
 
 export const ARCADE_CATEGORY_COLOR: Record<ArcadeCategory, string> = {
-  mesa: "--region-forja",
   calculo: "--region-ciudad",
   memoria: "--region-bosque",
   logica: "--region-fortaleza",
@@ -52,33 +50,8 @@ export const ARCADE_CATEGORY_COLOR: Record<ArcadeCategory, string> = {
   reflejos: "--region-puerto",
 };
 
-/** Catálogo del salón: 2 de mesa + 21 retos = 23 juegos. */
+/** Catálogo del salón: 21 retos entre cálculo, memoria, lógica, letras y reflejos. */
 export const ARCADE_GAMES: ArcadeGameDef[] = [
-  /* ---------- Juegos de mesa ---------- */
-  {
-    id: "ajedrez",
-    name: "Ajedrez del Faro",
-    tagline: "Motor local + revisión de partida",
-    description:
-      "Juega contra un motor de ajedrez real que corre entero en tu dispositivo (sin internet). Después, revisa la partida jugada a jugada con evaluación y anotaciones.",
-    category: "mesa",
-    icon: "Crown",
-    price: 0,
-    xpCap: 60,
-    dailyXpCap: 120,
-  },
-  {
-    id: "damas",
-    name: "Damas del Puerto",
-    tagline: "Tablero clásico con IA",
-    description:
-      "El juego de damas español (8×8, coronación obligatoria): captura obligatoria, damas voladoras y un rival que calcula tres jugadas por delante.",
-    category: "mesa",
-    icon: "CircleDot",
-    price: 0,
-    xpCap: 50,
-    dailyXpCap: 100,
-  },
   /* ---------- Cálculo ---------- */
   {
     id: "mates-relampago",
@@ -422,22 +395,64 @@ export function applyArcadeScore(
   return { core: next, xp, tinta, isRecord };
 }
 
-/** Actualiza el ELO del ajedrez (sistema Elo clásico, K=24). */
-export function applyChessElo(core: GameCore, result: "w" | "d" | "l", engineElo: number): GameCore {
-  const k = 24;
-  const own = core.arcade.chessElo ?? 1200;
-  const expected = 1 / (1 + Math.pow(10, (engineElo - own) / 400));
-  const actual = result === "w" ? 1 : result === "d" ? 0.5 : 0;
-  return {
+
+/* ================= Taller de Escritura · mecanografía ================= */
+
+export interface TypingResult {
+  /** Palabras por minuto netas. */
+  wpm: number;
+  /** Precisión 0-100. */
+  accuracy: number;
+  /** Palabras correctas de la prueba. */
+  words: number;
+  /** Era un ejercicio de teclas (drill) en vez de prueba cronometrada. */
+  isDrill?: boolean;
+}
+
+/** XP de una prueba de mecanografía (curva suave con tope). */
+export function typingXpFor(r: TypingResult): number {
+  const base = Math.min(40, Math.round((r.wpm * Math.min(1, r.accuracy / 100)) / 1.8));
+  return base + (r.isDrill ? 4 : 0);
+}
+
+/** Registra una prueba de mecanografía: récords, racha diaria, XP y tinta. */
+export function applyTypingTest(
+  core: GameCore,
+  r: TypingResult,
+  now = Date.now(),
+): { core: GameCore; xp: number; tinta: number; isRecord: boolean } {
+  const xp = typingXpFor(r);
+  const tinta = tintaForXp(xp);
+  const t = core.arcade.typing ?? { bestWpm: 0, bestAccuracy: 0, testsDone: 0, totalWords: 0, streak: 0, lastDay: "", drillsDone: 0 };
+  const today = dayOf(now);
+  const isRecord = r.wpm > t.bestWpm;
+  // Racha diaria del taller: +1 si es un día nuevo consecutivo.
+  let streak = t.streak;
+  if (t.lastDay !== today) {
+    const yesterday = dayOf(now - 86_400_000);
+    streak = t.lastDay === yesterday ? t.streak + 1 : 1;
+  }
+  const next: GameCore = {
     ...core,
+    xp: core.xp + xp,
+    wallet: { ...core.wallet, tinta: core.wallet.tinta + tinta },
     arcade: {
       ...core.arcade,
-      chessElo: Math.max(600, Math.round(own + k * (actual - expected))),
-      chessRecord: {
-        w: core.arcade.chessRecord.w + (result === "w" ? 1 : 0),
-        d: core.arcade.chessRecord.d + (result === "d" ? 1 : 0),
-        l: core.arcade.chessRecord.l + (result === "l" ? 1 : 0),
+      xpEarned: (core.arcade.xpEarned ?? 0) + xp,
+      typing: {
+        bestWpm: Math.max(t.bestWpm, Math.round(r.wpm)),
+        bestAccuracy: Math.max(t.bestAccuracy, Math.round(r.accuracy)),
+        testsDone: t.testsDone + 1,
+        totalWords: t.totalWords + r.words,
+        streak,
+        lastDay: today,
+        drillsDone: t.drillsDone + (r.isDrill ? 1 : 0),
       },
     },
+    stats: {
+      ...core.stats,
+      totalAnswers: core.stats.totalAnswers + 1,
+    },
   };
+  return { core: next, xp, tinta, isRecord };
 }

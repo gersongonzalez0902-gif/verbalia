@@ -42,13 +42,21 @@ const TEXT_SIZES = [
   { id: "xl", label: "Muy grande" },
 ] as const;
 
-const PALETAS: { id: ThemeColorId; label: string; swatch: string[] }[] = [
+const PALETAS: { id: ThemeColorId; label: string; swatch: string[]; premium?: boolean }[] = [
   { id: "aurora", label: "Aurora", swatch: ["oklch(0.5 0.16 275)", "oklch(0.82 0.135 85)"] },
   { id: "coral", label: "Coral", swatch: ["oklch(0.5 0.16 30)", "oklch(0.82 0.135 85)"] },
   { id: "miel", label: "Miel", swatch: ["oklch(0.5 0.16 75)", "oklch(0.82 0.135 85)"] },
   { id: "lavanda", label: "Lavanda", swatch: ["oklch(0.5 0.16 305)", "oklch(0.82 0.135 85)"] },
   { id: "oceano", label: "Océano", swatch: ["oklch(0.5 0.16 235)", "oklch(0.82 0.135 85)"] },
   { id: "magenta", label: "Magenta", swatch: ["oklch(0.5 0.16 340)", "oklch(0.82 0.135 85)"] },
+  { id: "bosque", label: "Bosque", swatch: ["oklch(0.5 0.13 152)", "oklch(0.82 0.12 130)"] },
+  { id: "atardecer", label: "Atardecer", swatch: ["oklch(0.56 0.17 38)", "oklch(0.82 0.13 75)"] },
+  { id: "turquesa", label: "Turquesa", swatch: ["oklch(0.52 0.11 195)", "oklch(0.82 0.11 185)"] },
+  { id: "ciruela", label: "Ciruela", swatch: ["oklch(0.5 0.15 325)", "oklch(0.82 0.1 320)"] },
+  { id: "midnight", label: "Medianoche", swatch: ["oklch(0.35 0.11 268)", "oklch(0.72 0.13 250)"], premium: true },
+  { id: "selva", label: "Selva", swatch: ["oklch(0.42 0.11 148)", "oklch(0.7 0.14 140)"], premium: true },
+  { id: "brasa", label: "Brasa", swatch: ["oklch(0.45 0.16 30)", "oklch(0.72 0.16 38)"], premium: true },
+  { id: "perla", label: "Perla", swatch: ["oklch(0.5 0.03 260)", "oklch(0.88 0.012 260)"], premium: true },
 ];
 
 export function SettingsScreen() {
@@ -137,30 +145,42 @@ export function SettingsScreen() {
             {/* Paleta de color */}
             <div>
               <Label className="text-sm font-bold">Paleta de color</Label>
-              <p className="text-xs text-muted-foreground">El tono del Archipiélago: elígelo como se elige un barco.</p>
-              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6" role="group" aria-label="Elegir paleta de color">
-                {PALETAS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => { sfx.click(); updateSettings({ themeColor: p.id }); }}
-                    aria-pressed={settings.themeColor === p.id}
-                    className={cn(
-                      "tap-target flex flex-col items-center gap-1.5 rounded-2xl border-2 p-2 text-[11px] font-bold transition",
-                      settings.themeColor === p.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50",
-                    )}
-                  >
-                    <span
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30"
-                      style={{ background: `linear-gradient(135deg, ${p.swatch[0]}, ${p.swatch[1]})` }}
-                      aria-hidden
+              <p className="text-xs text-muted-foreground">El tono del Archipiélago: elígelo como se elige un barco. Las marcadas con ✦ se desbloquean en el Bazar.</p>
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5" role="group" aria-label="Elegir paleta de color">
+                {PALETAS.map((p) => {
+                  const shopId = `pal-${p.id}`;
+                  const owned = !p.premium || core.wallet?.owned?.includes(shopId);
+                  const selected = settings.themeColor === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        if (owned) { sfx.click(); updateSettings({ themeColor: p.id }); }
+                        else { sfx.tap(); navigate({ name: "shop" }); }
+                      }}
+                      aria-pressed={selected}
+                      aria-label={owned ? `Paleta ${p.label}` : `Paleta ${p.label} (se desbloquea en el Bazar)`}
+                      className={cn(
+                        "tap-target flex flex-col items-center gap-1.5 rounded-2xl border-2 p-2 text-[11px] font-bold transition",
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50",
+                        !owned && "opacity-70",
+                      )}
                     >
-                      {settings.themeColor === p.id && <Check className="h-4 w-4 text-white" aria-hidden />}
-                    </span>
-                    {p.label}
-                  </button>
-                ))}
+                      <span
+                        className="relative flex h-8 w-8 items-center justify-center rounded-full border border-white/30"
+                        style={{ background: `linear-gradient(135deg, ${p.swatch[0]}, ${p.swatch[1]})` }}
+                        aria-hidden
+                      >
+                        {selected && <Check className="h-4 w-4 text-white" aria-hidden />}
+                        {!owned && <Lock className="h-3.5 w-3.5 text-white drop-shadow" aria-hidden />}
+                      </span>
+                      {p.premium && <span className="text-[9px] text-[var(--xp)]">✦</span>}
+                      {p.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -417,7 +437,7 @@ export function SettingsScreen() {
             <Database className="h-5 w-5 text-primary" aria-hidden /> Tus datos
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Todo vive en este dispositivo (IndexedDB): perfil, {core.stats.totalSessions} sesiones,{" "}
+            Todo vive en este dispositivo: perfil, {core.stats.totalSessions} sesiones,{" "}
             {Object.keys(srs).length} tarjetas. Sin cuentas ni rastreadores.
           </p>
 
@@ -544,23 +564,30 @@ export function SettingsScreen() {
           <h2 id="privacidad" className="font-display text-lg font-bold">Privacidad</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin cuentas, sin correo, sin datos personales pedidos.</li>
-            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Todo el progreso se guarda en tu dispositivo (IndexedDB).</li>
+            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Todo el progreso se guarda en tu dispositivo.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin rastreadores ni analítica de terceros.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> La síntesis de voz (opcional) la pone tu navegador; no enviamos audio a ningún sitio.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Las canciones de tu estación jamás salen del dispositivo.</li>
           </ul>
+          <Button
+            variant="outline"
+            className="mt-3 font-bold"
+            onClick={() => { sfx.page(); navigate({ name: "legal" }); }}
+          >
+            Leer la política completa (privacidad y cookies) →
+          </Button>
         </section>
 
         {/* ===== Acerca de ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="acerca">
           <h2 id="acerca" className="font-display text-lg font-bold">Acerca de VerbalIA</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Etapa 3 · 51 minijuegos, 7 islas y 5 000 ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
+            Etapa 4 · 100 minijuegos, 8 regiones y miles de ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
             Los niveles MCER que se muestran son estimaciones orientativas: VerbalIA no certifica el
             dominio oficial de un idioma.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v3.0.0-etapa3</span>
+            <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v4.0.0-etapa4</span>
             <button
               className="font-bold text-primary hover:underline"
               onClick={() => { sfx.page(); navigate({ name: "library" }); }}

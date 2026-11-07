@@ -7,7 +7,7 @@
  * Cada tarjeta enseña su rareza y una vista previa real.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
@@ -24,16 +24,19 @@ import {
   type ShopKind,
 } from "@/engine/shop";
 import { useToast } from "@/hooks/use-toast";
+import { DAILY_GIFT_TINTA, claimDailyGift, dailyGiftPending, featuredShopItem, msUntilNextGift, PREMIUM_PALETTES } from "@/engine/shop";
+import { Gift, Star } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Droplets, Frame, Award, Shield, Image as ImageIcon, Sparkles } from "lucide-react";
+import { Droplets, Frame, Award, Shield, Image as ImageIcon, Palette, Sparkles } from "lucide-react";
 
 const KIND_META: Record<ShopKind, { label: string; icon: React.ElementType; blurb: string }> = {
   frame: { label: "Decoraciones de avatar", icon: Frame, blurb: "Doble anillo alrededor de tu foto, estilo ficha de navegante." },
   banner: { label: "Banners premium", icon: ImageIcon, blurb: "Cabeceras exclusivas para tu ficha: se equipan desde el perfil." },
   title: { label: "Títulos", icon: Award, blurb: "La frase que te distingue bajo tu nombre." },
   shield: { label: "Escudos de racha", icon: Shield, blurb: "Protege tu racha un día de descanso (máx. 3 apilados)." },
+  palette: { label: "Paletas de interfaz", icon: Palette, blurb: "Temas completos de color para toda la aventura: se eligen en Ajustes." },
 };
 
 /** Anillo decorado estilo Discord con Léxico asomando dentro. */
@@ -86,14 +89,33 @@ export function ShopScreen() {
   const navigate = useUiStore((s) => s.navigate);
   const { toast } = useToast();
   const [justBought, setJustBought] = useState<string | null>(null);
+  const [giftClaimedFlash, setGiftClaimedFlash] = useState(false);
+  void giftClaimedFlash; // feedback visual instantáneo vía toast + botón deshabilitado
 
   const wallet = core.wallet;
   const owned = useMemo(() => new Set(wallet.owned), [wallet.owned]);
+  const giftPending = dailyGiftPending(core);
+  const featured = useMemo(() => featuredShopItem(), []);
+
+  /** Cuenta atrás hasta el próximo regalo diario (se actualiza cada 30 s). */
+  const [giftCountdown, setGiftCountdown] = useState("");
+  useEffect(() => {
+    const fmt = () => {
+      const ms = msUntilNextGift();
+      const h = Math.floor(ms / 3_600_000);
+      const m = Math.floor((ms % 3_600_000) / 60_000);
+      const sec = Math.floor((ms % 60_000) / 1000);
+      setGiftCountdown(h > 0 ? `${h} h ${m} min` : m > 0 ? `${m} min ${sec} s` : `${sec} s`);
+    };
+    fmt();
+    const t = setInterval(fmt, 30_000);
+    return () => clearInterval(t);
+  }, [giftPending]);
 
   const handleBuy = (id: string, name: string) => {
     const result = buyShopItem(id);
     if (result === "ok") {
-      sfx.unlock();
+      sfx.buy();
       setJustBought(id);
       window.setTimeout(() => setJustBought(null), 1400);
       toast({ title: "¡Ya es tuyo!", description: `«${name}» ha entrado en tu bitácora.` });
@@ -128,6 +150,7 @@ export function ShopScreen() {
     const meta = RARITY_META[rarity];
     return (
       <div
+        id={`shop-item-${id}`}
         key={id}
         className={cn(
           "card-aurora tilt-hover relative flex flex-col rounded-2xl border-2 bg-card p-3.5 transition",
@@ -163,6 +186,10 @@ export function ShopScreen() {
             <span className="flex h-full max-w-full items-center justify-center rounded-xl bg-secondary px-3 text-center font-display text-sm font-bold text-secondary-foreground">
               «{name}»
             </span>
+          ) : kind === "palette" ? (
+            <span className="relative flex h-[68px] w-full items-center justify-center overflow-hidden rounded-xl border" aria-hidden>
+              <span className="h-full w-full" style={{ background: css }} />
+            </span>
           ) : (
             <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
               <Shield className="h-8 w-8 text-primary" aria-hidden />
@@ -188,7 +215,18 @@ export function ShopScreen() {
               {price} de tinta
             </Button>
           ) : has ? (
-            kind === "banner" ? (
+            kind === "palette" ? (
+              <Button
+                size="sm"
+                className="w-full text-xs font-bold"
+                onClick={() => {
+                  sfx.tap();
+                  navigate({ name: "settings" });
+                }}
+              >
+                Elegir en Ajustes
+              </Button>
+            ) : kind === "banner" ? (
               <Button
                 size="sm"
                 variant={equipped ? "default" : "secondary"}
@@ -258,7 +296,56 @@ export function ShopScreen() {
       />
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-28">
-        {/* Saldo */}
+        {/* Mega-7 · Regalo diario del Copista */}
+        <section className="card-aurora mt-3 flex flex-wrap items-center gap-3 rounded-3xl border bg-card p-4">
+          <span className="gloss flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white" style={{ background: "var(--xp)" }} aria-hidden>
+            <Gift className="h-6 w-6" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">Regalo diario del Copista</p>
+            <p className="text-xs leading-snug text-muted-foreground">
+              {giftPending
+                ? `Hoy te tocan ${DAILY_GIFT_TINTA} gotas de tinta, cortesía del taller.`
+                : <>Regalo nuevamente en: <span className="numeric font-bold text-foreground">{giftCountdown}</span></>}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            disabled={!giftPending}
+            className="font-bold"
+            onClick={() => {
+              const outcome = claimDailyGift(core);
+              if (outcome.ok) {
+                sfx.tinta();
+                sfx.gift();
+                setGiftClaimedFlash(true);
+                window.setTimeout(() => setGiftClaimedFlash(false), 1600);
+                toast({ title: `+${DAILY_GIFT_TINTA} de tinta`, description: "El Copista sonríe: mañana habrá más." });
+              }
+            }}
+          >
+            <Droplets className="mr-1.5 h-4 w-4" aria-hidden />
+            {giftPending ? `Reclamar ${DAILY_GIFT_TINTA}` : `En ${giftCountdown}`}
+          </Button>
+        </section>
+
+        {/* Mega-7 · Destacado del día */}
+        {featured && (
+          <button
+            onClick={() => { sfx.tap(); document.getElementById(`shop-item-${featured.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+            className="card-aurora mt-3 flex w-full items-center gap-3 rounded-3xl border border-primary/40 bg-card p-3.5 text-left transition hover:border-primary/70"
+          >
+            <span className="gloss flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white" style={{ background: "var(--primary)" }} aria-hidden>
+              <Star className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] font-bold uppercase tracking-widest text-primary">Destacado de hoy</span>
+              <span className="block truncate text-sm font-bold">{featured.name} · {featured.price} de tinta</span>
+            </span>
+            <span className="shrink-0 text-xs font-black text-primary">Ver →</span>
+          </button>
+        )}
+
         <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4">
           <LexicoMascot size={64} mood="cheer" className="shrink-0" />
           <div className="min-w-0 flex-1">
@@ -322,6 +409,13 @@ export function ShopScreen() {
         {section(
           "shield",
           SHOP_ITEMS.filter((s) => s.kind === "shield").map((s) => renderCard(s.id, s.name, s.description, s.price, s.kind, undefined, "comun")),
+        )}
+
+        {section(
+          "palette",
+          PREMIUM_PALETTES.map((p) =>
+            renderCard(p.id, `Tema · ${p.name}`, SHOP_ITEMS.find((s) => s.id === p.id)?.description ?? "", p.price, "palette", p.swatch, p.rarity),
+          ),
         )}
 
         <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-[11px] leading-relaxed text-muted-foreground">

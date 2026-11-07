@@ -3,26 +3,33 @@
 /**
  * Misiones y logros · Diarias con reinicio a medianoche, semanales con
  * escudo de racha, y galería completa de logros con progreso.
+ *
+ * Mega-8: las recompensas NO se reclaman solas. Las misiones y logros
+ * completados quedan «listos para recoger» y es el jugador quien pulsa
+ * el botón (con su fanfarria y su confeti) desde este apartado.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
-import { dailyProgress, weeklyProgress, daysOfWeek, weekKey, dateKey } from "@/engine/missions";
-import { ACHIEVEMENTS } from "@/data/achievements";
+import { dailyProgress, weeklyProgress, daysOfWeek, weekKey, dateKey, type MissionProgress } from "@/engine/missions";
+import { ACHIEVEMENTS, ACHIEVEMENTS_BY_ID, LEVEL_ACHIEVEMENTS } from "@/data/achievements";
 import { getIcon } from "@/components/game/icons";
 import { useSoundEffects } from "@/components/game/game-shell";
 import { Confetti } from "@/components/game/widgets";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { sfx } from "@/services/audio";
-import { CalendarCheck, ListChecks, Shield, Trophy } from "lucide-react";
+import { CalendarCheck, Droplets, Gift, ListChecks, Shield, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function MissionsScreen() {
   const core = useGameStore((s) => s.core);
+  const claimMission = useGameStore((s) => s.claimMission);
+  const claimAchievement = useGameStore((s) => s.claimAchievement);
   const [tab, setTab] = useState("misiones");
-  const [, setTick] = useState(0);
   const sounds = useSoundEffects();
+  const [celebrate, setCelebrate] = useState(false);
   const [justClaimed, setJustClaimed] = useState<string | null>(null);
 
   // Cuenta atrás para el reinicio diario.
@@ -47,27 +54,96 @@ export function MissionsScreen() {
   const wKey = weekKey(now);
   const weekDays = daysOfWeek(now);
 
-  const daily = dailyProgress(core, today);
-  const weekly = weeklyProgress(core, wKey, weekDays);
-  const unlockedAchievements = Object.keys(core.achievements);
+  const daily = useMemo(() => dailyProgress(core, today), [core, today]);
+  const weekly = useMemo(() => weeklyProgress(core, wKey, weekDays), [core, wKey, weekDays.join()]);
 
-  // Detecta reclamos nuevos desde la última visita a la pantalla (efecto ligero).
-  useEffect(() => {
-    const claimed = daily.find((d) => d.done && d.claimed);
-    if (claimed && !justClaimed) {
-      setJustClaimed(claimed.mission.id);
+  const readyDaily = daily.filter((m) => m.done && !m.claimed);
+  const readyWeekly = weekly.filter((m) => m.done && !m.claimed);
+
+  /** Logros desbloqueados cuya recompensa sigue por recoger. */
+  const unclaimedAchievements = useMemo(
+    () =>
+      Object.keys(core.achievements)
+        .filter((id) => !(core.achievementsClaimed ?? []).includes(id))
+        .map((id) => ACHIEVEMENTS_BY_ID[id])
+        .filter(Boolean),
+    [core.achievements, core.achievementsClaimed],
+  );
+
+  const unlockedAchievements = Object.keys(core.achievements);
+  const totalReady = readyDaily.length + readyWeekly.length + unclaimedAchievements.length;
+
+  const doClaimMission = (scope: "daily" | "weekly", id: string) => {
+    const res = claimMission(scope, id);
+    if (res.ok) {
+      sfx.claim();
       sounds.achievement();
-      const t = setTimeout(() => setJustClaimed(null), 3500);
-      return () => clearTimeout(t);
+      setCelebrate(true);
+      setJustClaimed(id);
+      window.setTimeout(() => { setCelebrate(false); setJustClaimed(null); }, 2600);
+    } else {
+      sfx.error();
     }
-  }, [core.missions.daily.claimed.length]);
+  };
+
+  const doClaimAchievement = (id: string) => {
+    const res = claimAchievement(id);
+    if (res.ok) {
+      sfx.claim();
+      sounds.achievement();
+      setCelebrate(true);
+      setJustClaimed(id);
+      window.setTimeout(() => { setCelebrate(false); setJustClaimed(null); }, 2600);
+    } else {
+      sfx.error();
+    }
+  };
+
+  const claimAll = () => {
+    let any = false;
+    for (const m of readyDaily) { if (claimMission("daily", m.mission.id).ok) any = true; }
+    for (const m of readyWeekly) { if (claimMission("weekly", m.mission.id).ok) any = true; }
+    for (const a of unclaimedAchievements) { if (claimAchievement(a.id).ok) any = true; }
+    if (any) {
+      sfx.claim();
+      sounds.achievement();
+      setCelebrate(true);
+      window.setTimeout(() => setCelebrate(false), 2600);
+    }
+  };
 
   return (
     <div>
-      {justClaimed && <Confetti pieces={24} />}
+      {celebrate && <Confetti pieces={32} />}
       <ScreenHeader title="Misiones y logros" backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+        {/* Aviso de recompensas esperando: el centro de recogida */}
+        {totalReady > 0 && (
+          <section
+            aria-live="polite"
+            className="card-aurora anim-pop mt-4 overflow-hidden rounded-3xl border border-primary/40 bg-card p-4"
+          >
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="gloss anim-bob flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-primary-foreground" style={{ background: "linear-gradient(150deg, color-mix(in oklch, var(--primary) 78%, white 18%), var(--primary))" }} aria-hidden>
+                <Gift className="h-6 w-6" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-base font-bold leading-tight">
+                  {totalReady} {totalReady === 1 ? "recompensa lista" : "recompensas listas"}
+                </p>
+                <p className="text-xs leading-snug text-muted-foreground">
+                  {readyDaily.length + readyWeekly.length > 0 && `${readyDaily.length + readyWeekly.length} misión(es) · `}
+                  {unclaimedAchievements.length} logro(s). Recógelas aquí.
+                </p>
+              </div>
+              <Button className="shrink-0 font-bold" onClick={claimAll}>
+                <Gift className="mr-1.5 h-4 w-4" aria-hidden /> Recoger todo
+              </Button>
+            </div>
+          </section>
+        )}
+
         <Tabs value={tab} onValueChange={(v) => { sfx.tap(); setTab(v); }} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="misiones" className="font-bold">
@@ -75,6 +151,11 @@ export function MissionsScreen() {
             </TabsTrigger>
             <TabsTrigger value="logros" className="font-bold">
               <Trophy className="mr-1.5 h-4 w-4" aria-hidden /> Logros
+              {unclaimedAchievements.length > 0 && (
+                <span className="numeric ml-1.5 rounded-full bg-primary px-1.5 text-[10px] font-black text-primary-foreground">
+                  {unclaimedAchievements.length}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -90,22 +171,14 @@ export function MissionsScreen() {
                 </p>
               </div>
               <div className="stagger space-y-2.5">
-                {daily.map((m) => {
-                  const Icon = getIcon(m.mission.icon);
-                  return (
-                    <MissionRow
-                      key={m.mission.id}
-                      icon={<Icon className="h-5 w-5" aria-hidden />}
-                      title={m.mission.title}
-                      description={m.mission.description}
-                      current={m.current}
-                      target={m.target}
-                      done={m.done}
-                      claimed={m.claimed}
-                      reward={`${m.mission.xpReward} XP`}
-                    />
-                  );
-                })}
+                {daily.map((m) => (
+                  <MissionRow
+                    key={m.mission.id}
+                    progress={m}
+                    justClaimed={justClaimed === m.mission.id}
+                    onClaim={() => doClaimMission("daily", m.mission.id)}
+                  />
+                ))}
               </div>
             </section>
 
@@ -120,29 +193,20 @@ export function MissionsScreen() {
                 </p>
               </div>
               <div className="stagger space-y-2.5">
-                {weekly.map((m) => {
-                  const Icon = getIcon(m.mission.icon);
-                  return (
-                    <MissionRow
-                      key={m.mission.id}
-                      icon={<Icon className="h-5 w-5" aria-hidden />}
-                      title={m.mission.title}
-                      description={m.mission.description}
-                      current={m.current}
-                      target={m.target}
-                      done={m.done}
-                      claimed={m.claimed}
-                      reward={m.mission.shieldReward ? "Escudo + XP" : `${m.mission.xpReward} XP`}
-                      highlight={m.isShieldMission}
-                    />
-                  );
-                })}
+                {weekly.map((m) => (
+                  <MissionRow
+                    key={m.mission.id}
+                    progress={m}
+                    justClaimed={justClaimed === m.mission.id}
+                    onClaim={() => doClaimMission("weekly", m.mission.id)}
+                  />
+                ))}
               </div>
               <div className="mt-3 flex items-center gap-3 rounded-2xl border border-primary/25 bg-primary/5 px-4 py-3 text-xs leading-relaxed text-foreground">
                 <Shield className="anim-bob h-5 w-5 shrink-0 text-primary" aria-hidden />
                 <p>
-                  <strong>Escudos de racha:</strong> tienes <strong>{core.streak.shields}</strong> de 2. Si un día no
-                  puedes jugar, un escudo mantiene tu racha viva. Se ganan con la misión semanal.
+                  <strong>Escudos de racha:</strong> tienes <strong>{core.streak.shields}</strong> de 3. Si un día no
+                  puedes jugar, un escudo mantiene tu racha viva. Se ganan con la misión semanal o en el Bazar.
                 </p>
               </div>
             </section>
@@ -152,10 +216,15 @@ export function MissionsScreen() {
           <TabsContent value="logros" className="mt-4">
             <p className="mb-3 text-sm text-muted-foreground">
               {unlockedAchievements.length} de {ACHIEVEMENTS.length} desbloqueados
+              {unclaimedAchievements.length > 0 && (
+                <span className="font-bold text-primary"> · {unclaimedAchievements.length} sin recoger</span>
+              )}
             </p>
             <ul className="stagger grid gap-2.5 sm:grid-cols-2" aria-label="Lista de logros">
               {ACHIEVEMENTS.map((a) => {
                 const got = Boolean(core.achievements[a.id]);
+                const claimed = got && (core.achievementsClaimed ?? []).includes(a.id);
+                const canClaim = got && !claimed;
                 const Icon = getIcon(a.icon);
                 const prog = Math.min(1, a.progress ? a.progress(core, { masteredWords: 0, learnedWords: 0, now: Date.now() }) : got ? 1 : 0);
                 return (
@@ -191,9 +260,19 @@ export function MissionsScreen() {
                           <div className="h-full rounded-full bg-primary/70" style={{ width: `${prog * 100}%` }} />
                         </div>
                       )}
-                      {got && (
+                      {got && canClaim && (
+                        <Button
+                          size="sm"
+                          className="anim-pop mt-2 h-8 w-full font-bold"
+                          onClick={() => doClaimAchievement(a.id)}
+                        >
+                          <Gift className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                          Recoger +{a.xpReward} XP{a.tintaReward ? ` · +${a.tintaReward} tinta` : ""}
+                        </Button>
+                      )}
+                      {claimed && (
                         <p className="mt-1 text-[11px] font-bold uppercase tracking-wide text-[var(--xp)]">
-                          Conseguido · +{a.xpReward} XP
+                          Recompensa recogida
                         </p>
                       )}
                     </div>
@@ -209,33 +288,24 @@ export function MissionsScreen() {
 }
 
 function MissionRow({
-  icon,
-  title,
-  description,
-  current,
-  target,
-  done,
-  claimed,
-  reward,
-  highlight = false,
+  progress,
+  justClaimed,
+  onClaim,
 }: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  current: number;
-  target: number;
-  done: boolean;
-  claimed: boolean;
-  reward: string;
-  highlight?: boolean;
+  progress: MissionProgress;
+  justClaimed: boolean;
+  onClaim: () => void;
 }) {
+  const { mission: m, current, target, done, claimed } = progress;
   const pct = Math.min(1, current / target);
+  const Icon = getIcon(m.icon);
   return (
     <div
       className={cn(
-        "card-aurora rounded-2xl border bg-card p-4",
+        "card-aurora rounded-2xl border bg-card p-4 transition",
         done && claimed && "border-primary/60 bg-primary/5",
-        highlight && !claimed && "border-primary/40",
+        done && !claimed && "border-primary/70 shadow-[0_0_0_2px_color-mix(in_oklch,var(--primary)_25%,transparent)]",
+        progress.isShieldMission && !claimed && "border-primary/40",
       )}
     >
       <div className="flex items-center gap-3">
@@ -245,11 +315,11 @@ function MissionRow({
             done ? "chip-icon" : "bg-secondary text-secondary-foreground",
           )}
         >
-          {icon}
+          <Icon className="h-5 w-5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold leading-snug">{title}</p>
-          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{description}</p>
+          <p className="text-sm font-bold leading-snug">{m.title}</p>
+          <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">{m.description}</p>
         </div>
         <span
           className={cn(
@@ -257,7 +327,7 @@ function MissionRow({
             claimed ? "gloss bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
           )}
         >
-          {claimed ? "✓ reclamada" : reward}
+          {claimed ? "✓ recogida" : `+${m.xpReward} XP`}
         </span>
       </div>
       <div className="mt-3 flex items-center gap-2.5">
@@ -276,6 +346,13 @@ function MissionRow({
           {done ? "completada" : `${current}/${target}`}
         </span>
       </div>
+      {done && !claimed && (
+        <Button className="anim-pop mt-3 h-9 w-full font-bold" onClick={onClaim} aria-live="polite">
+          <Gift className="mr-1.5 h-4 w-4" aria-hidden />
+          {justClaimed ? "¡Recogida!" : `Recoger recompensa${m.shieldReward ? " + escudo" : ""}`}
+          {m.tintaReward ? <><Droplets className="ml-1.5 h-3.5 w-3.5" aria-hidden /> +{m.tintaReward}</> : null}
+        </Button>
+      )}
     </div>
   );
 }

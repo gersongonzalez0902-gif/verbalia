@@ -26,7 +26,7 @@ export function PlacementScreen() {
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col justify-center px-5 py-8">
       <div className="anim-slide-up space-y-6 text-center">
         <div className="relative mx-auto w-fit">
-          <img src="/icon.svg" alt="" className="mx-auto h-16 w-16 rounded-2xl shadow-md" />
+          <img src="/icons/icon-192.png" alt="" className="mx-auto h-16 w-16 rounded-2xl shadow-md" />
           <span className="anim-float absolute -right-4 -top-3 text-xl" aria-hidden>🧭</span>
         </div>
 

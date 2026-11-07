@@ -11,7 +11,7 @@ import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { EmptyState } from "@/components/game/widgets";
 import { cefrFromSkill, levelProgress } from "@/engine/xp";
-import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
+import { REGIONS,  SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { dateKey } from "@/engine/missions";
 import { getIcon } from "@/components/game/icons";
@@ -31,6 +31,7 @@ const SKILL_OF_GAME = (g: GameId): SkillId => GAMES[g].skill;
 
 export function StatsScreen() {
   const core = useGameStore((s) => s.core);
+  const srs = useGameStore((s) => s.srs);
   const [tab, setTab] = useState("resumen");
 
   /* ---------- series y derivados ---------- */
@@ -211,6 +212,7 @@ export function StatsScreen() {
                 <TabsTrigger value="resumen" className="font-bold">Resumen</TabsTrigger>
                 <TabsTrigger value="constancia" className="font-bold">Constancia</TabsTrigger>
                 <TabsTrigger value="historial" className="font-bold">Historial</TabsTrigger>
+                <TabsTrigger value="patrones" className="font-bold">Patrones</TabsTrigger>
               </TabsList>
 
               <TabsContent value="resumen" className="mt-4 space-y-6">
@@ -426,6 +428,186 @@ export function StatsScreen() {
                       ))}
                     </ol>
                   )}
+                </section>
+              </TabsContent>
+
+              <TabsContent value="patrones" className="mt-4 space-y-4">
+                {/* XP por día de la semana */}
+                <section aria-labelledby="weekday-title">
+                  <h3 id="weekday-title" className="font-display mb-2 text-base font-bold">
+                    ¿Qué día rinde más? · XP por día de la semana
+                  </h3>
+                  <div className="card-aurora rounded-3xl border bg-card p-4">
+                    <div className="grid grid-cols-7 gap-1.5">
+                      {(() => {
+                        const names = ["L", "M", "X", "J", "V", "S", "D"];
+                        const totals = [0, 0, 0, 0, 0, 0, 0];
+                        for (const [key, xp] of Object.entries(core.stats.xpByDay)) {
+                          const d = new Date(`${key}T12:00:00`);
+                          totals[(d.getDay() + 6) % 7] += xp;
+                        }
+                        const max = Math.max(10, ...totals);
+                        return totals.map((xp, i) => (
+                          <div key={i} className="flex flex-col items-center gap-1">
+                            <div className="flex h-20 w-full items-end justify-center">
+                              <div
+                                className="w-full rounded-t-md transition-all"
+                                style={{
+                                  height: `${Math.max(4, (xp / max) * 100)}%`,
+                                  background: i >= 5
+                                    ? "linear-gradient(180deg, color-mix(in oklch, var(--region-torre) 78%, white 15%), var(--region-torre))"
+                                    : "linear-gradient(180deg, color-mix(in oklch, var(--primary) 78%, white 15%), var(--primary))",
+                                }}
+                                title={`${xp} XP`}
+                              />
+                            </div>
+                            <span className="text-[10px] font-bold text-muted-foreground">{names[i]}</span>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Hora del día favorita */}
+                <section aria-labelledby="hour-title">
+                  <h3 id="hour-title" className="font-display mb-2 text-base font-bold">
+                    Tu hora del faro · cuándo juegas
+                  </h3>
+                  <div className="card-aurora rounded-3xl border bg-card p-4">
+                    {(() => {
+                      const hours = new Array(24).fill(0);
+                      for (const s of core.sessions ?? []) hours[new Date(s.at).getHours()]++;
+                      const total = core.sessions?.length ?? 0;
+                      const peak = hours.indexOf(Math.max(...hours));
+                      const morning = hours.slice(6, 12).reduce((a, b) => a + b, 0);
+                      const afternoon = hours.slice(12, 19).reduce((a, b) => a + b, 0);
+                      const night = hours.slice(19, 24).reduce((a, b) => a + b, 0) + hours.slice(0, 6).reduce((a, b) => a + b, 0);
+                      if (total === 0) {
+                        return <p className="text-sm text-muted-foreground">Aún sin sesiones: tu patrón horario se dibujará solo.</p>;
+                      }
+                      const pct = (n: number) => Math.round((n / total) * 100);
+                      return (
+                        <div className="space-y-2.5">
+                          <p className="text-sm leading-snug">
+                            Tu hora más activa es <b className="numeric">{peak}:00</b>.{" "}
+                            {morning >= afternoon && morning >= night ? "Eres navegante de madrugada 🌅" : afternoon >= night ? "Eres navegante de tardes ☀️" : "Eres navegante nocturno 🌙"}
+                          </p>
+                          {[
+                            { label: "Mañana (6-12)", n: morning },
+                            { label: "Tarde (12-19)", n: afternoon },
+                            { label: "Noche (19-6)", n: night },
+                          ].map((row) => (
+                            <div key={row.label} className="flex items-center gap-2">
+                              <span className="w-32 shrink-0 text-xs font-bold text-muted-foreground">{row.label}</span>
+                              <div className="groove h-2.5 flex-1 overflow-hidden rounded-full">
+                                <div className="h-full rounded-full bg-primary transition-[width] duration-500" style={{ width: `${pct(row.n)}%` }} />
+                              </div>
+                              <span className="numeric w-10 text-right text-[11px] font-bold text-muted-foreground">{pct(row.n)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </section>
+
+                {/* Dominio por región */}
+                <section aria-labelledby="region-title">
+                  <h3 id="region-title" className="font-display mb-2 text-base font-bold">
+                    Dominio por región
+                  </h3>
+                  <div className="card-aurora space-y-2.5 rounded-3xl border bg-card p-4">
+                    {REGIONS.map((r) => {
+                      let answers = 0;
+                      let correct = 0;
+                      for (const g of r.games) {
+                        const s = core.stats.byGame[g];
+                        if (s) { answers += s.answers; correct += s.correct; }
+                      }
+                      const acc = answers > 0 ? Math.round((correct / answers) * 100) : 0;
+                      return (
+                        <div key={r.id} className="flex items-center gap-2">
+                          <span className="w-36 shrink-0 truncate text-xs font-bold text-muted-foreground">{r.name.replace(" de la ", " · ").replace(" del ", " · ")}</span>
+                          <div className="groove h-2.5 flex-1 overflow-hidden rounded-full">
+                            <div
+                              className="h-full rounded-full transition-[width] duration-500"
+                              style={{ width: `${answers > 0 ? acc : 0}%`, background: `var(${r.colorVar})` }}
+                            />
+                          </div>
+                          <span className="numeric w-10 text-right text-[11px] font-bold text-muted-foreground">
+                            {answers > 0 ? `${acc}%` : "—"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {/* Taller de Escritura y Salón */}
+                <section aria-labelledby="writing-title">
+                  <h3 id="writing-title" className="font-display mb-2 text-base font-bold">
+                    Taller y Salón de Juegos
+                  </h3>
+                  <div className="card-aurora grid grid-cols-2 gap-3 rounded-3xl border bg-card p-4 sm:grid-cols-4">
+                    <SummaryCard value={`${core.arcade.typing?.bestWpm ?? 0}`} label="PPM récord" />
+                    <SummaryCard value={`${core.arcade.typing?.bestAccuracy ?? 0}%`} label="mejor precisión" />
+                    <SummaryCard
+                      value={String(Object.values(core.arcade.plays ?? {}).reduce((a, b) => a + b, 0))}
+                      label="partidas del salón"
+                    />
+                    <SummaryCard
+                      value={String(Object.keys(core.arcade.best ?? {}).length)}
+                      label="juegos con récord"
+                    />
+                  </div>
+                </section>
+
+                {/* Ranking de formatos favoritos */}
+                <section aria-labelledby="fav-title">
+                  <h3 id="fav-title" className="font-display mb-2 text-base font-bold">
+                    Tus formatos favoritos
+                  </h3>
+                  <div className="card-aurora space-y-2 rounded-3xl border bg-card p-4">
+                    {(() => {
+                      const byPlays = Object.entries(core.stats.byGame ?? {})
+                        .map(([id, st]) => ({ id, plays: st.plays, acc: st.answers > 0 ? Math.round((st.correct / st.answers) * 100) : null }))
+                        .sort((a, b) => b.plays - a.plays)
+                        .slice(0, 6);
+                      if (byPlays.length === 0) {
+                        return <p className="text-sm text-muted-foreground">Juega algún entrenamiento y aquí nacerá tu podio.</p>;
+                      }
+                      const max = byPlays[0].plays || 1;
+                      return byPlays.map((row, i) => (
+                        <div key={row.id} className="flex items-center gap-2">
+                          <span className="numeric w-5 shrink-0 text-right text-xs font-black text-muted-foreground">{i + 1}.</span>
+                          <span className="w-36 shrink-0 truncate text-xs font-bold">{GAMES[row.id as keyof typeof GAMES]?.name ?? row.id}</span>
+                          <div className="groove h-2.5 flex-1 overflow-hidden rounded-full">
+                            <div
+                              className="h-full rounded-full transition-[width] duration-500"
+                              style={{ width: `${(row.plays / max) * 100}%`, background: i === 0 ? "var(--primary)" : "color-mix(in oklch, var(--primary) 60%, var(--muted))" }}
+                            />
+                          </div>
+                          <span className="numeric w-16 shrink-0 text-right text-[11px] font-bold text-muted-foreground">
+                            {row.plays} · {row.acc !== null ? `${row.acc}%` : "—"}
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </section>
+
+                {/* Riqueza del vocabulario */}
+                <section aria-labelledby="vocab-title">
+                  <h3 id="vocab-title" className="font-display mb-2 text-base font-bold">
+                    Jardín de palabras
+                  </h3>
+                  <div className="card-aurora grid grid-cols-2 gap-3 rounded-3xl border bg-card p-4 sm:grid-cols-4">
+                    <SummaryCard value={String(Object.keys(srs).length)} label="sembradas" />
+                    <SummaryCard value={String(Object.values(srs).filter((c) => c.reps >= 2).length)} label="aprendidas" />
+                    <SummaryCard value={String(Object.values(srs).filter((c) => c.state === "review" && c.intervalDays >= 21).length)} label="dominadas" />
+                    <SummaryCard value={String(core.stats.srsReviewsByDay ? Object.values(core.stats.srsReviewsByDay).reduce((a, b) => a + b, 0) : 0)} label="repasos totales" />
+                  </div>
                 </section>
               </TabsContent>
             </Tabs>

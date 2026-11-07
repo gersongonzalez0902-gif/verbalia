@@ -4,9 +4,14 @@
  * VERBALIA · Raíz de la aplicación (SPA de una sola ruta).
  * Hidrata el estado desde IndexedDB, sincroniza el enrutador con el
  * hash y monta la pantalla activa dentro de la carcasa.
+ *
+ * Rendimiento: las pantallas secundarias (salón, escritura, música,
+ * biblioteca, bazar, bitácora, estadísticas…) se cargan bajo demanda
+ * con next/dynamic, de modo que el paquete inicial se queda ligero.
  */
 
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore, initRouter } from "@/store/ui-store";
 import { AppShell } from "@/components/game/app-shell";
@@ -18,20 +23,37 @@ import { MapScreen } from "@/screens/map";
 import { GameScreen } from "@/screens/game-screen";
 import { ResultsScreen } from "@/screens/results";
 import { ProfileScreen } from "@/screens/profile";
-import { StatsScreen } from "@/screens/stats";
-import { CollectionScreen } from "@/screens/collection";
-import { ErrorReviewScreen } from "@/screens/error-review";
-import { MissionsScreen } from "@/screens/missions";
-import { SettingsScreen } from "@/screens/settings";
-import { LibraryScreen } from "@/screens/library";
-import { MusicStationScreen } from "@/screens/music-station";
-import { ShopScreen } from "@/screens/shop";
-import { ArcadeScreen } from "@/screens/arcade";
 import { PwaRegistration } from "@/components/game/pwa";
 import { Vitality } from "@/components/game/vitality";
 import { useSceneSystem } from "@/hooks/use-scene";
 import { Loader2 } from "lucide-react";
 import { LexicoMascot } from "@/components/game/lexico";
+
+/* ---------- Pantallas bajo demanda (code-splitting) ---------- */
+const Lazy = (load: () => Promise<{ default: React.ComponentType }>) =>
+  dynamic(load, {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-3" role="status" aria-live="polite">
+        <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden />
+        <p className="text-sm font-semibold text-muted-foreground">Preparando el rincón…</p>
+      </div>
+    ),
+  });
+
+const StatsScreen = Lazy(() => import("@/screens/stats").then((m) => ({ default: m.StatsScreen })));
+const CollectionScreen = Lazy(() => import("@/screens/collection").then((m) => ({ default: m.CollectionScreen })));
+const ErrorReviewScreen = Lazy(() => import("@/screens/error-review").then((m) => ({ default: m.ErrorReviewScreen })));
+const MissionsScreen = Lazy(() => import("@/screens/missions").then((m) => ({ default: m.MissionsScreen })));
+const SettingsScreen = Lazy(() => import("@/screens/settings").then((m) => ({ default: m.SettingsScreen })));
+const LibraryScreen = Lazy(() => import("@/screens/library").then((m) => ({ default: m.LibraryScreen })));
+const MusicStationScreen = Lazy(() => import("@/screens/music-station").then((m) => ({ default: m.MusicStationScreen })));
+const ShopScreen = Lazy(() => import("@/screens/shop").then((m) => ({ default: m.ShopScreen })));
+const ArcadeScreen = Lazy(() => import("@/screens/arcade").then((m) => ({ default: m.ArcadeScreen })));
+const FrasesScreen = Lazy(() => import("@/screens/frases").then((m) => ({ default: m.FrasesScreen })));
+const TrainingScreen = Lazy(() => import("@/screens/training").then((m) => ({ default: m.TrainingScreen })));
+const WritingScreen = Lazy(() => import("@/screens/writing").then((m) => ({ default: m.WritingScreen })));
+const LegalScreen = Lazy(() => import("@/screens/legal").then((m) => ({ default: m.LegalScreen })));
 
 export default function Page() {
   const hydrated = useGameStore((s) => s.hydrated);
@@ -116,6 +138,14 @@ export default function Page() {
         return <ArcadeScreen />;
       case "library":
         return <LibraryScreen />;
+      case "frases":
+        return <FrasesScreen />;
+      case "training":
+        return <TrainingScreen />;
+      case "writing":
+        return <WritingScreen />;
+      case "legal":
+        return <LegalScreen />;
       case "home":
       default:
         return <HomeScreen />;

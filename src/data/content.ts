@@ -39,6 +39,77 @@ import { CONECTA_PACKS } from "./formats/conecta";
 import { FORJA_PACKS } from "./forja";
 // ---- Etapa 4 · palabras SRS ampliadas ----
 import { SRS_WORDS_B } from "./words-srs-b";
+// ---- Mega-7 · 45 minijuegos nuevos (hasta 100) ----
+import {
+  ABECEDARIO_PACK,
+  ACENTOS_PACK,
+  ANALOGIAS_PACK,
+  COLOCACIONES_PACK,
+  DEFINICIONES_PACK,
+  DERIVADAS_PACK,
+  FAMILIAS_PACK,
+  GRADOS_PACK,
+  POLISEMIA_PACK,
+  SILABAS_PACK,
+} from "./formats/mega7-a";
+import {
+  CONCORDANCIA_PACK,
+  ESTILO_PACK,
+  GENERO_PACK,
+  PASIVA_PACK,
+  PORPARA_PACK,
+  PRONOMBRES_PACK,
+  RELATIVOS_PACK,
+  SERESTAR_PACK,
+  SUBJUNTIVO_PACK,
+  TIEMPOS_PACK,
+} from "./formats/mega7-b";
+import {
+  BV_PACK,
+  CIFRAS_PACK,
+  CSZ_PACK,
+  GJ_PACK,
+  HACH_PACK,
+  HOMOFONOS_PACK,
+  LLY_PACK,
+  MAYUSCULAS_PACK,
+  PUNTUACION_PACK,
+} from "./formats/mega7-c";
+import {
+  CIERRE_PACK,
+  DESCRIPCIONES_PACK,
+  ENTONACION_PACK,
+  FALSOS_PACK,
+  IDEA_PACK,
+  INFERENCIA_PACK,
+  INICIADORES_PACK,
+  OYE_ACENTO_PACK,
+  OYE_NUM_PACK,
+  PROPOSITO_PACK,
+  REGIONES_PACK,
+  RESUMEN_PACK,
+  SECUENCIA_PACK,
+  TITULO_PACK,
+  TONO_PACK,
+  VOCABCTX_PACK,
+} from "./formats/mega7-d";
+
+/** Packs Mega-7 agrupados (los 45 juegos nuevos). */
+export const MEGA7_PACKS: Exercise[] = [
+  ...ACENTOS_PACK, ...SILABAS_PACK, ...ANALOGIAS_PACK, ...COLOCACIONES_PACK,
+  ...GRADOS_PACK, ...POLISEMIA_PACK, ...DERIVADAS_PACK, ...FAMILIAS_PACK,
+  ...ABECEDARIO_PACK, ...DEFINICIONES_PACK,
+  ...CONCORDANCIA_PACK, ...SERESTAR_PACK, ...PORPARA_PACK, ...SUBJUNTIVO_PACK,
+  ...TIEMPOS_PACK, ...PRONOMBRES_PACK, ...RELATIVOS_PACK, ...ESTILO_PACK,
+  ...PASIVA_PACK, ...GENERO_PACK,
+  ...BV_PACK, ...GJ_PACK, ...HACH_PACK, ...LLY_PACK, ...CSZ_PACK,
+  ...HOMOFONOS_PACK, ...PUNTUACION_PACK, ...MAYUSCULAS_PACK, ...CIFRAS_PACK,
+  ...TITULO_PACK, ...IDEA_PACK, ...RESUMEN_PACK, ...TONO_PACK,
+  ...INFERENCIA_PACK, ...SECUENCIA_PACK, ...PROPOSITO_PACK, ...VOCABCTX_PACK,
+  ...ENTONACION_PACK, ...OYE_ACENTO_PACK, ...OYE_NUM_PACK,
+  ...INICIADORES_PACK, ...CIERRE_PACK, ...DESCRIPCIONES_PACK,
+  ...REGIONES_PACK, ...FALSOS_PACK,
+];
 
 /**
  * Registro central de contenido: agrupa todos los paquetes,
@@ -72,6 +143,8 @@ export const ALL_EXERCISES: Exercise[] = [
   ...CONECTA_PACKS,
   // ---- Etapa 4 · Forja del Escritor ----
   ...FORJA_PACKS,
+  // ---- Mega-7 · 45 minijuegos nuevos ----
+  ...MEGA7_PACKS,
 ];
 
 export const EXERCISES_BY_ID: Record<string, Exercise> = ALL_EXERCISES.reduce(

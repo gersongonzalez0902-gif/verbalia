@@ -2,10 +2,12 @@
 
 /**
  * Colección de palabras · Todas las palabras del jardín con su estado
- * SRS, próxima revisión y buscador/filtros.
+ * SRS, próxima revisión y buscador/filtros. Las tarjetas se pintan por
+ * bloques (carga incremental) para no fundir el rendimiento con
+ * más de mil palabras de golpe.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
@@ -23,6 +25,8 @@ type Filter = "todas" | "nueva" | "aprendiendo" | "aprendida" | "dominada";
 
 const FILTERS: Filter[] = ["todas", "nueva", "aprendiendo", "aprendida", "dominada"];
 const CEFR_LEVELS: ("todas" | Cefr)[] = ["todas", "A1", "A2", "B1", "B2", "C1", "C2"];
+/** Palabras pintadas por bloque (carga incremental suave). */
+const CHUNK = 36;
 
 export function CollectionScreen() {
   const srs = useGameStore((s) => s.srs);
@@ -30,6 +34,8 @@ export function CollectionScreen() {
   const [filter, setFilter] = useState<Filter>("todas");
   const [cefr, setCefr] = useState<(typeof CEFR_LEVELS)[number]>("todas");
   const [query, setQuery] = useState("");
+  const [visible, setVisible] = useState(CHUNK);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const stats = useMemo(() => {
     const counts = { nueva: 0, aprendiendo: 0, aprendida: 0, dominada: 0 };
@@ -47,6 +53,23 @@ export function CollectionScreen() {
       return true;
     }).sort((a, b) => a.difficulty - b.difficulty || a.word.localeCompare(b.word, "es"));
   }, [srs, filter, cefr, query]);
+
+  // Al cambiar búsqueda o filtros, la ventana visible se reinicia.
+  useEffect(() => setVisible(CHUNK), [filter, cefr, query]);
+
+  // Bloques infinitos: al acercarse al final se pinta el siguiente bloque.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setVisible((v) => Math.min(v + CHUNK, words.length));
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [words.length]);
 
   const learned = stats.aprendida + stats.dominada;
 
@@ -127,7 +150,7 @@ export function CollectionScreen() {
           </div>
         </div>
 
-        {/* Tarjetas de palabras */}
+        {/* Tarjetas de palabras (carga incremental) */}
         {words.length === 0 ? (
           <div className="mt-6">
             <EmptyState
@@ -137,8 +160,9 @@ export function CollectionScreen() {
             />
           </div>
         ) : (
-          <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2" aria-label="Palabras de la colección">
-            {words.map((w) => {
+          <>
+            <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2" aria-label="Palabras de la colección">
+              {words.slice(0, visible).map((w) => {
               const card = srs[w.id];
               const status = cardStatus(card);
               const nextReview = card
@@ -171,7 +195,21 @@ export function CollectionScreen() {
                 </li>
               );
             })}
-          </ul>
+            </ul>
+            {visible < words.length ? (
+              <div ref={sentinelRef} className="py-6 text-center">
+                <Button size="sm" variant="ghost" onClick={() => setVisible((v) => Math.min(v + CHUNK, words.length))}>
+                  Cargar más palabras ({words.length - visible} restantes)
+                </Button>
+              </div>
+            ) : (
+              words.length > CHUNK && (
+                <p className="py-5 text-center text-[11px] text-muted-foreground">
+                  Fin del jardín · {words.length} palabras en esta vista
+                </p>
+              )
+            )}
+          </>
         )}
       </main>
     </div>

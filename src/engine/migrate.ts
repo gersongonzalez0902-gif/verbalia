@@ -56,6 +56,7 @@ export function migrateCore(raw: Partial<GameCore> | undefined | null): GameCore
       ...fresh.wallet,
       ...raw.wallet,
       owned: Array.isArray(raw.wallet?.owned) ? [...raw.wallet.owned] : [],
+      lastGiftDay: raw.wallet?.lastGiftDay ?? "",
     },
     arcade: {
       ...fresh.arcade,
@@ -64,7 +65,12 @@ export function migrateCore(raw: Partial<GameCore> | undefined | null): GameCore
       best: { ...raw.arcade?.best },
       plays: { ...raw.arcade?.plays },
       playsByDay: { ...raw.arcade?.playsByDay },
-      chessRecord: { ...fresh.arcade.chessRecord, ...raw.arcade?.chessRecord },
+      typing: {
+        ...fresh.arcade.typing,
+        ...raw.arcade?.typing,
+      },
     },
+    // Logros desbloqueados cuyas recompensas ya se recogieron (retro-compatible).
+    achievementsClaimed: Array.isArray(raw.achievementsClaimed) ? [...raw.achievementsClaimed] : [],
   };
 }

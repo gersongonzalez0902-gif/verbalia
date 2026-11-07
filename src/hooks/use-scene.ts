@@ -65,6 +65,14 @@ export function musicSceneFor(screen: Screen, level: number): string {
       return "station";
     case "arcade":
       return "arcade";
+    case "frases":
+      return "library";
+    case "training":
+      return activeRegion;
+    case "writing":
+      return "arcade";
+    case "legal":
+      return "library";
     default:
       return activeRegion;
   }

@@ -105,13 +105,21 @@ export function dueCards(ctx: Pick<BuildContext, "srs" | "now">): SrsCard[] {
     .sort((a, b) => a.dueAt - b.dueAt);
 }
 
-function srsCardsForSession(ctx: BuildContext, count: number): SrsWord[] {
+function srsCardsForSession(
+  ctx: BuildContext,
+  count: number,
+  opts: { focusWordId?: string } = {},
+): SrsWord[] {
   const out: SrsWord[] = [];
+  const byId = new Map(SRS_WORDS_FULL.map((w) => [w.id, w]));
+  const pushIfMissing = (w: SrsWord) => {
+    if (!out.some((x) => x.id === w.id)) out.push(w);
+  };
   // 1) Vencidas primero (las más atrasadas antes).
   const due = dueCards(ctx).map((c) => c.wordId);
   for (const id of due) {
     if (out.length >= count) break;
-    const w = SRS_WORDS_FULL.find((x) => x.id === id);
+    const w = byId.get(id);
     if (w) out.push(w);
   }
   // 2) Tarjetas nuevas hasta el cupo diario.
@@ -124,6 +132,29 @@ function srsCardsForSession(ctx: BuildContext, count: number): SrsWord[] {
     if (out.length >= count || newQuota <= 0) break;
     out.push(w);
     newQuota -= 1;
+  }
+  // 3) Palabra prioritaria (p. ej., la Palabra del Día): entra siempre.
+  if (opts.focusWordId) {
+    const w = byId.get(opts.focusWordId);
+    if (w && out.length >= count) out.pop();
+    if (w) pushIfMissing(w);
+  }
+  // 4) Repaso adelantado: si aún no hay material suficiente, traemos las
+  //    tarjetas cuyo repaso vence antes (nunca más «sesión vacía»).
+  if (out.length < Math.min(count, 5)) {
+    const upcoming = Object.values(ctx.srs)
+      .filter((c) => c.dueAt > ctx.now)
+      .sort((a, b) => a.dueAt - b.dueAt);
+    for (const c of upcoming) {
+      if (out.length >= count) break;
+      const w = byId.get(c.wordId);
+      if (w) pushIfMissing(w);
+    }
+  }
+  // 5) Último recurso: palabras nuevas más allá del cupo (jardín vacío).
+  for (const w of newWords) {
+    if (out.length >= count) break;
+    pushIfMissing(w);
   }
   return out;
 }
@@ -167,6 +198,15 @@ const TRAINING_SIZES: Partial<Record<GameId, number>> = {
   conectores: 8,
   ironia: 8,
   titulos: 8,
+  // ---- Mega-7 · sesiones más cortas en juegos de redacción ----
+  titulo: 8,
+  resumen: 8,
+  inferencia: 8,
+  vocabctx: 8,
+  derivadas: 8,
+  definiciones: 8,
+  familias: 8,
+  mayusculas: 8,
 };
 
 export function buildMissionSession(
@@ -250,18 +290,36 @@ export function buildMissionSession(
   };
 }
 
-export function buildTrainingSession(gameId: GameId, ctx: BuildContext, seed?: string): SessionSpec {
+export function buildTrainingSession(
+  gameId: GameId,
+  ctx: BuildContext,
+  seed?: string,
+  focusWordId?: string,
+): SessionSpec {
   const rng = createRng(seed ?? `training-${gameId}-${Math.floor(ctx.now / 60000)}`);
   let items: SessionItem[] = [];
 
   if (gameId === "srs") {
-    const words = srsCardsForSession(ctx, Math.max(TRAINING_SIZE, ctx.newCardsPerDay + 4));
+    const words = srsCardsForSession(ctx, Math.max(TRAINING_SIZE, ctx.newCardsPerDay + 4), {
+      focusWordId,
+    });
     items = words.map((w) => ({ kind: "srs", word: w }));
   } else {
     const skill = inferSkill(gameId);
     const count = TRAINING_SIZES[gameId] ?? TRAINING_SIZE;
     const exercises = selectExercises(gameId, skill, count, ctx, rng);
     items = exercises.map((e) => ({ kind: "exercise", exercise: e }));
+    // Sin material fresco para este formato: recae en un pack amplio para
+    // que el entrenamiento nunca esté vacío (mejora de la sesión recomendada).
+    if (items.length === 0) {
+      const fallbacks: GameId[] = ["trivia", "cloze", "vf-bosque", "sortea-ciudad"];
+      for (const fb of fallbacks) {
+        if (fb === gameId) continue;
+        const alt = selectExercises(fb, inferSkill(fb), count, ctx, rng);
+        items = alt.map((e) => ({ kind: "exercise", exercise: e }));
+        if (items.length > 0) break;
+      }
+    }
   }
 
   return {
@@ -348,6 +406,65 @@ function inferSkill(gameId: GameId): SkillId {
       return "lectura";
     case "titulos":
       return "ortografia";
+    // ---- Mega-7 · Bosque ----
+    case "acentos":
+    case "silabas":
+    case "analogias":
+    case "colocaciones":
+    case "grados":
+    case "polisemia":
+    case "derivadas":
+    case "familias":
+    case "abecedario":
+    case "definiciones":
+      return "vocabulario";
+    // ---- Mega-7 · Ciudad ----
+    case "concordancia":
+    case "serestar":
+    case "porpara":
+    case "subjuntivo":
+    case "tiempos":
+    case "pronombres":
+    case "relativos":
+    case "estilo":
+    case "pasiva":
+    case "genero":
+      return "gramatica";
+    // ---- Mega-7 · Fortaleza ----
+    case "bv":
+    case "gj":
+    case "hach":
+    case "lly":
+    case "csz":
+    case "homofonos":
+    case "puntuacion":
+    case "mayusculas":
+    case "cifras":
+      return "ortografia";
+    // ---- Mega-7 · Biblioteca ----
+    case "titulo":
+    case "idea":
+    case "resumen":
+    case "tono":
+    case "inferencia":
+    case "secuencia":
+    case "proposito":
+    case "vocabctx":
+      return "lectura";
+    // ---- Mega-7 · Puerto ----
+    case "entonacion":
+    case "oye-acento":
+    case "oyenumero":
+      return "audicion";
+    // ---- Mega-7 · Torre ----
+    case "iniciadores":
+    case "cierre":
+    case "descripciones":
+      return "expresion";
+    // ---- Mega-7 · Observatorio ----
+    case "regiones":
+    case "falsosamigos":
+      return "cultura";
   }
 }
 
@@ -382,6 +499,20 @@ export function buildRecommendedSession(ctx: BuildContext): SessionSpec {
   // Región con menor nivel de habilidad (más necesitado de entrenamiento).
   const weakest = active.reduce((a, b) => (ctx.skills[REGION_BY_ID[a].skill] <= ctx.skills[REGION_BY_ID[b].skill] ? a : b));
   return buildMissionSession(weakest, ctx);
+}
+
+/** Destino de navegación para el botón «Sesión recomendada» del inicio. */
+export function buildRecommendedDestination(
+  ctx: BuildContext,
+  dueCount: number,
+): { gameId: GameId; mode: "training" | "mission"; regionId?: RegionId } {
+  if (dueCount >= 3) return { gameId: "srs", mode: "training" };
+  // Región más floja (misión completa de 3-5 min con mecánicas variadas).
+  const active = REGIONS.filter((r) => r.games.length > 0);
+  const weakest = active.reduce((a, b) =>
+    ctx.skills[REGION_BY_ID[a.id].skill] <= ctx.skills[REGION_BY_ID[b.id].skill] ? a : b,
+  );
+  return { gameId: "trivia", mode: "mission", regionId: weakest.id };
 }
 
 /** Resumen de la colección para el contexto de logros. */

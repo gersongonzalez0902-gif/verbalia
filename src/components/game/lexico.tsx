@@ -1,13 +1,19 @@
 "use client";
 
 /**
- * Léxico, el búho bibliotecario · Mascota acompañante (v2, Etapa 3).
- * SVG ligero con seis estados de ánimo que la pantalla de juego usa
+ * Léxico, el búho bibliotecario · Mascota acompañante (v3).
+ * SVG ligero con ocho estados de ánimo que la pantalla de juego usa
  * para reaccionar en vivo: parpadea, saluda, celebra, duda y consuela.
- * Nunca interrumpe: solo acompañar.
+ *
+ * Paridad PC ↔ móvil (v3): con puntero fino, las pupilas siguen al
+ * cursor ( movimiento suave, coalescido por frame ), la burbuja entra
+ * desfilando y reacciona al hover; en cualquier dispositivo, tocar a
+ * Léxico le saca una ocurrencia. Nunca interrumpe: solo acompañar.
  */
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { sfx } from "@/services/audio";
 
 export type LexicoMood = "idle" | "happy" | "cheer" | "think" | "oops" | "wink" | "curioso" | "dormido";
 
@@ -22,28 +28,105 @@ const MOOD_QUIRK: Record<LexicoMood, string> = {
   dormido: "anim-float",
 };
 
+/** Ocurrencias al tocar a Léxico (mismo orden determinista por rotación). */
+const LEXICO_POKES = [
+  "¡Hoo! Un toque suave, por favor: soy de biblioteca.",
+  "¿Buscas una palabra perdida? Pregúntame al pasar por el Bosque.",
+  "En el Archipiélago hasta las gaviotas leen. Despacio, pero leen.",
+  "Mi abuela era un búho de verdad. Yo solo estoy contratado.",
+  "Tengo tinta en las plumas: señal de buen oficio.",
+  "Un consejo: las palabras difíciles se doman con tres repasos.",
+  "¡Hoo-hoo! Ese toque casi me tumba las gafas.",
+  "Si ves un error de ortografía por ahí, avisa: los guardianes cobran por corrección.",
+];
+
 export function LexicoMascot({
   className,
   size = 92,
   mood = "idle",
+  interactive = true,
 }: {
   className?: string;
   size?: number;
   mood?: LexicoMood;
+  /** ¿Responde al toque con una ocurrencia? (onPoke se dispara si existe) */
+  interactive?: boolean;
 }) {
   const closedEyes = mood === "happy" || mood === "cheer" || mood === "dormido";
   const wink = mood === "wink";
   const wideEyes = mood === "oops" || mood === "curioso";
   const sleepy = mood === "dormido";
 
+  /* ---------- Ojos que siguen al cursor (solo puntero fino) ---------- */
+  const leftPupil = useRef<SVGCircleElement>(null);
+  const rightPupil = useRef<SVGCircleElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [poked, setPoked] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf = 0;
+    let pending: { x: number; y: number } | null = null;
+    let tx = 0;
+    let ty = 0;
+    const apply = () => {
+      raf = 0;
+      const p = pending;
+      pending = null;
+      if (!p) return;
+      const svg = svgRef.current;
+      if (!svg) return;
+      const r = svg.getBoundingClientRect();
+      if (r.width === 0) return;
+      // Vector normalizado desde el centro del búho hacia el cursor (±1).
+      const nx = Math.max(-1, Math.min(1, ((p.x - (r.left + r.width / 2)) / r.width) * 2.4));
+      const ny = Math.max(-1, Math.min(1, ((p.y - (r.top + r.height * 0.42)) / r.height) * 2.4));
+      // Movimiento de pupila con inercia suave (lerp).
+      tx += (nx - tx) * 0.16;
+      ty += (ny - ty) * 0.16;
+      const dx = 2.2 * tx;
+      const dy = 1.6 * ty;
+      if (leftPupil.current) leftPupil.current.setAttribute("transform", `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`);
+      if (rightPupil.current) rightPupil.current.setAttribute("transform", `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`);
+      if (Math.abs(nx - tx) + Math.abs(ny - ty) > 0.02) {
+        raf = requestAnimationFrame(apply);
+      }
+    };
+    const onMove = (e: PointerEvent) => {
+      pending = { x: e.clientX, y: e.clientY };
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [mood]);
+
+  const handlePoke = useCallback(() => {
+    if (!interactive) return;
+    setPoked(true);
+    sfx.pop();
+    window.setTimeout(() => setPoked(false), 2400);
+  }, [interactive]);
+
   return (
     <svg
+      ref={svgRef}
       viewBox="0 0 120 120"
       width={size}
       height={size}
-      className={cn("select-none", MOOD_QUIRK[mood], className)}
+      className={cn(
+        "select-none",
+        MOOD_QUIRK[mood],
+        interactive && "cursor-pointer transition-transform duration-200 hover:scale-105 active:scale-95",
+        className,
+      )}
       role="img"
       aria-label="Léxico, el búho bibliotecario"
+      onClick={handlePoke}
     >
       {/* sombra */}
       <ellipse cx="60" cy="111" rx="24" ry="4.5" fill="currentColor" opacity="0.12" />
@@ -87,15 +170,20 @@ export function LexicoMascot({
         <>
           <circle cx="45" cy="50" r={wideEyes ? 18 : 15.5} fill="#fdf9ee" />
           <circle cx="75" cy="50" r={wideEyes ? 18 : 15.5} fill="#fdf9ee" />
-          <circle cx={wideEyes ? 45 : 47} cy={wideEyes ? 50 : 52} r={wideEyes ? 8.5 : 7.5} fill="#26221c" />
-          <circle cx={wideEyes ? 75 : 77} cy={wideEyes ? 50 : 52} r={wideEyes ? 8.5 : 7.5} fill="#26221c" />
-          <circle cx={wideEyes ? 42 : 49.5} cy={wideEyes ? 45 : 49} r="2.6" fill="#ffffff" />
-          <circle cx={wideEyes ? 72 : 79.5} cy={wideEyes ? 45 : 49} r="2.6" fill="#ffffff" />
-          {/* párpados con parpadeo (solo en idle) */}
+          <g ref={leftPupil as unknown as React.Ref<SVGGElement>}>
+            <circle cx={wideEyes ? 45 : 47} cy={wideEyes ? 50 : 52} r={wideEyes ? 8.5 : 7.5} fill="#26221c" />
+            <circle cx={wideEyes ? 42 : 49.5} cy={wideEyes ? 45 : 49} r="2.6" fill="#ffffff" />
+          </g>
+          <g ref={rightPupil as unknown as React.Ref<SVGGElement>}>
+            <circle cx={wideEyes ? 75 : 77} cy={wideEyes ? 50 : 52} r={wideEyes ? 8.5 : 7.5} fill="#26221c" />
+            <circle cx={wideEyes ? 72 : 79.5} cy={wideEyes ? 45 : 49} r="2.6" fill="#ffffff" />
+          </g>
+          {/* párpados con parpadeo (solo en idle): transform-box moderno,
+              robusto en todos los navegadores de escritorio y móvil) */}
           {mood === "idle" && (
             <>
-              <circle cx="45" cy="50" r="16" fill="#6a63d8" style={{ transformOrigin: "45px 34px", animation: "blink 6s infinite" }} />
-              <circle cx="75" cy="50" r="16" fill="#6a63d8" style={{ transformOrigin: "75px 34px", animation: "blink 6s infinite" }} />
+              <circle cx="45" cy="50" r="16" fill="#6a63d8" className="lexico-lid" style={{ ["--lid-origin" as string]: "45px 34px" }} />
+              <circle cx="75" cy="50" r="16" fill="#6a63d8" className="lexico-lid" style={{ ["--lid-origin" as string]: "75px 34px" }} />
             </>
           )}
           {/* guiño */}
@@ -166,11 +254,21 @@ export function LexicoMascot({
           z z z
         </text>
       )}
+      {/* burbuja de ocurrencia al tocarle */}
+      {poked && (
+        <g className="anim-pop-3d">
+          <rect x="6" y="6" width="86" height="20" rx="9" fill="var(--card, #fff)" stroke="var(--border, #ddd)" strokeWidth="1.2" />
+          <path d="M34 26 l5 6 l2 -6 Z" fill="var(--card, #fff)" stroke="var(--border, #ddd)" strokeWidth="1.2" />
+          <text x="49" y="19.5" textAnchor="middle" fontSize="9.5" fontWeight="bold" fill="var(--foreground, #333)" fontFamily="system-ui, sans-serif">
+            {LEXICO_POKES[Math.floor(Date.now() / 60000) % LEXICO_POKES.length].slice(0, 42)}
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
 
-/** Burbuja de diálogo de Léxico con cierre manual y estado de ánimo. */
+/** Burbuja de diálogo de Léxico con entrada animada y halo hover (PC). */
 export function LexicoBubble({
   text,
   compact = false,
@@ -185,7 +283,7 @@ export function LexicoBubble({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-2xl border border-primary/20 bg-card p-3 pr-4 shadow-sm",
+        "card-aurora anim-slide-up flex items-start gap-3 rounded-2xl border border-primary/20 bg-card p-3 pr-4 shadow-sm transition-colors duration-300 hover:border-primary/40",
         compact && "p-2.5",
         className,
       )}
@@ -201,5 +299,5 @@ export function LexicoBubble({
 
 /** Mini réplica para HUD de partida: reacciona sin robar espacio. */
 export function LexicoMini({ mood, className }: { mood?: LexicoMood; className?: string }) {
-  return <LexicoMascot size={40} mood={mood} className={cn("shrink-0", className)} />;
+  return <LexicoMascot size={40} mood={mood} interactive={false} className={cn("shrink-0", className)} />;
 }

@@ -38,6 +38,16 @@ function hashToScreen(hash: string): Screen {
     juegos: "arcade",
     salon: "arcade",
     arcade: "arcade",
+    frases: "frases",
+    bitacora: "frases",
+    citas: "frases",
+    entrenar: "training",
+    entrenamientos: "training",
+    escritura: "writing",
+    taller: "writing",
+    mecanografia: "writing",
+    legal: "legal",
+    privacidad: "legal",
     resultados: "results",
     bienvenida: "welcome",
     evaluacion: "placement",
@@ -53,7 +63,7 @@ function hashToScreen(hash: string): Screen {
   }
   const known = [
     "welcome", "onboarding", "placement", "home", "map", "results",
-    "profile", "stats", "collection", "errors", "missions", "settings", "music", "shop", "library", "arcade",
+    "profile", "stats", "collection", "errors", "missions", "settings", "music", "shop", "library", "arcade", "frases", "training", "writing", "legal",
   ];
   if (head && (known as string[]).includes(head)) {
     return { name: head } as Screen;
@@ -69,6 +79,8 @@ interface UiStore {
   navCount: number;
   /** ID de desbloqueo/región abierta en el mapa (hoja lateral). */
   mapSheetRegion: string | null;
+  /** Palabra que debe entrar sí o sí en el próximo entrenamiento SRS (Palabra del Día). */
+  srsFocusWordId: string | null;
   /** Navega a una pantalla (apila en el historial del navegador). */
   navigate: (screen: Screen) => void;
   /** Retrocede una pantalla (si hay historial del navegador). */
@@ -76,6 +88,7 @@ interface UiStore {
   syncFromHash: () => void;
   setMapSheetRegion: (id: string | null) => void;
   setStationPlaying: (v: boolean) => void;
+  setSrsFocusWordId: (id: string | null) => void;
 }
 
 export const useUiStore = create<UiStore>((set, get) => ({
@@ -83,6 +96,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
   stationPlaying: false,
   navCount: 0,
   mapSheetRegion: null,
+  srsFocusWordId: null,
 
   navigate(screen) {
     const hash = screenToHash(screen);
@@ -110,6 +124,10 @@ export const useUiStore = create<UiStore>((set, get) => ({
 
   setStationPlaying(v) {
     set({ stationPlaying: v });
+  },
+
+  setSrsFocusWordId(id) {
+    set({ srsFocusWordId: id });
   },
 }));
 

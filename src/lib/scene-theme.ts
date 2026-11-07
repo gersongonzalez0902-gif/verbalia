@@ -187,7 +187,14 @@ export function themeForScreen(
     case "music":
       return { scene: "music" };
     case "arcade":
+    case "writing":
       return { scene: "arcade" };
+    case "training":
+      return { scene: activeRegionScene(level) };
+    case "legal":
+      return { scene: "library" };
+    case "frases":
+      return { scene: "library" };
     default:
       return { scene: "home", hue: SCENES[activeRegionScene(level)].hue };
   }

@@ -15,6 +15,7 @@ import { REGIONS, REGION_BY_ID } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { SRS_WORDS_FULL } from "@/data/content";
 import { dueCards } from "@/engine/session";
+import { buildRecommendedDestination } from "@/engine/session";
 import { ProgressRing, XpBar, LevelBadge, StreakBadge } from "@/components/game/widgets";
 import { LexicoBubble } from "@/components/game/lexico";
 import { LEXICO_GREETINGS, LEXICO_TIPS } from "@/data/companion";
@@ -27,8 +28,9 @@ import {
   BookOpen,
   ChartColumn,
   ChevronRight,
-  Droplets,
+  Dumbbell,
   Flame,
+  Keyboard,
   Gamepad2,
   Library,
   ListMusic,
@@ -36,7 +38,6 @@ import {
   Play,
   Quote,
   Settings as SettingsIcon,
-  ShoppingBag,
   Sparkles,
   Sprout,
   Target,
@@ -57,6 +58,8 @@ export function HomeScreen() {
   const due = useMemo(() => dueCards({ srs, now: Date.now() }), [srs]);
 
   const missions = useMemo(() => dailyProgress(core, today), [core, today]);
+  /** Misiones diarias completadas que esperan su recompensa en el apartado. */
+  const claimableMissions = missions.filter((m) => m.done && !m.claimed).length;
 
   const stationCount = useMusicStore((s) => s.tracks.length);
 
@@ -101,6 +104,12 @@ export function HomeScreen() {
       ? "Taller de estilo desbloqueado"
       : `Nivel ${REGION_BY_ID.forja.unlockLevel} · ${Math.max(0, REGION_BY_ID.forja.unlockLevel - level)} para abrir`
     : "";
+
+  /** Destino de la sesión recomendada: tarjetas vencidas si toca, o la región más floja. */
+  const recommended = useMemo(
+    () => buildRecommendedDestination({ srs, skills: core.skills, now: Date.now(), newCardsPerDay: settings.newCardsPerDay, seenExercises: core.seenExercises }, due.length),
+    [srs, core.skills, core.seenExercises, settings.newCardsPerDay, due.length],
+  );
 
   const unlockedRegions = REGIONS.filter((r) => r.games.length > 0 && level >= r.unlockLevel);
 
@@ -196,11 +205,16 @@ export function HomeScreen() {
           </p>
           <Button
             size="lg"
-            className="h-13 text-base"
-            onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "srs", mode: "training" }); }}
+            className="h-13 min-w-0 max-w-full text-base"
+            onClick={() => {
+              sfx.whoosh();
+              navigate({ name: "game", gameId: recommended.gameId, mode: recommended.mode, regionId: recommended.regionId });
+            }}
           >
-            <Play className="mr-2 h-5 w-5" aria-hidden />
-            {due.length >= 5 ? "Regar el jardín" : "Sesión recomendada"}
+            <Play className="mr-2 h-5 w-5 shrink-0" aria-hidden />
+            <span className="min-w-0 truncate">
+              {due.length >= 5 ? "Regar el jardín" : recommended.mode === "mission" ? `Misión: ${REGION_BY_ID[recommended.regionId!]?.name ?? "recomendada"}` : "Sesión recomendada"}
+            </span>
           </Button>
         </div>
       </section>
@@ -221,7 +235,12 @@ export function HomeScreen() {
           size="sm"
           variant="outline"
           className="shrink-0 text-xs font-bold"
-          onClick={() => { sfx.flip(); navigate({ name: "game", gameId: "srs", mode: "training" }); }}
+          onClick={() => {
+            sfx.flip();
+            // La palabra del día entra garantizada en la sesión de práctica.
+            useUiStore.getState().setSrsFocusWordId(palabraDelDia.id);
+            navigate({ name: "game", gameId: "srs", mode: "training" });
+          }}
         >
           Practicar
         </Button>
@@ -268,8 +287,13 @@ export function HomeScreen() {
       {/* ===== Misiones diarias ===== */}
       <section className="mt-6 lg:mt-0" aria-labelledby="missions-title">
         <div className="mb-2.5 flex items-center justify-between">
-          <h2 id="missions-title" className="font-display text-lg font-bold">
+          <h2 id="missions-title" className="font-display flex items-center gap-2 text-lg font-bold">
             Misiones de hoy
+            {claimableMissions > 0 && (
+              <span className="gloss numeric rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-primary-foreground">
+                {claimableMissions} por recoger
+              </span>
+            )}
           </h2>
           <button
             onClick={() => { sfx.click(); navigate({ name: "missions" }); }}
@@ -378,34 +402,51 @@ export function HomeScreen() {
         </div>
       </section>
 
-      {/* ===== Entrenamientos rápidos ===== */}
+      {/* ===== Entrenamientos: escaparate hacia su propio apartado ===== */}
       <section className="mt-6" aria-labelledby="training-title">
-        <h2 id="training-title" className="font-display mb-2.5 text-lg font-bold">
-          Entrenamiento rápido
-          <span className="ml-2 text-xs font-semibold text-muted-foreground">
-            {unlockedGameIds.length}/{GAME_IDS.length} desbloqueados
-          </span>
-        </h2>
-        <ul className="scroll-soft -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1.5" aria-label="Entrenamientos rápidos">
-          {unlockedGameIds.map((gid) => {
+        <div className="mb-2.5 flex items-center justify-between">
+          <h2 id="training-title" className="font-display text-lg font-bold">
+            Entrenamientos
+            <span className="ml-2 text-xs font-semibold text-muted-foreground">
+              {unlockedGameIds.length}/{GAME_IDS.length} abiertos
+            </span>
+          </h2>
+          <button
+            onClick={() => { sfx.click(); navigate({ name: "training" }); }}
+            className="flex items-center gap-0.5 text-sm font-bold text-primary transition hover:underline"
+          >
+            Ver todos <ChevronRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+        {/* Vitrina reducida: 6 formatos; el catálogo completo vive en su propia pantalla. */}
+        <ul className="stagger grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+          {unlockedGameIds.slice(0, 6).map((gid) => {
             const g = GAMES[gid];
             const Icon = getIcon(g.icon, Play);
             return (
               <li key={gid}>
-              <button
-                onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: gid, mode: "training" }); }}
-                className="tap-3d flex w-36 shrink-0 flex-col items-start gap-2 rounded-2xl border bg-card p-3.5 text-left"
-              >
-                <span className="chip-icon flex h-9 w-9 items-center justify-center rounded-xl">
-                  <Icon className="h-4.5 w-4.5" aria-hidden />
-                </span>
-                <span className="font-display text-sm font-bold leading-tight">{g.name}</span>
-                <span className="text-[11px] leading-snug text-muted-foreground">{g.tagline}</span>
-              </button>
+                <button
+                  onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: gid, mode: "training" }); }}
+                  className="tap-3d flex h-full w-full flex-col items-start gap-2 rounded-2xl border bg-card p-3.5 text-left"
+                >
+                  <span className="chip-icon flex h-9 w-9 items-center justify-center rounded-xl">
+                    <Icon className="h-4.5 w-4.5" aria-hidden />
+                  </span>
+                  <span className="font-display text-sm font-bold leading-tight">{g.name}</span>
+                  <span className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">{g.tagline}</span>
+                </button>
               </li>
             );
           })}
         </ul>
+        <button
+          onClick={() => { sfx.whoosh(); navigate({ name: "training" }); }}
+          className="tap-3d mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/30 px-4 py-3 text-sm font-bold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+        >
+          <Dumbbell className="h-4 w-4" aria-hidden />
+          Los {GAME_IDS.length} entrenamientos, con guías y estadísticas
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </button>
       </section>
 
       {/* ===== Accesos secundarios ===== */}
@@ -414,10 +455,10 @@ export function HomeScreen() {
         <QuickLink icon={NotebookPen} label="Errores" onClick={() => { sfx.click(); navigate({ name: "errors" }); }} hint={`${core.errors.length} pendientes`} />
         <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS_FULL.length}`} />
         <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => { sfx.click(); navigate({ name: "stats" }); }} hint={`${core.stats.totalSessions} sesiones`} />
-        <QuickLink icon={Gamepad2} label="Juegos" onClick={() => { sfx.whoosh(); navigate({ name: "arcade" }); }} hint="ajedrez y 22 más" />
+        <QuickLink icon={Gamepad2} label="Juegos" onClick={() => { sfx.whoosh(); navigate({ name: "arcade" }); }} hint="21 retos de mente" />
         <QuickLink icon={ListMusic} label="Estación" onClick={() => { sfx.click(); navigate({ name: "music" }); }} hint={`${stationCount} canciones`} />
-        <QuickLink icon={ShoppingBag} label="Bazar" onClick={() => { sfx.pop(); navigate({ name: "shop" }); }} hint={`${core.wallet.tinta} de tinta`} />
-        <QuickLink icon={Quote} label="Frase" onClick={() => { sfx.tap(); navigate({ name: "map" }); }} hint="del día" />
+        <QuickLink icon={Keyboard} label="Escritura" onClick={() => { sfx.whoosh(); navigate({ name: "writing" }); }} hint="tipeo y mecanografía" />
+        <QuickLink icon={Quote} label="Frases" onClick={() => { sfx.tap(); navigate({ name: "frases" }); }} hint="bitácora completa" />
       </section>
 
       {/* Consejo diario */}

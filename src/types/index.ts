@@ -65,6 +65,74 @@ export type ConectaGameId =
   | "conecta-torre"
   | "conecta-observatorio";
 
+/* ==== Mega-7 · 45 minijuegos nuevos (hasta 100 en total) ==== */
+
+/** Juegos de «elige la opción» (contexto opcional + 4 opciones). */
+export type EligeGameId =
+  | "analogias" // Puentes analógicos (Bosque)
+  | "colocaciones" // Parejas naturales de palabras (Bosque)
+  | "polisemia" // Un dos sentidos: significado en contexto (Bosque)
+  | "concordancia" // Acuerdos perfectos (Ciudad)
+  | "serestar" // Faro Ser/Estar (Ciudad)
+  | "porpara" // Brújula Por/Para (Ciudad)
+  | "subjuntivo" // Modo subjuntivo (Ciudad)
+  | "tiempos" // Reloj de tiempos verbales (Ciudad)
+  | "pronombres" // Relevo de pronombres (Ciudad)
+  | "relativos" // Prismas relativos (Ciudad)
+  | "estilo" // Eco directo: estilo directo→indirecto (Ciudad)
+  | "pasiva" // Voz pasiva (Ciudad)
+  | "genero" // Género y número (Ciudad)
+  | "homofonos" // Gemelos de sonido (Fortaleza)
+  | "cifras" // Números a letras (Fortaleza)
+  | "puntuacion" // Semáforo de puntuación (Fortaleza)
+  | "titulo" // El mejor titular (Biblioteca)
+  | "idea" // Idea central (Biblioteca)
+  | "resumen" // Resumen fiel (Biblioteca)
+  | "tono" // Termómetro de tono (Biblioteca)
+  | "inferencia" // Entre líneas (Biblioteca)
+  | "secuencia" // Línea de tiempo (Biblioteca)
+  | "proposito" // ¿Para qué se escribió? (Biblioteca)
+  | "vocabctx" // Detective de contexto (Biblioteca)
+  | "regiones" // Mapa de regionalismos (Observatorio)
+  | "falsosamigos" // Falsos amigos ES-EN (Observatorio)
+  | "iniciadores" // Chispa inicial (Torre)
+  | "cierre" // Cierre redondo (Torre)
+  | "descripciones"; // Retrato con palabras (Torre)
+
+/** Juegos de ordenar tocando en secuencia. */
+export type OrdenaGameId =
+  | "grados" // Escalera de grados: intensidad creciente (Bosque)
+  | "abecedario" // Orden alfabético (Bosque)
+  | "silabas"; // Taller de sílabas (Bosque)
+
+/** Juegos de clasificación en 3 cubos. */
+export type ClasificaGameId =
+  | "acentos" // Ritmo de acentos: aguda/llana/esdrújula (Bosque)
+  | "entonacion"; // Onda de entonación (Puerto)
+
+/** Juegos de escribir la respuesta. */
+export type EscribeLibreGameId =
+  | "definiciones" // Adivinanzas de diccionario (Bosque)
+  | "derivadas"; // Forja de palabras: raíz + afijos (Bosque)
+
+/** Juegos de selección múltiple (elige TODAS las correctas). */
+export type MultiGameId =
+  | "familias" // Familia de palabras (Bosque)
+  | "mayusculas"; // Coronas mayúsculas (Fortaleza)
+
+/** Duelos de grafías: elegir la letra correcta. */
+export type GrafiaGameId =
+  | "bv" // Batalla B-V (Fortaleza)
+  | "gj" // Duelo G-J (Fortaleza)
+  | "hach" // Caza de haches (Fortaleza)
+  | "lly" // Lío de Y-LL (Fortaleza)
+  | "csz"; // C-S-Z al acecho (Fortaleza)
+
+/** Juegos de escucha (TTS). */
+export type OyeNuevoGameId =
+  | "oye-acento" // Sílaba tónica al oído (Puerto)
+  | "oyenumero"; // Números al oído (Puerto)
+
 /** Minijuegos de la Forja del Escritor (Etapa 4 · «El Códice Infinito»). */
 export type ForjaGameId =
   | "metaforas" // Forja de Metáforas: completa la imagen literaria
@@ -99,6 +167,14 @@ export type GameId =
   | EscribeGameId
   | OyeGameId
   | ConectaGameId
+  // ---- Mega-7 · 45 minijuegos nuevos (hasta 100) ----
+  | EligeGameId
+  | OrdenaGameId
+  | ClasificaGameId
+  | EscribeLibreGameId
+  | MultiGameId
+  | GrafiaGameId
+  | OyeNuevoGameId
   // ---- Etapa 4 · Forja del Escritor ----
   | ForjaGameId;
 
@@ -367,6 +443,83 @@ export interface ConectaExercise extends ExerciseBase {
   pairs: { left: string; right: string }[];
 }
 
+/* ====================== Mega-7 · 45 juegos nuevos ====================== */
+
+/** Formato «elige»: contexto opcional (párrafo, frase…) + opciones. */
+export interface EligeExercise extends ExerciseBase {
+  type: EligeGameId;
+  /** Frase con «___» o párrafo de contexto (según el juego). */
+  context?: string;
+  /** Consigna corta que acompaña al contexto. */
+  question: string;
+  options: string[];
+  answerIndex: number;
+}
+
+/** Formato «ordena»: toca los elementos en el orden pedido. */
+export interface OrdenaExercise extends ExerciseBase {
+  type: OrdenaGameId;
+  /** Elementos en el ORDEN CORRECTO (la pantalla los baraja). */
+  items: string[];
+  /** Criterio que se pide (p. ej. «de menor a mayor intensidad»). */
+  criteria: string;
+}
+
+/** Formato «clasifica»: un elemento y 3 cubos de destino. */
+export interface ClasificaExercise extends ExerciseBase {
+  type: ClasificaGameId;
+  item: string;
+  buckets: string[];
+  answerIndex: number;
+}
+
+/** Formato «escribe libre»: teclea la palabra exacta (con pista). */
+export interface EscribeLibreExercise extends ExerciseBase {
+  type: EscribeLibreGameId;
+  clue: string;
+  word: string;
+  hint?: string;
+}
+
+/** Formato «multi»: marca TODAS las opciones correctas. */
+export interface MultiExercise extends ExerciseBase {
+  type: MultiGameId;
+  prompt: string;
+  statement?: string;
+  options: string[];
+  /** Índices correctos (2-3 de 4). */
+  answerIndexes: number[];
+}
+
+/** Duelo de grafías: palabra/frase con hueco y letras rivales. */
+export interface GrafiaExercise extends ExerciseBase {
+  type: GrafiaGameId;
+  /** Frase con «___» donde va la grafía dudosa. */
+  sentence: string;
+  /** Palabra completa correcta (se muestra al corregir). */
+  word: string;
+  options: string[];
+  answerIndex: number;
+}
+
+/** Escucha y marca la sílaba tónica. */
+export interface OyeAcentoExercise extends ExerciseBase {
+  type: "oye-acento";
+  word: string;
+  syllables: string[];
+  answerSyllable: number;
+}
+
+/** Escucha un número/fecha y elige su escritura o cifra. */
+export interface OyeNumeroExercise extends ExerciseBase {
+  type: "oyenumero";
+  /** Lo que suena (para TTS). */
+  speech: string;
+  /** Respuesta correcta en pantalla (cifras o letras). */
+  options: string[];
+  answerIndex: number;
+}
+
 export type Exercise =
   | TriviaExercise
   | PuzzleExercise
@@ -394,7 +547,16 @@ export type Exercise =
   | RegistroExercise
   | ConectoresExercise
   | IroniaExercise
-  | TitulosExercise;
+  | TitulosExercise
+  /* ---- Mega-7 · 45 juegos nuevos ---- */
+  | EligeExercise
+  | OrdenaExercise
+  | ClasificaExercise
+  | EscribeLibreExercise
+  | MultiExercise
+  | GrafiaExercise
+  | OyeAcentoExercise
+  | OyeNumeroExercise;
 
 /* ====================== Etapa 4 · Forja del Escritor ====================== */
 
@@ -596,8 +758,10 @@ export interface GameCore {
   sessions: SessionRecord[];
   /** Economía del Bazar: tinta, cosméticos y mejoras (Etapa 4). */
   wallet: Wallet;
-  /** Salón de Juegos Educativos: retos de lógica, ajedrez y damas. */
+  /** Salón de Juegos Educativos: retos de lógica, cálculo y reflejos. */
   arcade: ArcadeProgress;
+  /** Logros cuya recompensa ya fue recogida por el jugador. */
+  achievementsClaimed: string[];
 }
 
 /** Billetera del jugador: tinta ganada jugando y cosméticos comprados. */
@@ -612,6 +776,8 @@ export interface Wallet {
   title: string;
   /** Tinta gastada acumulada (para récords). */
   spent: number;
+  /** Día (YYYY-MM-DD) en que se reclamó el último regalo diario del Bazar. */
+  lastGiftDay: string;
 }
 
 export interface ErrorRecord {
@@ -627,7 +793,25 @@ export interface ErrorRecord {
 
 /* ============================== Salón de Juegos ============================== */
 
-/** Progreso en el Salón de Juegos Educativos (ajedrez, damas, retos…). */
+
+/** Récords del Taller de Escritura (mecanografía y tipeo). */
+export interface TypingStats {
+  /** Mejor velocidad registrada (palabras por minuto). */
+  bestWpm: number;
+  /** Mejor precisión registrada (0-100). */
+  bestAccuracy: number;
+  /** Pruebas de velocidad completadas. */
+  testsDone: number;
+  /** Palabras correctamente tecleadas en total. */
+  totalWords: number;
+  /** Racha de días consecutivos con al menos una prueba. */
+  streak: number;
+  /** Fecha (YYYY-MM-DD) de la última prueba. */
+  lastDay: string;
+  /** Ejercicios de teclas completados por nivel del teclado. */
+  drillsDone: number;
+}
+
 export interface ArcadeProgress {
   /** Juegos desbloqueados con tinta (los gratuitos no se guardan aquí). */
   unlocked: string[];
@@ -637,12 +821,10 @@ export interface ArcadeProgress {
   plays: Record<string, number>;
   /** Partidas jugadas por juego y día (para límites de XP). */
   playsByDay: Record<string, number>;
-  /** ELO aproximado del jugador contra el motor de ajedrez. */
-  chessElo: number;
-  /** Partidas de ajedrez: victorias / tablas / derrotas contra el motor. */
-  chessRecord: { w: number; d: number; l: number };
   /** Cosecha total de XP en el salón. */
   xpEarned: number;
+  /** Récords del Taller de Escritura. */
+  typing: TypingStats;
 }
 
 export interface PlayerProfile {
@@ -665,14 +847,23 @@ export interface PlayerProfile {
   placementDone: boolean;
 }
 
-/** Identificadores de paleta de color (tema). */
+/** Identificadores de paleta de color (tema). Las cuatro últimas son
+ *  premium: se desbloquean en el Bazar con tinta. */
 export type ThemeColorId =
   | "aurora"
   | "coral"
   | "miel"
   | "lavanda"
   | "oceano"
-  | "magenta";
+  | "magenta"
+  | "bosque"
+  | "atardecer"
+  | "turquesa"
+  | "ciruela"
+  | "midnight"
+  | "selva"
+  | "brasa"
+  | "perla";
 
 export interface GameSettings {
   reduceMotion: boolean;
@@ -724,6 +915,8 @@ export interface MissionDef {
   xpReward: number;
   /** Recompensa de escudo de racha (misión semanal). */
   shieldReward?: boolean;
+  /** Gotas de tinta extra al recoger la recompensa. */
+  tintaReward?: number;
 }
 
 export interface AchievementDef {
@@ -732,6 +925,8 @@ export interface AchievementDef {
   description: string;
   icon: string;
   xpReward: number;
+  /** Gotas de tinta que acompañan al XP al recoger el logro. */
+  tintaReward?: number;
   /** Evalúa si está cumplido. */
   check: (core: GameCore, ctx: AchievementCtx) => boolean;
   /** Progreso 0-1 para la UI (opcional). */
@@ -763,4 +958,8 @@ export type Screen =
   | { name: "music" }
   | { name: "shop" }
   | { name: "arcade" }
-  | { name: "library" };
+  | { name: "library" }
+  | { name: "frases" }
+  | { name: "training" }
+  | { name: "writing" }
+  | { name: "legal" };

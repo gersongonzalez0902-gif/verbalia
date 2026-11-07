@@ -36,6 +36,9 @@ const PARTICLES = Array.from({ length: 14 }, (_, i) => ({
   gold: prand(i, 29) > 0.45,
 }));
 
+/** Letras flotantes gigantes al fondo (solo escritorio): el mar de palabras. */
+const GHOST_LETTERS = ["A", "Ñ", "E", "R", "Z", "O", "L", "S", "T", "U"];
+
 export function AmbientBackdrop({
   /** Variable CSS de acento regional (p. ej. "--region-bosque"). */
   accentVar,
@@ -46,6 +49,30 @@ export function AmbientBackdrop({
 }) {
   return (
     <div aria-hidden className={cn("pointer-events-none fixed inset-0 z-0 overflow-hidden", className)}>
+      {/* ===== Capas solo escritorio: el fondo cobra vida en pantallas grandes ===== */}
+      <div className="hidden lg:block">
+        {GHOST_LETTERS.map((ch, i) => (
+          <span
+            key={`ghost-${ch}`}
+            className="ambient-ghost-letter font-display"
+            style={{
+              left: `${(i * 10.5 + prand(i, 41) * 6) % 96}%`,
+              top: `${8 + prand(i, 53) * 76}%`,
+              fontSize: `${8 + prand(i, 59) * 7}rem`,
+              animationDelay: `${-(prand(i, 61) * 30)}s`,
+              animationDuration: `${34 + prand(i, 67) * 22}s`,
+            }}
+          >
+            {ch}
+          </span>
+        ))}
+        <div className="ambient-rays" />
+        <svg className="ambient-islands" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden>
+          <path d="M0,190 Q120,150 240,175 T480,160 T720,185 T960,155 T1200,180 T1440,165 L1440,220 L0,220 Z" className="ambient-island-fill" />
+          <path d="M0,205 Q180,178 360,196 T720,188 T1080,198 T1440,190 L1440,220 L0,220 Z" className="ambient-island-fill ambient-island-near" />
+        </svg>
+      </div>
+      <div className="ambient-vignette hidden lg:block" />
       {/* Manchas de color que respiran */}
       {BLOBS.map((b, i) => (
         <div
