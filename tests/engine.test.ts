@@ -355,7 +355,8 @@ describe("misiones diarias y semanales", () => {
     core.stats.correctByDay[day] = 999;
     core.stats.sessionsByDay[day] = 999;
     core.stats.xpByDay[day] = 999;
-    core.stats.gamesByDay[day] = ["trivia", "puzzle", "cloze", "dictado", "refran"];
+    // 7 juegos reales: «md-explorador» puede pedir hasta 6 distintos.
+    core.stats.gamesByDay[day] = ["trivia", "puzzle", "cloze", "dictado", "refran", "matices", "sprint"];
     core.stats.regionsByDay[day] = ["bosque", "ciudad", "fortaleza"];
     core.stats.comboByDay[day] = 999;
     core.stats.srsReviewsByDay[day] = 999;

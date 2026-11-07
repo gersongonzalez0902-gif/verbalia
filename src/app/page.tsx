@@ -28,6 +28,7 @@ import { MusicStationScreen } from "@/screens/music-station";
 import { ShopScreen } from "@/screens/shop";
 import { ArcadeScreen } from "@/screens/arcade";
 import { PwaRegistration } from "@/components/game/pwa";
+import { Vitality } from "@/components/game/vitality";
 import { useSceneSystem } from "@/hooks/use-scene";
 import { Loader2 } from "lucide-react";
 import { LexicoMascot } from "@/components/game/lexico";
@@ -67,6 +68,7 @@ export default function Page() {
     return (
       <>
         <PwaRegistration />
+        <Vitality />
         {screen.name === "onboarding" ? (
           <OnboardingScreen />
         ) : screen.name === "placement" ? (
@@ -123,6 +125,8 @@ export default function Page() {
   return (
     <AppShell showChrome={!isGameplay}>
       <PwaRegistration />
+      {/* Capa viva de escritorio: aura del cursor, tilt 3D, reveal al scroll. */}
+      <Vitality />
       {/* Transición suave al cambiar de pantalla: el mapa cobra vida. */}
       <div key={screen.name} className={isGameplay ? undefined : "anim-screen flex min-h-0 flex-1 flex-col"}>
         {screenNode}

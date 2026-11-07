@@ -238,7 +238,7 @@ export function ArcadeScreen() {
                     <li key={g.id}>
                       <div
                         className={cn(
-                          "card-aurora group relative flex h-full flex-col gap-2.5 rounded-2xl border p-3.5 transition",
+                          "card-aurora tilt-hover group relative flex h-full flex-col gap-2.5 rounded-2xl border p-3.5 transition",
                           available ? "bg-card hover:border-primary/50" : "border-dashed bg-muted/30",
                         )}
                       >

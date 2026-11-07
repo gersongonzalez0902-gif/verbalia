@@ -130,9 +130,8 @@ export function ShopScreen() {
       <div
         key={id}
         className={cn(
-          "card-aurora relative flex flex-col rounded-2xl border-2 bg-card p-3.5 transition",
+          "card-aurora tilt-hover relative flex flex-col rounded-2xl border-2 bg-card p-3.5 transition",
           equipped && "border-primary/70 bg-primary/5",
-          !equipped && "hover:-translate-y-0.5",
           justBought === id && "anim-pop border-primary",
         )}
         style={!equipped ? { borderColor: meta.ring + "55" } : undefined}
