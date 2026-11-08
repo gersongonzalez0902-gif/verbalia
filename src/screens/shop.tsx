@@ -24,7 +24,7 @@ import {
   type ShopKind,
 } from "@/engine/shop";
 import { useToast } from "@/hooks/use-toast";
-import { DAILY_GIFT_TINTA, claimDailyGift, dailyGiftPending, featuredShopItem, msUntilNextGift, PREMIUM_PALETTES } from "@/engine/shop";
+import { DAILY_GIFT_TINTA, dailyGiftPending, featuredShopItem, msUntilNextGift, PREMIUM_PALETTES } from "@/engine/shop";
 import { Gift, Star } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
@@ -86,11 +86,10 @@ export function ShopScreen() {
   const profile = useGameStore((s) => s.profile);
   const buyShopItem = useGameStore((s) => s.buyShopItem);
   const equipShopItem = useGameStore((s) => s.equipShopItem);
+  const claimDailyTinta = useGameStore((s) => s.claimDailyTinta);
   const navigate = useUiStore((s) => s.navigate);
   const { toast } = useToast();
   const [justBought, setJustBought] = useState<string | null>(null);
-  const [giftClaimedFlash, setGiftClaimedFlash] = useState(false);
-  void giftClaimedFlash; // feedback visual instantáneo vía toast + botón deshabilitado
 
   const wallet = core.wallet;
   const owned = useMemo(() => new Set(wallet.owned), [wallet.owned]);
@@ -314,14 +313,10 @@ export function ShopScreen() {
             disabled={!giftPending}
             className="font-bold"
             onClick={() => {
-              const outcome = claimDailyGift(core);
-              if (outcome.ok) {
-                sfx.tinta();
-                sfx.gift();
-                setGiftClaimedFlash(true);
-                window.setTimeout(() => setGiftClaimedFlash(false), 1600);
-                toast({ title: `+${DAILY_GIFT_TINTA} de tinta`, description: "El Copista sonríe: mañana habrá más." });
-              }
+              if (!claimDailyTinta()) return;
+              sfx.tinta();
+              sfx.gift();
+              toast({ title: `+${DAILY_GIFT_TINTA} de tinta`, description: "El Copista sonríe: mañana habrá más." });
             }}
           >
             <Droplets className="mr-1.5 h-4 w-4" aria-hidden />

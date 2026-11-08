@@ -453,7 +453,7 @@ export function SettingsScreen() {
           <div className="mt-4 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-3.5">
             <p className="text-sm font-bold">Migrar a otro dispositivo</p>
             <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              1) <strong>Exporta</strong> la copia aquí y guarda el archivo JSON.
+              1) <strong>Exporta</strong> la copia aquí y guarda el archivo descargado en lugar seguro.
               2) En el otro dispositivo, abre VerbalIA → Ajustes → <strong>Importar copia</strong>.
               La copia incluye perfil, ajustes, XP, logros, tarjetas y racha.
             </p>
@@ -773,7 +773,7 @@ function VaultSection() {
 
       <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
         El servidor no guarda contraseñas, correos ni cookies de sesión: solo sobres cifrados
-        que caducan solos. Para máxima privacidad, sigue disponible la exportación manual de JSON.
+        que caducan solos. Para máxima privacidad, sigue disponible la copia manual en tu dispositivo.
       </p>
     </section>
   );

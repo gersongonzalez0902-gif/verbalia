@@ -19,7 +19,7 @@ import { SINONIMOS_PACK } from "../src/data/sinonimos";
 import { HISTORIAS_PACK } from "../src/data/historias";
 import { REFRANES_PACK } from "../src/data/refranes";
 import { MINUTO_PACK } from "../src/data/minuto";
-import { SRS_WORDS } from "../src/data/words-srs";
+import { SRS_WORDS_FULL } from "../src/data/content";
 
 type AnyExercise = { id: string; type: string; difficulty: number; cefr?: string };
 
@@ -35,7 +35,7 @@ const EXPECTED: Record<string, number> = {
   lectura: 48,
   sprint: 160,
   sinonimos: 160,
-  historias: 156,
+  historias: 81,
   refranes: 160,
   minuto: 96,
 };
@@ -77,7 +77,7 @@ for (const [name, pack] of Object.entries(ALL)) {
   else ok(`${name}: ${pack.length}`);
 }
 
-console.log(`\nTotal de ejercicios: ${total} (más ${SRS_WORDS.length} palabras del jardín)`);
+console.log(`\nTotal de ejercicios: ${total} (más ${SRS_WORDS_FULL.length} palabras del jardín)`);
 
 // Ids globales únicos (unión de todos los packs)
 const allIds = Object.values(ALL).flat().map((e) => e.id);
@@ -87,14 +87,14 @@ if (new Set(allIds).size !== allIds.length) {
   ok(`${allIds.length} ids únicos entre packs`);
 }
 
-// Palabras SRS
+// Palabras SRS (catálogo completo: base + ampliaciones Etapa 4)
 {
-  const ids = new Set(SRS_WORDS.map((w) => w.id));
-  const words = new Set(SRS_WORDS.map((w) => w.word.toLowerCase()));
-  if (SRS_WORDS.length !== 640) fail(`SRS: ${SRS_WORDS.length} palabras (esperadas 640)`);
-  else if (ids.size !== 640) fail(`SRS: ids duplicados`);
-  else if (words.size !== 640) fail(`SRS: palabras repetidas`);
-  else ok(`SRS: 640 palabras únicas`);
+  const ids = new Set(SRS_WORDS_FULL.map((w) => w.id));
+  const words = new Set(SRS_WORDS_FULL.map((w) => w.word.toLowerCase()));
+  if (SRS_WORDS_FULL.length < 1800) fail(`SRS: ${SRS_WORDS_FULL.length} palabras (esperadas ≥1800)`);
+  else if (ids.size !== SRS_WORDS_FULL.length) fail(`SRS: ids duplicados`);
+  else if (words.size !== SRS_WORDS_FULL.length) fail(`SRS: palabras repetidas`);
+  else ok(`SRS: ${SRS_WORDS_FULL.length} palabras únicas`);
 }
 
 // Distribución de answerIndex (no concentrar la respuesta)

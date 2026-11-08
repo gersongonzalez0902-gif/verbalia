@@ -32,7 +32,7 @@ export const REGIONS: RegionInfo[] = [
     skill: "vocabulario",
     unlockLevel: 1,
     stage: 1,
-    games: ["srs", "trivia", "sprint", "sinonimos", "memoria-bosque", "intruso-bosque", "escribe-bosque", "vf-bosque", "oye-bosque", "acentos", "silabas", "analogias", "colocaciones", "grados", "polisemia", "derivadas", "familias", "abecedario", "definiciones"],
+    games: ["srs", "trivia", "sprint", "sinonimos", "memoria-bosque", "intruso-bosque", "escribe-bosque", "conecta-bosque", "vf-bosque", "oye-bosque", "acentos", "silabas", "analogias", "colocaciones", "grados", "polisemia", "derivadas", "familias", "abecedario", "definiciones"],
     map: { x: 22.4, y: 32 },
     icon: "TreePine",
     colorVar: "--region-bosque",

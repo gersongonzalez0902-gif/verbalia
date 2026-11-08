@@ -11,7 +11,7 @@ import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArcadePanel, BigChoice, ComboBadge, FlashMsg, useCountdown, useInterval, type ArcadeGameProps } from "./shared";
+import { ArcadePanel, BigChoice, ComboBadge, FlashMsg, useCountdown, useInterval, shuffle, type ArcadeGameProps } from "./shared";
 import { Lightbulb, Send } from "lucide-react";
 
 /* ============================ Mates Relámpago ============================ */
@@ -325,7 +325,7 @@ export function TypingGame({ def, onFinish, onExit }: ArcadeGameProps) {
       sfx.sessionWin();
       onFinish(score, { subtitle: `${wpm} palabras/min · ${Math.round(accuracy)}% de precisión` });
     }
-  }, [done, started]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [done, started]);  
 
   const correctSoFar = (i: number) => typed[i] === text[i];
 
@@ -394,7 +394,7 @@ function scrambleWord(w: string): string {
   let out = w;
   let guard = 0;
   while (out === w && guard++ < 20) {
-    out = w.split("").sort(() => Math.random() - 0.5).join("");
+    out = shuffle(w.split("")).join("");
   }
   return out;
 }
@@ -405,30 +405,28 @@ export function AnagramGame({ def, onFinish, onExit }: ArcadeGameProps) {
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [flash, setFlash] = useState<{ m: string; ok: boolean } | null>(null);
-  const [timeLeft, setTimeLeft] = useState(25);
+  // Ronda nueva = cuenta atrás nueva (el propio fin de cuenta dispara la
+  // transición desde un callback, no desde un efecto sincrónico).
+  const [roundKey, setRoundKey] = useState(0);
 
   const puzzle = useMemo(() => scrambleWord(target), [target]);
-
-  useEffect(() => {
-    if (timeLeft <= 0) {
+  const timeLeft = useCountdown(
+    25,
+    lives > 0,
+    () => {
       sfx.wrong();
       setFlash({ m: `Era «${target}»`, ok: false });
       setLives((l) => l - 1);
-      setTimeLeft(25);
       setTarget(ANAGRAM_WORDS[Math.floor(Math.random() * ANAGRAM_WORDS.length)]);
+      setRoundKey((k) => k + 1);
       setTimeout(() => setFlash(null), 1200);
-    }
-  }, [timeLeft, target]);
+    },
+    roundKey,
+  );
 
   useEffect(() => {
     if (lives <= 0) onFinish(score, { subtitle: "La marea se llevó tres palabras." });
   }, [lives, onFinish, score]);
-
-  useEffect(() => {
-    if (lives <= 0) return;
-    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearInterval(id);
-  }, [lives, target]);
 
   const submit = () => {
     if (!draft.trim()) return;
@@ -438,7 +436,7 @@ export function AnagramGame({ def, onFinish, onExit }: ArcadeGameProps) {
       sfx.correct();
       setFlash({ m: `+${gained}`, ok: true });
       setTarget(ANAGRAM_WORDS[Math.floor(Math.random() * ANAGRAM_WORDS.length)]);
-      setTimeLeft(25);
+      setRoundKey((k) => k + 1);
     } else {
       sfx.wrong(true);
       setFlash({ m: "Casi… intenta de nuevo", ok: false });
@@ -494,6 +492,10 @@ const FAUNA: { w: string; hint: string }[] = [
 
 const MAX_ERR = 7;
 
+/** Vocales con tilde → vocal base (la ñ sigue siendo ñ). */
+const VOWEL_BASE: Record<string, string> = { á: "a", é: "e", í: "i", ó: "o", ú: "u", ü: "u" };
+const baseOf = (c: string) => VOWEL_BASE[c] ?? c;
+
 export function HangmanGame({ def, onFinish, onExit }: ArcadeGameProps) {
   const [round, setRound] = useState(() => FAUNA[Math.floor(Math.random() * FAUNA.length)]);
   const [guessed, setGuessed] = useState<string[]>([]);
@@ -503,40 +505,42 @@ export function HangmanGame({ def, onFinish, onExit }: ArcadeGameProps) {
 
   const letters = useMemo(() => "abcdefghijklmnñopqrstuvwxyz".split(""), []);
 
-  const won = round.w.split("").every((c) => c === " " || guessed.includes(c));
+  const won = round.w.split("").every((c) => c === " " || guessed.includes(baseOf(c)));
   const lost = errors >= MAX_ERR;
-
-  useEffect(() => {
-    if (!won && !lost) return;
-    if (won) {
-      const gained = 40 - errors * 4 + streak * 5;
-      setScore((s) => s + Math.max(10, gained));
-      setStreak((s) => s + 1);
-      sfx.sessionWin();
-    } else {
-      sfx.sessionLose();
-    }
-    const t = setTimeout(() => {
-      if (lost && streak === 0 && score === 0) {
-        onFinish(Math.max(5, score), { subtitle: `La palabra era «${round.w}».` });
-      } else if (lost) {
-        onFinish(score, { subtitle: `Racha de ${streak} animales. La última era «${round.w}».` });
-      } else {
-        setRound(FAUNA[Math.floor(Math.random() * FAUNA.length)]);
-        setGuessed([]);
-        setErrors(0);
-      }
-    }, 1300);
-    return () => clearTimeout(t);
-  }, [won, lost]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const guess = (letter: string) => {
     if (guessed.includes(letter) || won || lost) return;
-    setGuessed((g) => [...g, letter]);
-    if (round.w.includes(letter)) sfx.correct(1);
-    else {
+    const nextGuessed = [...guessed, letter];
+    setGuessed(nextGuessed);
+    if (round.w.split("").some((c) => baseOf(c) === letter)) {
+      sfx.correct(1);
+      // ¿Palabra completa? La victoria se celebra desde el propio evento.
+      const nowWon = round.w.split("").every((c) => c === " " || nextGuessed.includes(baseOf(c)));
+      if (nowWon) {
+        const gained = 40 - errors * 4 + streak * 5;
+        setScore((s) => s + Math.max(10, gained));
+        setStreak((s) => s + 1);
+        sfx.sessionWin();
+        setTimeout(() => {
+          setRound(FAUNA[Math.floor(Math.random() * FAUNA.length)]);
+          setGuessed([]);
+          setErrors(0);
+        }, 1300);
+      }
+    } else {
       sfx.wrong(true);
-      setErrors((e) => e + 1);
+      const nextErrors = errors + 1;
+      setErrors(nextErrors);
+      if (nextErrors >= MAX_ERR) {
+        sfx.sessionLose();
+        setTimeout(() => {
+          if (streak === 0 && score === 0) {
+            onFinish(Math.max(5, score), { subtitle: `La palabra era «${round.w}».` });
+          } else {
+            onFinish(score, { subtitle: `Racha de ${streak} animales. La última era «${round.w}».` });
+          }
+        }, 1300);
+      }
     }
   };
 
@@ -550,7 +554,7 @@ export function HangmanGame({ def, onFinish, onExit }: ArcadeGameProps) {
           {round.w.split("").map((c, i) =>
             c === " " ? (
               <span key={i} className="w-6" />
-            ) : guessed.includes(c) ? (
+            ) : guessed.includes(baseOf(c)) ? (
               <span key={i} className="anim-pop text-primary">{c}</span>
             ) : (
               <span key={i} className="text-muted-foreground/40">_</span>
@@ -560,7 +564,7 @@ export function HangmanGame({ def, onFinish, onExit }: ArcadeGameProps) {
         <div className="grid max-w-md grid-cols-9 gap-1">
           {letters.map((l) => {
             const hit = guessed.includes(l);
-            const good = hit && round.w.includes(l);
+            const good = hit && round.w.split("").some((c) => baseOf(c) === l);
             return (
               <button
                 key={l}

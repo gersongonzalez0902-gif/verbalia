@@ -7,6 +7,7 @@
 
 import { create } from "zustand";
 import type { Screen } from "@/types";
+import { GAMES } from "@/data/games";
 
 function screenToHash(screen: Screen): string {
   switch (screen.name) {
@@ -54,10 +55,16 @@ function hashToScreen(hash: string): Screen {
   };
   const head = ES_ALIASES[headRaw ?? ""] ?? headRaw;
   if (head === "juego" && a) {
+    // Validación: un gameId o modo desconocido en la URL (enlaces viejos,
+    // typos) lleva a inicio en vez de dejar la pantalla en blanco.
+    const gameId = a as Screen & { name: "game" } extends never ? never : string;
+    const mode = (b ?? "training") as "mission" | "training" | "review" | "placement";
+    const modeOk = ["mission", "training", "review", "placement"].includes(mode);
+    if (!(gameId in GAMES) || !modeOk) return { name: "home" };
     return {
       name: "game",
-      gameId: a as Screen & { name: "game" } extends never ? never : string,
-      mode: (b ?? "training") as "mission" | "training" | "review" | "placement",
+      gameId,
+      mode,
       regionId: c,
     } as unknown as Screen;
   }

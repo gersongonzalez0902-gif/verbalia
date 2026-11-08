@@ -94,7 +94,7 @@ export function ProfileScreen() {
   const saveIdentity = () => {
     updateProfile({ name: nameDraft.trim() || profile.name, bio: bioDraft.slice(0, 160) });
     setEditing(false);
-    sfx.pop();
+    sfx.stamp();
     toast({ title: "Perfil actualizado", description: "La bitácora ya luce tus cambios." });
   };
 
@@ -108,7 +108,7 @@ export function ProfileScreen() {
     a.download = `verbalia-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast({ title: "Copia exportada", description: "Archivo JSON descargado con todo tu progreso." });
+    toast({ title: "Copia exportada", description: "Tu copia de seguridad se ha descargado con todo el progreso." });
   };
 
   const doImport = async (file: File) => {

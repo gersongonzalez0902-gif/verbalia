@@ -41,8 +41,8 @@ export function ResultsScreen() {
     if (acc === null || acc >= 0.7) sfx.sessionWin();
     else sfx.sessionEnd();
     if (result.leveledUp || result.newAchievements.length > 0) {
-      // Un destello extra tras la fanfarria.
-      setTimeout(() => sfx.levelUp(), 700);
+      // Un destello extra tras la fanfarria (y confeti sonoro si sube de nivel).
+      setTimeout(() => { sfx.levelUp(); if (result.leveledUp) sfx.confetti(); }, 700);
     }
   }, [result]);
 

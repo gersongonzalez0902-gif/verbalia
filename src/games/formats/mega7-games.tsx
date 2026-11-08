@@ -129,6 +129,7 @@ export function EligeGame(props: useGameProps<EligeExercise>) {
 export function OrdenaGame(props: useGameProps<OrdenaExercise>) {
   const { item, onAnswer, disabled } = props;
   const answeredRef = useRef(false);
+  const [answered, setAnswered] = useState(false);
   const [picked, setPicked] = useState<number[]>([]);
 
   // Baraja determinista de los ítems.
@@ -146,6 +147,7 @@ export function OrdenaGame(props: useGameProps<OrdenaExercise>) {
     if (next.length === item.items.length) {
       const correct = next.every((v, i) => v === correctOrder[i]);
       answeredRef.current = true;
+      setAnswered(true);
       onAnswer({
         correct,
         userAnswer: next.map((i) => item.items[i]).join(" → "),
@@ -197,7 +199,7 @@ export function OrdenaGame(props: useGameProps<OrdenaExercise>) {
         ))}
       </div>
 
-      {picked.length > 0 && !answeredRef.current && (
+      {picked.length > 0 && !answered && (
         <button onClick={undoLast} className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition hover:text-foreground">
           <Eraser className="h-3.5 w-3.5" aria-hidden /> Deshacer último
         </button>

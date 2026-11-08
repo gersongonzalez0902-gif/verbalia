@@ -12,10 +12,12 @@ import { useMemo, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
-import { getIcon } from "@/components/game/icons";
+import { ICONS } from "@/components/game/icons";
 import { sfx } from "@/services/audio";
 import { GAMES, GAME_IDS, type GameInfo } from "@/data/games";
 import { REGIONS, SKILL_COLORS } from "@/data/regions";
+import { levelFromXp } from "@/engine/xp";
+import { SRS_WORDS_FULL } from "@/data/content";
 import { totalPoolOf } from "@/data/pool-loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,17 +60,8 @@ export function TrainingScreen() {
   const [skillFilter, setSkillFilter] = useState<SkillId | "todos">("todos");
   const [detail, setDetail] = useState<GameInfo | null>(null);
 
-  /* Nivel del jugador, calculado en local: subir de n a n+1 cuesta
-     100 + (n-1)·40 XP, con tope en el nivel 60. */
-  const level = useMemo(() => {
-    let lv = 1;
-    let remaining = core.xp;
-    while (lv < 60 && remaining >= 100 + (lv - 1) * 40) {
-      remaining -= 100 + (lv - 1) * 40;
-      lv++;
-    }
-    return lv;
-  }, [core.xp]);
+  /* Nivel del jugador: la misma curva del motor (una sola fuente de verdad). */
+  const level = useMemo(() => levelFromXp(core.xp), [core.xp]);
 
   /** Región (y nivel de desbloqueo) que custodia cada minijuego. */
   const gameRegion = useMemo(() => {
@@ -89,7 +82,7 @@ export function TrainingScreen() {
         const region = gameRegion.get(id) ?? null;
         const unlocked = !region || level >= region.unlockLevel;
         const stat = core.stats.byGame[id];
-        const pool = id === "srs" ? 1844 : totalPoolOf(id);
+        const pool = id === "srs" ? SRS_WORDS_FULL.length : totalPoolOf(id);
         return { g, region, unlocked, stat, pool };
       }),
     [core.stats.byGame, gameRegion, level],
@@ -200,7 +193,7 @@ export function TrainingScreen() {
         ) : (
           <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map(({ g, region, unlocked, stat, pool }) => {
-              const Icon = getIcon(g.icon);
+              const Icon = ICONS[g.icon] ?? Sparkles;
               const color = SKILL_COLORS[g.skill];
               return (
                 <li key={g.id}>
@@ -311,7 +304,7 @@ function GameDetail({
   unlocked: boolean;
   onPlay: () => void;
 }) {
-  const Icon = getIcon(game.icon);
+  const Icon = ICONS[game.icon] ?? Sparkles;
   const color = SKILL_COLORS[game.skill];
   const skillLabel = SKILL_FILTERS.find((f) => f.id === game.skill)?.label ?? game.skill;
   const minutes = Math.max(2, Math.round((game.secondsPerItem * (game.timeLimit ? 8 : 10)) / 60));

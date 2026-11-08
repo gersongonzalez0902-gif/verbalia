@@ -384,7 +384,7 @@ export function applyArcadeScore(
       ...core.arcade,
       best: { ...core.arcade.best, [gameId]: Math.max(prevBest, score) },
       plays: { ...core.arcade.plays, [gameId]: (core.arcade.plays[gameId] ?? 0) + 1 },
-      playsByDay: { ...core.arcade.playsByDay, [key]: (core.arcade.playsByDay?.[key] ?? 0) + xp },
+      playsByDay: prunePlaysByDay({ ...core.arcade.playsByDay, [key]: (core.arcade.playsByDay?.[key] ?? 0) + xp }, dayOf(now)),
       xpEarned: (core.arcade.xpEarned ?? 0) + xp,
     },
     stats: {
@@ -393,6 +393,18 @@ export function applyArcadeScore(
     },
   };
   return { core: next, xp, tinta, isRecord };
+}
+
+/** Poda del registro diario «YYYY-MM-DD:juego»: se conservan 400 días. */
+function prunePlaysByDay(map: NonNullable<GameCore["arcade"]["playsByDay"]>, today: string): GameCore["arcade"]["playsByDay"] {
+  const [y, m, d] = today.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() - 400);
+  const cutoff = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+  for (const key of Object.keys(map)) {
+    if (key.slice(0, 10) < cutoff) delete map[key];
+  }
+  return map;
 }
 
 
@@ -429,8 +441,11 @@ export function applyTypingTest(
   // Racha diaria del taller: +1 si es un día nuevo consecutivo.
   let streak = t.streak;
   if (t.lastDay !== today) {
-    const yesterday = dayOf(now - 86_400_000);
-    streak = t.lastDay === yesterday ? t.streak + 1 : 1;
+    // Ayer por fecha local (seguro frente a cambios de hora DST:
+    // nunca resta un fijo de 24 h).
+    const y = new Date(now);
+    y.setDate(y.getDate() - 1);
+    streak = t.lastDay === dayOf(y.getTime()) ? t.streak + 1 : 1;
   }
   const next: GameCore = {
     ...core,

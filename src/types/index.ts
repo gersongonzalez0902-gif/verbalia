@@ -59,6 +59,7 @@ export type OyeGameId =
   | "oye-puerto";
 
 export type ConectaGameId =
+  | "conecta-bosque"
   | "conecta-ciudad"
   | "conecta-biblioteca"
   | "conecta-puerto"

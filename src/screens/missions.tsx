@@ -14,7 +14,8 @@ import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { dailyProgress, weeklyProgress, daysOfWeek, weekKey, dateKey, type MissionProgress } from "@/engine/missions";
 import { ACHIEVEMENTS, ACHIEVEMENTS_BY_ID, LEVEL_ACHIEVEMENTS } from "@/data/achievements";
-import { getIcon } from "@/components/game/icons";
+import { ICONS } from "@/components/game/icons";
+import { Sparkles } from "lucide-react";
 import { useSoundEffects } from "@/components/game/game-shell";
 import { Confetti } from "@/components/game/widgets";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,8 +55,9 @@ export function MissionsScreen() {
   const wKey = weekKey(now);
   const weekDays = daysOfWeek(now);
 
+  const weekKeyJoined = weekDays.join();
   const daily = useMemo(() => dailyProgress(core, today), [core, today]);
-  const weekly = useMemo(() => weeklyProgress(core, wKey, weekDays), [core, wKey, weekDays.join()]);
+  const weekly = useMemo(() => weeklyProgress(core, wKey, weekDays), [core, wKey, weekKeyJoined]);
 
   const readyDaily = daily.filter((m) => m.done && !m.claimed);
   const readyWeekly = weekly.filter((m) => m.done && !m.claimed);
@@ -225,7 +227,7 @@ export function MissionsScreen() {
                 const got = Boolean(core.achievements[a.id]);
                 const claimed = got && (core.achievementsClaimed ?? []).includes(a.id);
                 const canClaim = got && !claimed;
-                const Icon = getIcon(a.icon);
+                const Icon = ICONS[a.icon] ?? Sparkles;
                 const prog = Math.min(1, a.progress ? a.progress(core, { masteredWords: 0, learnedWords: 0, now: Date.now() }) : got ? 1 : 0);
                 return (
                   <li
@@ -298,7 +300,7 @@ function MissionRow({
 }) {
   const { mission: m, current, target, done, claimed } = progress;
   const pct = Math.min(1, current / target);
-  const Icon = getIcon(m.icon);
+  const Icon = ICONS[m.icon] ?? Sparkles;
   return (
     <div
       className={cn(

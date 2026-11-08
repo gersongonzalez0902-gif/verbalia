@@ -66,7 +66,7 @@ export async function ensureGamePool(gameId: string): Promise<void> {
     if (loadedGroups.has(group)) return;
     let p = pending.get(group);
     if (!p) {
-      p = (async () => {
+      const load = (async () => {
         const loader = groupLoaders[group];
         const packs = await loader();
         for (const [gid, list] of Object.entries(packs)) {
@@ -79,6 +79,13 @@ export async function ensureGamePool(gameId: string): Promise<void> {
         loadedGroups.add(group);
         pending.delete(group);
       })();
+      // Si la descarga falla (p. ej. sin conexión), se retira la promesa
+      // rechazada para que un intento posterior pueda volver a intentarla
+      // en vez de quedar atascado hasta recargar la página.
+      p = load.catch((err) => {
+        pending.delete(group);
+        throw err;
+      });
       pending.set(group, p);
     }
     await p;

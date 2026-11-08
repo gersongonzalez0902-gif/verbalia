@@ -4,12 +4,11 @@ import { dateKey } from "./missions";
 /**
  * Motor de rachas flexibles.
  * - Un día cuenta con ≥ 1 sesión completada.
- * - Si se rompe la racha pero hay escudos (máx. 2), se consume uno
- *   y la racha sobrevive sin fricción ni aviso ansioso.
- * - Los escudos se ganan con la misión semanal de constancia.
+ * - Si se rompe la racha pero hay escudos (se apilan hasta 3, ver
+ *   MAX_SHIELDS en tienda), se consume uno y la racha sobrevive
+ *   sin fricción ni aviso ansioso.
+ * - Los escudos se ganan con la misión semanal de constancia o se compran.
  */
-
-export const MAX_SHIELDS = 2;
 
 export interface StreakOutcome {
   streak: GameCore["streak"];
@@ -56,9 +55,4 @@ export function updateStreak(core: GameCore, now: Date): StreakOutcome {
   streak.lastActiveDay = today;
   streak.best = Math.max(streak.best, streak.current);
   return { streak, shieldUsed, started };
-}
-
-/** Otorga un escudo (máx. MAX_SHIELDS). Devuelve el nuevo valor. */
-export function grantShield(core: GameCore): number {
-  return Math.min(MAX_SHIELDS, core.streak.shields + 1);
 }

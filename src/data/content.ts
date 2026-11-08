@@ -2,6 +2,7 @@ import type { Exercise, SkillId } from "@/types";
 import { TRIVIA_PACK } from "./trivia";
 import { CLOZE_PACK } from "./cloze";
 import { TILDES_PACK } from "./tildes";
+import { TILDES_PACK_X } from "./gen/tildes-x";
 import { ERRORS_PACK } from "./errors-hunt";
 import { PUZZLE_PACK } from "./puzzles";
 import { PARAGRAPHS_PACK } from "./paragraphs";
@@ -22,6 +23,7 @@ import { TRIVIA_PACK_X } from "./gen/trivia-x";
 import { CLOZE_PACK_X } from "./gen/cloze-x";
 import { DICTADO_PACK_X } from "./gen/dictado-x";
 import { ERRORS_PACK_X } from "./gen/errors-hunt-x";
+import { ERRORS_PACK_Y } from "./gen/errors-hunt-y";
 import { MATICES_PACK_X } from "./gen/matices-x";
 import { LECTURA_PACK_X } from "./gen/lectura-x";
 import { MINUTO_PACK_X } from "./gen/minuto-x";
@@ -35,6 +37,7 @@ import { VF_PACKS } from "./formats/verdadero-falso";
 import { ESCRIBE_PACKS } from "./formats/escribe";
 import { OYE_PACKS } from "./formats/oye";
 import { CONECTA_PACKS } from "./formats/conecta";
+import { CONECTA_BOSQUE_X } from "./gen/conecta-bosque-x";
 // ---- Etapa 4 · Forja del Escritor (estilo y retórica) ----
 import { FORJA_PACKS } from "./forja";
 // ---- Etapa 4 · palabras SRS ampliadas ----
@@ -121,8 +124,8 @@ export const ALL_EXERCISES: Exercise[] = [
   ...TRIVIA_PACK, ...TRIVIA_PACK_X,
   ...PUZZLE_PACK,
   ...CLOZE_PACK, ...CLOZE_PACK_X,
-  ...ERRORS_PACK, ...ERRORS_PACK_X,
-  ...TILDES_PACK,
+  ...ERRORS_PACK, ...ERRORS_PACK_X, ...ERRORS_PACK_Y,
+  ...TILDES_PACK, ...TILDES_PACK_X,
   ...PARAGRAPHS_PACK,
   // ---- Etapa 2 ----
   ...DICTADO_PACK, ...DICTADO_PACK_X,
@@ -140,7 +143,7 @@ export const ALL_EXERCISES: Exercise[] = [
   ...VF_PACKS,
   ...ESCRIBE_PACKS,
   ...OYE_PACKS,
-  ...CONECTA_PACKS,
+  ...CONECTA_PACKS, ...CONECTA_BOSQUE_X,
   // ---- Etapa 4 · Forja del Escritor ----
   ...FORJA_PACKS,
   // ---- Mega-7 · 45 minijuegos nuevos ----

@@ -48,8 +48,14 @@ export function FrasesScreen() {
     });
   }, [tag, query]);
 
-  // Al cambiar el filtro, reiniciamos la ventana visible.
-  useEffect(() => setVisible(CHUNK), [tag, query]);
+  // Al cambiar el filtro se reinicia la ventana visible. Ajuste durante el
+  // render (patrón oficial) en vez de efecto: sin repintado en cascada.
+  const [listKey, setListKey] = useState(`${tag}|${query}`);
+  const key = `${tag}|${query}`;
+  if (listKey !== key) {
+    setListKey(key);
+    setVisible(CHUNK);
+  }
 
   // Carga incremental: un centinela al final dispara el siguiente bloque.
   useEffect(() => {

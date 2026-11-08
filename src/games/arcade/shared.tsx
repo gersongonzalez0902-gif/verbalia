@@ -11,7 +11,8 @@ import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ProgressRing } from "@/components/game/widgets";
-import { getIcon } from "@/components/game/icons";
+import { ICONS } from "@/components/game/icons";
+import { Sparkles } from "lucide-react";
 import {
   ChevronLeft,
   Coins,
@@ -61,7 +62,8 @@ export function ArcadePanel({
   children: React.ReactNode;
   accentVar?: string;
 }) {
-  const Icon = getIcon(def.icon);
+  // Icono estable del registro (indexar el mapa evita crear componentes en render).
+  const Icon = ICONS[def.icon] ?? Sparkles;
   const urgent = timeLeft !== undefined && timeMax !== undefined && timeLeft <= 5;
 
   return (
@@ -235,33 +237,31 @@ export function GameOverPanel({
 /* ============================ utilidades ============================ */
 
 /** Temporizador de cuenta atrás en segundos (con pausa automática al desmontar). */
-export function useCountdown(seconds: number, running: boolean, onEnd?: () => void) {
+export function useCountdown(seconds: number, running: boolean, onEnd?: () => void, resetKey?: unknown) {
   const [left, setLeft] = useState(seconds);
-  const ended = useRef(false);
   const endRef = useRef(onEnd);
-  endRef.current = onEnd;
-
+  // El callback se refresca en un efecto (nunca durante el render), así que
+  // la closure que ve el final de la cuenta siempre lleva el estado vigente.
   useEffect(() => {
-    setLeft(seconds);
-    ended.current = false;
-  }, [seconds]);
+    endRef.current = onEnd;
+  });
 
+  // Cuenta por ticks locales: el fin dispara el callback desde el propio
+  // evento del intervalo (sin setState síncrono dentro de efectos) y cambia
+  // de ronda sola cuando seconds o resetKey cambian.
   useEffect(() => {
     if (!running) return;
+    let remaining = Math.round(seconds * 10);
     const id = setInterval(() => {
-      setLeft((v) => {
-        if (v <= 0.1) {
-          if (!ended.current) {
-            ended.current = true;
-            endRef.current?.();
-          }
-          return 0;
-        }
-        return v - 0.1;
-      });
+      remaining -= 1;
+      setLeft(Math.max(0, remaining / 10));
+      if (remaining <= 0) {
+        clearInterval(id);
+        endRef.current?.();
+      }
     }, 100);
     return () => clearInterval(id);
-  }, [running]);
+  }, [running, seconds, resetKey]);
 
   return left;
 }
@@ -274,14 +274,16 @@ export function useStopwatch(running: boolean) {
     const t0 = performance.now() - ms;
     const id = setInterval(() => setMs(performance.now() - t0), 50);
     return () => clearInterval(id);
-  }, [running]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [running]);  
   return ms;
 }
 
 /** Intervalo con callback estable: evita re-crear temporizadores. */
 export function useInterval(cb: () => void, ms: number | null) {
   const ref = useRef(cb);
-  ref.current = cb;
+  useEffect(() => {
+    ref.current = cb;
+  });
   useEffect(() => {
     if (ms === null) return;
     const id = setInterval(() => ref.current(), ms);

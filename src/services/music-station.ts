@@ -234,7 +234,7 @@ export const useMusicStore = create<MusicStore>((set, get) => {
     eventsAttached = true;
     a.addEventListener("ended", () => {
       if (get().repeatMode === "one") {
-        void a.play();
+        void a.play().catch(() => {}); // autoplay bloqueado: se ignora en silencio
         return;
       }
       get().next(true);

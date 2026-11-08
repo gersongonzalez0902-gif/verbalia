@@ -22,7 +22,7 @@ import type {
 import { createCore, reduceSessionComplete, computePlacement } from "@/engine/core";
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { EMPTY_PROFILE, migrateProfile, migrateCore } from "@/engine/migrate";
-import { applyPurchase, applyEquip, claimDailyGift } from "@/engine/shop";
+import { applyPurchase, applyEquip, claimDailyGift, MAX_SHIELDS } from "@/engine/shop";
 import { dailyMissions, weeklyMissions, metricValue, dateKey, weekKey, daysOfWeek } from "@/engine/missions";
 import { levelFromXp } from "@/engine/xp";
 import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
@@ -317,7 +317,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         } as GameCore["missions"],
       };
       if (def.shieldReward) {
-        next = { ...next, streak: { ...next.streak, shields: Math.min(3, next.streak.shields + 1) } };
+        next = { ...next, streak: { ...next.streak, shields: Math.min(MAX_SHIELDS, next.streak.shields + 1) } };
       }
       set({ core: next });
       persist(true);

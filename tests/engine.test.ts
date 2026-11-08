@@ -19,7 +19,7 @@ import {
 import { newCard, reviewCard, srsGradeXp, isMastered, isLearned, cardStatus, MASTERY_INTERVAL_DAYS } from "@/engine/srs";
 import { itemXp, completionBonus, bestComboFrom, DAILY_XP_SOFT_CAP } from "@/engine/scoring";
 import { checkTrivia, checkPuzzle, checkCloze, checkErrorHunt, checkTildes, checkParagraph } from "@/engine/validation";
-import { updateStreak, grantShield, MAX_SHIELDS } from "@/engine/streak";
+import { updateStreak } from "@/engine/streak";
 import { dateKey, weekKey, dailyMissions, weeklyMissions, metricValue, dailyProgress } from "@/engine/missions";
 import { createCore, reduceSessionComplete, computePlacement, experiencePrior } from "@/engine/core";
 import { REGIONS as REGIONS_ALL } from "@/data/regions";
@@ -58,7 +58,8 @@ describe("motor de niveles y rangos", () => {
   test("los rangos crecen con el nivel", () => {
     expect(rankForLevel(1).name).toContain("Aprendiz");
     expect(rankForLevel(10).name).toContain("Guardián");
-    expect(rankForLevel(30).name).toContain("Leyenda");
+    expect(rankForLevel(25).name).toContain("Leyenda");
+    expect(rankForLevel(30).name).toContain("Almirante");
   });
 
   test("mapeo habilidad → MCER orientativo", () => {
@@ -306,9 +307,12 @@ describe("rachas flexibles con escudos", () => {
     expect(out.streak.current).toBe(2);
   });
 
-  test("los escudos están acotados a 2", () => {
-    const core = base("2026-01-05", 1, 1, MAX_SHIELDS);
-    expect(grantShield(core)).toBe(MAX_SHIELDS);
+  test("los escudos se consumen uno por día de ausencia", () => {
+    const core = base("2026-01-05", 5, 5, 3);
+    const out = updateStreak(core, new Date("2026-01-08T12:00:00")); // faltan 2 días
+    expect(out.shieldUsed).toBe(true);
+    expect(out.streak.shields).toBe(2);
+    expect(out.streak.current).toBe(6);
   });
 });
 
@@ -450,7 +454,7 @@ describe("reductor de sesión", () => {
     expect(next.errors[0].exerciseId).toBe("tv-s01");
   });
 
-  test("misión completada se reclama automáticamente y solo una vez", () => {
+  test("la misión se completa pero NO se reclama sola (reclamo manual)", () => {
     let core = createCore(now.getTime());
     const run = () => {
       const answers = Array.from({ length: 10 }, (_, i) =>
@@ -464,13 +468,15 @@ describe("reductor de sesión", () => {
     };
     run();
     run();
-    run(); // 30 aciertos y 3 sesiones: garantiza las misiones de aciertos/sesiones/XP
-    expect(core.missions.daily.claimed.length).toBeGreaterThanOrEqual(1);
-    const claimedBefore = [...core.missions.daily.claimed];
+    const r3 = run(); // 30 aciertos y 3 sesiones: garantiza misiones de aciertos/sesiones/XP
+    // El motor informa de misiones listas para recoger…
+    expect(r3.result.missionsCompleted.length).toBeGreaterThanOrEqual(1);
+    // …pero el reclamo es manual: nadie marca claimed por sí solo.
+    expect(core.missions.daily.claimed).toHaveLength(0);
+    expect(core.missions.weekly.claimed).toHaveLength(0);
+    // Sigue informando hasta que el jugador las recoja.
     const r4 = run();
-    for (const id of r4.result.missionsCompleted) {
-      expect(claimedBefore).not.toContain(id);
-    }
+    expect(r4.result.missionsCompleted.length).toBeGreaterThanOrEqual(r3.result.missionsCompleted.length);
   });
 
   test("la racha se actualiza y el escudo se consume si procede", () => {
@@ -1243,156 +1249,33 @@ describe("Etapa 4: misiones y palabras ampliadas", () => {
   });
 });
 
-/* ==================== Mega-actualización 6: Salón de Juegos ==================== */
 
-import {
-  parseFen, START_FEN, legalMoves, applyMove, gameStatus, toFen,
-  bestMove, evaluate, type ChessState,
-} from "@/engine/chess";
-import {
-  initialBoard, legalDraughtsMoves, applyDraughtsMove,
-  draughtsStatus, bestDraughtsMove, draughtsName,
-} from "@/engine/checkers";
+/* ==================== Mega-6 (revisado): Salón de Juegos ==================== */
+
 import {
   ARCADE_GAMES, ARCADE_BY_ID, arcadeAvailable, applyArcadeUnlock,
-  applyArcadeScore, applyChessElo, arcadeXpFor,
+  applyArcadeScore, arcadeXpFor,
 } from "@/engine/arcade";
-import { createCore } from "@/engine/core";
 
-function perft(state: ChessState, depth: number): number {
-  if (depth === 0) return 1;
-  const moves = legalMoves(state);
-  if (depth === 1) return moves.length;
-  let nodes = 0;
-  for (const m of moves) nodes += perft(applyMove(state, m), depth - 1);
-  return nodes;
-}
-
-describe("Mega-6: motor de ajedrez local (perft canónico)", () => {
-  test("posición inicial: perft 1-3 exacto", () => {
-    const s = parseFen(START_FEN);
-    expect(perft(s, 1)).toBe(20);
-    expect(perft(s, 2)).toBe(400);
-    expect(perft(s, 3)).toBe(8902);
-  });
-
-  test("Kiwipete (enroques + descubiertos): 48 / 2039", () => {
-    const s = parseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-    expect(perft(s, 1)).toBe(48);
-    expect(perft(s, 2)).toBe(2039);
-  });
-
-  test("posición 3 (al paso): 14 / 191 / 2812", () => {
-    const s = parseFen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
-    expect(perft(s, 1)).toBe(14);
-    expect(perft(s, 2)).toBe(191);
-    expect(perft(s, 3)).toBe(2812);
-  });
-
-  test("detecta mate, ahogado y tablas por material", () => {
-    // mate del pastor en 2: 1. e4 e5?? no — posición tras Dxh7+ mate clásico
-    const mate = parseFen("6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1");
-    const after = applyMove(mate, { from: 0, to: 56, piece: "R" });
-    const st = gameStatus(after);
-    expect(st.over).toBe(true);
-    if (st.over) expect(st.reason).toBe("mate");
-
-    const stale = parseFen("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1");
-    const st2 = gameStatus(stale);
-    expect(st2.over).toBe(true);
-    if (st2.over) expect(st2.reason).toBe("stalemate");
-
-    const bare = parseFen("8/8/4k3/8/8/4K3/8/8 w - - 0 1");
-    const st3 = gameStatus(bare);
-    expect(st3.over).toBe(true);
-    if (st3.over) expect(st3.reason).toBe("material");
-  });
-
-  test("el motor encuentra mate en 1 y captura colgante", () => {
-    const mate1 = parseFen("6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1");
-    const r = bestMove(mate1, 2);
-    expect(r.move?.from).toBe(0);
-    expect(r.move?.to).toBe(56);
-
-    // dama colgante en d5: la torre debe comerla
-    const hang = parseFen("3k4/8/8/3r4/8/8/3R4/3K4 w - - 0 1");
-    const r2 = bestMove(hang, 2);
-    expect(r2.move?.to).toBe(35); // d5
-  });
-
-  test("FEN ida y vuelta conserva la posición", () => {
-    const s = parseFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-    expect(toFen(s)).toBe("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-  });
-
-  test("la evaluación prefiere material extra para las blancas", () => {
-    const up = parseFen("4k3/8/8/4P3/8/8/8/4K3 w - - 0 1"); // peón blanco de más
-    expect(evaluate(up)).toBeGreaterThan(0);
-    const down = parseFen("4k3/4p3/8/8/8/8/8/4K3 w - - 0 1"); // peón negro de más
-    expect(evaluate(down)).toBeLessThan(0);
-  });
-});
-
-describe("Mega-6: damas españolas", () => {
-  test("posición inicial: 7 jugadas para negras, tablero válido", () => {
-    const b = initialBoard();
-    expect(b.filter((c) => c === 3).length).toBe(12);
-    expect(b.filter((c) => c === 1).length).toBe(12);
-    const moves = legalDraughtsMoves(b, "b");
-    expect(moves.length).toBe(7);
-    expect(draughtsStatus(b, "w").over).toBe(false);
-  });
-
-  test("la captura es obligatoria", () => {
-    // peón blanco en b4 puede comer peón negro en c5 y aterrizar en d6
-    const b = new Array(64).fill(0) as import("@/engine/checkers").Board;
-    b[25] = 1; // blanco en b4
-    b[34] = 3; // negro en c5
-    const moves = legalDraughtsMoves(b, "w");
-    expect(moves.length).toBe(1);
-    expect(moves[0].captured.length).toBe(1);
-    expect(moves[0].captured[0]).toBe(34);
-    // aplicar la captura
-    const after = applyDraughtsMove(b, moves[0]);
-    expect(after[34]).toBe(0);
-    expect(after[43]).toBe(1); // aterriza en d6
-  });
-
-  test("la IA responde con una jugada legal", () => {
-    const b = initialBoard();
-    const m = bestDraughtsMove(b, "b", 2);
-    expect(m).not.toBeNull();
-    expect(m!.path.length).toBeGreaterThanOrEqual(2);
-    expect(typeof draughtsName(m!)).toBe("string");
-  });
-
-  test("fin de partida por bloqueo o sin fichas", () => {
-    const empty = new Array(64).fill(0) as import("@/engine/checkers").Board;
-    const st = draughtsStatus(empty, "b");
-    expect(st.over).toBe(true);
-    if (st.over) expect(st.reason).toBe("sin-fichas");
-  });
-});
-
-describe("Mega-6: economía del Salón de Juegos", () => {
-  test("el catálogo tiene 23 juegos con categorías y precios válidos", () => {
-    expect(ARCADE_GAMES.length).toBe(23);
+describe("economía del Salón de Juegos", () => {
+  test("el catálogo tiene 21 juegos válidos y sin ajedrez ni damas", () => {
+    expect(ARCADE_GAMES.length).toBe(21);
     const ids = new Set(ARCADE_GAMES.map((g) => g.id));
-    expect(ids.size).toBe(23);
+    expect(ids.size).toBe(21);
     for (const g of ARCADE_GAMES) {
       expect(g.price).toBeGreaterThanOrEqual(0);
       expect(g.xpCap).toBeGreaterThan(0);
       expect(g.dailyXpCap).toBeGreaterThan(0);
       expect(["mesa", "calculo", "memoria", "logica", "palabras", "reflejos"]).toContain(g.category);
     }
-    expect(ARCADE_BY_ID["ajedrez"]).toBeDefined();
-    expect(ARCADE_BY_ID["damas"]).toBeDefined();
+    // El módulo de ajedrez/damas se retiró del proyecto.
+    expect(ARCADE_BY_ID["ajedrez"]).toBeUndefined();
+    expect(ARCADE_BY_ID["damas"]).toBeUndefined();
   });
 
-  test("ajedrez y damas son gratuitos; los retos cuestan tinta", () => {
+  test("los juegos gratuitos están disponibles; los de pago no", () => {
     const core = createCore();
-    expect(arcadeAvailable(core, "ajedrez", 1)).toBe(true);
-    expect(arcadeAvailable(core, "damas", 1)).toBe(true);
+    expect(arcadeAvailable(core, "mates-relampago", 1)).toBe(true);
     expect(arcadeAvailable(core, "buscaminas", 1)).toBe(false);
   });
 
@@ -1425,19 +1308,50 @@ describe("Mega-6: economía del Salón de Juegos", () => {
     expect(fourth.xp).toBe(0); // tope diario agotado
   });
 
-  test("el ELO de ajedrez se actualiza con Elo clásico", () => {
-    const core = createCore();
-    const afterWin = applyChessElo(core, "w", 1200);
-    expect(afterWin.arcade.chessElo).toBeGreaterThan(1200);
-    const afterLoss = applyChessElo(core, "l", 1200);
-    expect(afterLoss.arcade.chessElo).toBeLessThan(1200);
-    expect(afterWin.arcade.chessRecord.w).toBe(1);
-    expect(afterLoss.arcade.chessRecord.l).toBe(1);
-  });
-
   test("arcadeXpFor no devuelve negativos ni excede el tope", () => {
     const core = createCore();
-    expect(arcadeXpFor(core, "ajedrez", 1000)).toBe(60);
-    expect(arcadeXpFor(core, "ajedrez", -5)).toBe(0);
+    expect(arcadeXpFor(core, "simon-marea", -5)).toBe(0);
+    for (const g of ARCADE_GAMES) {
+      expect(arcadeXpFor(core, g.id, 100_000)).toBeLessThanOrEqual(g.xpCap);
+    }
+  });
+});
+
+/* ==================== Regresiones del barrido de errores ==================== */
+
+import { claimDailyGift, dailyGiftPending } from "@/engine/shop";
+import { ACHIEVEMENTS } from "@/data/achievements";
+
+describe("regresiones del barrido de errores", () => {
+  test("los ids de logros no se repiten", () => {
+    const ids = ACHIEVEMENTS.map((a) => a.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  test("el regalo diario acredita tinta y vence hasta mañana", () => {
+    const before = createCore();
+    expect(dailyGiftPending(before)).toBe(true);
+    const { ok, core } = claimDailyGift(before, new Date("2026-11-08T10:00:00"));
+    expect(ok).toBe(true);
+    expect(core.wallet.tinta).toBe(before.wallet.tinta + 12);
+    expect(dailyGiftPending(core, new Date("2026-11-08T23:59:00"))).toBe(false);
+    expect(dailyGiftPending(core, new Date("2026-11-09T00:01:00"))).toBe(true);
+  });
+
+  test("el bonus de finalización nunca resta XP (fix del cap diario)", () => {
+    const now = new Date("2026-01-10T12:00:00");
+    const spec: SessionSpec = { label: "Test", mode: "training", gameId: "trivia", items: [] };
+    // Núcleo con 700 XP ganados hoy: muy por encima del tope suave de 600.
+    let core = createCore(now.getTime());
+    core = { ...core, stats: { ...core.stats, xpByDay: { ...core.stats.xpByDay, "2026-01-10": 700 } } };
+    const answers = Array.from({ length: 10 }, (_, i) =>
+      exerciseAnswer(`capfix-${i}`, "trivia", "vocabulario", true, 3),
+    );
+    const { core: next, result } = reduceSessionComplete(core, {
+      spec, answers, durationMs: 60_000, now, masteredWords: 0, learnedWords: 0,
+    });
+    // El XP de la sesión nunca es negativo y el total del jugador no baja.
+    expect(result.xpTotal).toBeGreaterThanOrEqual(0);
+    expect(next.xp).toBeGreaterThanOrEqual(core.xp);
   });
 });

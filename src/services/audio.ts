@@ -1005,11 +1005,6 @@ export const sfx = {
     bell(392, 0, 1.6, 0.06);
     bell(587, 0.3, 1.2, 0.03);
   },
-  splash() {
-    if (!enabled) return;
-    noiseBurst(0, 0.3, 900, 0.06, "lowpass");
-    noiseBurst(0.05, 0.25, 2400, 0.02, "bandpass");
-  },
   page() {
     if (!enabled) return;
     noiseBurst(0, 0.16, 3800, 0.035, "bandpass", 0.8);
@@ -1067,19 +1062,6 @@ export const sfx = {
     bell(1319, 0.18, 0.7, 0.03);
   },
   /* ------- Salón de Juegos Educativos ------- */
-  /** Pieza que avanza: golpe seco de madera. */
-  move() {
-    if (!enabled) return;
-    tone(vary(180), 0, 0.07, 0.07, "sine");
-    noiseBurst(0, 0.045, 600, 0.025, "lowpass");
-  },
-  /** Pieza capturada: golpe doble con brillo. */
-  capture() {
-    if (!enabled) return;
-    tone(vary(150), 0, 0.06, 0.07, "sine");
-    tone(vary(240), 0.05, 0.08, 0.06, "triangle");
-    noiseBurst(0, 0.07, 900, 0.03, "lowpass");
-  },
   /** Ficha que resbala (2048, deslizables). */
   slide() {
     if (!enabled) return;
@@ -1087,11 +1069,6 @@ export const sfx = {
     tone(vary(300), 0.06, 0.05, 0.03, "sine");
   },
   /* ------- Mega-8 · capa sonora ampliada ------- */
-  /** Aleteo suave al pasar el cursor (muy bajo volumen). */
-  hover() {
-    if (!enabled) return;
-    tone(vary(720), 0, 0.025, 0.014, "sine");
-  },
   /** Recogida de recompensa: caja fuerte + monedas. */
   claim() {
     if (!enabled) return;

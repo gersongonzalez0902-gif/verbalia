@@ -6,8 +6,9 @@ import { levelFromXp } from "./xp";
 /**
  * Motor de misiones diarias y semanales.
  * Generación determinista a partir de la fecha (misma lista todo el día),
- * progreso derivado de los contadores diarios/semanales (sin estado extra),
- * y reclamo automático de recompensas.
+ * progreso derivado de los contadores diarios/semanales (sin estado extra).
+ * Las misiones se completan solas, pero la recompensa se recoge a mano
+ * en el apartado de Misiones (reclamo manual).
  */
 
 export function dateKey(d: Date): string {
@@ -22,7 +23,6 @@ export function weekKey(d: Date): string {
   const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const day = (date.getDay() + 6) % 7; // lunes = 0
   date.setDate(date.getDate() - day + 3); // jueves de la semana ISO
-  const iso = date.toISOString().slice(0, 10);
   const isoWeek = isoweekNumber(date);
   return `${date.getFullYear()}-W${`${isoWeek}`.padStart(2, "0")}`;
 }

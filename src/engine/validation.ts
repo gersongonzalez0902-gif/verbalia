@@ -1,4 +1,30 @@
-import type { AnswerRecord } from "@/types";
+import type {
+  AnswerRecord,
+  ClozeExercise,
+  ConectaExercise,
+  DictadoExercise,
+  ErrorHuntExercise,
+  EscribeExercise,
+  IntrusoExercise,
+  IroniaExercise,
+  MemoriaExercise,
+  MinutoExercise,
+  OyeExercise,
+  ParagraphExercise,
+  PuzzleExercise,
+  SorteaExercise,
+  TildeExercise,
+  TitulosExercise,
+  TriviaExercise,
+  VfExercise,
+} from "@/types";
+
+/** Ejercicio de opciones con índice: forma mínima que comparten los
+ *  juegos «elige la opción» (Matices, Sprint, Elige, Forja, …). */
+interface OptionIndexExercise {
+  options: string[];
+  answerIndex: number;
+}
 
 /**
  * Motor de validación de respuestas.
@@ -18,7 +44,7 @@ function normalizeText(s: string): string {
 }
 
 /** Trivia: clase gramatical elegida vs. correcta (comparación insensible a mayúsculas). */
-export function checkTrivia(exercise: any, chosen: string): ValidationResult {
+export function checkTrivia(exercise: TriviaExercise, chosen: string): ValidationResult {
   const norm = (s: string) => s.trim().toLowerCase();
   return {
     correct: norm(chosen) === norm(exercise.answer),
@@ -28,7 +54,7 @@ export function checkTrivia(exercise: any, chosen: string): ValidationResult {
 }
 
 /** Puzzle sintáctico: orden de fragmentos (array de índices originales). */
-export function checkPuzzle(exercise: any, order: number[]): ValidationResult {
+export function checkPuzzle(exercise: PuzzleExercise, order: number[]): ValidationResult {
   const correct = order.length === exercise.chunks.length && order.every((v, i) => v === i);
   return {
     correct,
@@ -38,7 +64,7 @@ export function checkPuzzle(exercise: any, order: number[]): ValidationResult {
 }
 
 /** Cloze: índice de opción elegida. */
-export function checkCloze(exercise: any, optionIndex: number): ValidationResult {
+export function checkCloze(exercise: ClozeExercise, optionIndex: number): ValidationResult {
   return {
     correct: optionIndex === exercise.answerIndex,
     userAnswer: exercise.options[optionIndex] ?? "—",
@@ -48,7 +74,7 @@ export function checkCloze(exercise: any, optionIndex: number): ValidationResult
 
 /** Caza de errores: palabra elegida + corrección elegida. */
 export function checkErrorHunt(
-  exercise: any,
+  exercise: ErrorHuntExercise,
   tokenIndex: number | "none",
   correctionIndex: number | null,
 ): ValidationResult {
@@ -83,7 +109,7 @@ export function checkErrorHunt(
 }
 
 /** Tribunal de las Tildes: sílaba elegida (-1 = no lleva). */
-export function checkTildes(exercise: any, syllableIndex: number): ValidationResult {
+export function checkTildes(exercise: TildeExercise, syllableIndex: number): ValidationResult {
   const correct = syllableIndex === exercise.answerSyllable;
   const label = (i: number) => (i === -1 ? "no lleva tilde" : `«${exercise.syllables[i]}»`);
   return {
@@ -94,7 +120,7 @@ export function checkTildes(exercise: any, syllableIndex: number): ValidationRes
 }
 
 /** Constructor de párrafos: orden de oraciones (índices originales). */
-export function checkParagraph(exercise: any, order: number[]): ValidationResult {
+export function checkParagraph(exercise: ParagraphExercise, order: number[]): ValidationResult {
   const correct = order.length === exercise.sentences.length && order.every((v, i) => v === i);
   return {
     correct,
@@ -118,7 +144,7 @@ export function normalizeDictado(s: string): string {
     .replace(/[.!?…]+$/, "");
 }
 
-export function checkDictado(exercise: any, typed: string): ValidationResult {
+export function checkDictado(exercise: DictadoExercise, typed: string): ValidationResult {
   const correct = normalizeDictado(typed) === normalizeDictado(exercise.sentence);
   return {
     correct,
@@ -168,7 +194,7 @@ export function dictadoDiff(typed: string, sentence: string): DictadoDiffToken[]
 }
 
 /** Ecos del Puerto / Lectura / Sprint / Sinónimos / Refranes / Historias: índice de opción. */
-export function checkOptionIndex(exercise: any, chosenIndex: number): ValidationResult {
+export function checkOptionIndex(exercise: OptionIndexExercise, chosenIndex: number): ValidationResult {
   const correct = chosenIndex === exercise.answerIndex;
   return {
     correct,
@@ -183,11 +209,11 @@ export function checkOptionIndex(exercise: any, chosenIndex: number): Validation
  * esfuerzo real (palabras) y de la autoevaluación con criterios.
  */
 export function checkMinuto(
-  exercise: any,
+  exercise: MinutoExercise,
   wordCount: number,
   checkedCriteria: number,
 ): Omit<ValidationResult, "correct"> & { correct: boolean | null; grade: "again" | "hard" | "good" | "easy" } {
-  const goal = exercise.wordGoal ?? 40;
+  const goal = exercise.wordGoal > 0 ? exercise.wordGoal : 40;
   const criteria = exercise.criteria?.length ?? 3;
   let grade: "again" | "hard" | "good" | "easy";
   if (wordCount < 5) grade = "again";
@@ -213,7 +239,7 @@ export function toAnswerRecord(
 /* ============================ Etapa 3 · nuevos formatos ============================ */
 
 /** El Intruso: índice de la palabra intrusa. */
-export function checkIntruso(exercise: any, chosenIndex: number): ValidationResult {
+export function checkIntruso(exercise: IntrusoExercise, chosenIndex: number): ValidationResult {
   const correct = chosenIndex === exercise.answerIndex;
   return {
     correct,
@@ -223,7 +249,7 @@ export function checkIntruso(exercise: any, chosenIndex: number): ValidationResu
 }
 
 /** Clasifica (sortea): índice del cubo elegido. */
-export function checkSortea(exercise: any, bucketIndex: number): ValidationResult {
+export function checkSortea(exercise: SorteaExercise, bucketIndex: number): ValidationResult {
   const correct = bucketIndex === exercise.answerIndex;
   return {
     correct,
@@ -233,7 +259,7 @@ export function checkSortea(exercise: any, bucketIndex: number): ValidationResul
 }
 
 /** Verdadero o falso: booleano directo. */
-export function checkVf(exercise: any, chosen: boolean): ValidationResult {
+export function checkVf(exercise: VfExercise, chosen: boolean): ValidationResult {
   return {
     correct: chosen === exercise.answer,
     userAnswer: chosen ? "Verdadero" : "Falso",
@@ -251,13 +277,17 @@ function normalizeEscribe(s: string): string {
  * (el juego es ortográfico); tolerante con tildes en el resto (la
  * palabra correcta se acepta aunque falte el acento escrito).
  */
-export function checkEscribe(exercise: any, typed: string): ValidationResult {
-  const target = exercise.word as string;
+export function checkEscribe(
+  /** Forma mínima estructural: la comparten EscribeExercise y EscribeLibreExercise. */
+  exercise: Pick<EscribeExercise, "word"> & { type: string },
+  typed: string,
+): ValidationResult {
+  const target = exercise.word;
   const norm = normalizeEscribe(typed);
   const strict = norm === normalizeEscribe(target);
   const loose = norm.normalize("NFD").replace(/\p{Diacritic}/gu, "") ===
     normalizeEscribe(target).normalize("NFD").replace(/\p{Diacritic}/gu, "");
-  const isOrtografia = (exercise.type as string).startsWith("escribe-fortaleza");
+  const isOrtografia = exercise.type === "escribe-fortaleza";
   const correct = isOrtografia ? strict : strict || loose;
   return {
     correct,
@@ -267,7 +297,7 @@ export function checkEscribe(exercise: any, typed: string): ValidationResult {
 }
 
 /** Oye: la escritura elegida (cadena) frente a la palabra correcta. */
-export function checkOye(exercise: any, chosen: string): ValidationResult {
+export function checkOye(exercise: OyeExercise, chosen: string): ValidationResult {
   return {
     correct: chosen === exercise.word,
     userAnswer: chosen,
@@ -280,7 +310,7 @@ export function checkOye(exercise: any, chosen: string): ValidationResult {
  * intentos. El decaimiento anti-farmeo del motor se ocupa de las
  * repeticiones de un mismo tablero.
  */
-export function checkMemoria(exercise: any, attempts: number): ValidationResult {
+export function checkMemoria(exercise: MemoriaExercise, attempts: number): ValidationResult {
   return {
     correct: true,
     userAnswer: `${attempts} intentos`,
@@ -289,7 +319,7 @@ export function checkMemoria(exercise: any, attempts: number): ValidationResult 
 }
 
 /** Conecta: cooperativo; registra los fallos de conexión. */
-export function checkConecta(exercise: any, mistakes: number): ValidationResult {
+export function checkConecta(exercise: ConectaExercise, mistakes: number): ValidationResult {
   return {
     correct: true,
     userAnswer: mistakes === 0 ? "sin fallos" : `${mistakes} fallo${mistakes === 1 ? "" : "s"}`,
@@ -300,7 +330,7 @@ export function checkConecta(exercise: any, mistakes: number): ValidationResult 
 /* ====================== Etapa 4 · Forja del Escritor ====================== */
 
 /** Forja de Metáforas / Registro Correcto / Taller de Conectores: índice de opción. */
-export function checkForjaOption(exercise: any, chosenIndex: number): ValidationResult {
+export function checkForjaOption(exercise: OptionIndexExercise, chosenIndex: number): ValidationResult {
   const list: string[] = exercise.options;
   return {
     correct: chosenIndex === exercise.answerIndex,
@@ -310,7 +340,7 @@ export function checkForjaOption(exercise: any, chosenIndex: number): Validation
 }
 
 /** Detector de Ironía: tono elegido frente al real. */
-export function checkIronia(exercise: any, chosen: "literal" | "ironico"): ValidationResult {
+export function checkIronia(exercise: IroniaExercise, chosen: "literal" | "ironico"): ValidationResult {
   const label = (t: "literal" | "ironico") => (t === "ironico" ? "Con ironía" : "Sentido literal");
   return {
     correct: chosen === exercise.answer,
@@ -320,8 +350,8 @@ export function checkIronia(exercise: any, chosen: "literal" | "ironico"): Valid
 }
 
 /** Censura del Editor: token tachado (o -1 = texto limpio). */
-export function checkCensura(exercise: any, tokenIndex: number | "limpio"): ValidationResult {
-  const target = exercise.answerIndex as number;
+export function checkCensura(exercise: TitulosExercise, tokenIndex: number | "limpio"): ValidationResult {
+  const target = exercise.answerIndex;
   if (target === -1) {
     const correct = tokenIndex === "limpio";
     return {

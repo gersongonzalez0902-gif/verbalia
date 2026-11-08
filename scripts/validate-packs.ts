@@ -27,7 +27,9 @@ const checks: [string, (e: any) => string | null][] = [
   ["vf", (e) => (typeof e.answer === "boolean" ? null : "no answer bool")],
   ["escribe", (e) => (!e.word || !e.clue ? "missing word/clue" : null)],
   ["oye", (e) => {
-    if (e.wrongs.length < 2) return "wrongs < 2";
+    // Solo los juegos «oye-» de escrituras (los de acento/número usan otros campos).
+    if (e.type !== "oye-bosque" && e.type !== "oye-fortaleza" && e.type !== "oye-puerto") return null;
+    if (!e.wrongs || e.wrongs.length < 2) return "wrongs < 2";
     if (e.wrongs.includes(e.word)) return "correct among wrongs";
     return null;
   }],

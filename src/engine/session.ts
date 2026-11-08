@@ -186,6 +186,7 @@ const TRAINING_SIZES: Partial<Record<GameId, number>> = {
   "memoria-biblioteca": 4,
   "memoria-torre": 4,
   "memoria-observatorio": 4,
+  "conecta-bosque": 6,
   "conecta-ciudad": 6,
   "conecta-biblioteca": 5,
   "conecta-puerto": 6,
@@ -357,6 +358,7 @@ function inferSkill(gameId: GameId): SkillId {
     case "memoria-bosque":
     case "intruso-bosque":
     case "escribe-bosque":
+    case "conecta-bosque":
     case "vf-bosque":
     case "oye-bosque":
       return "vocabulario";

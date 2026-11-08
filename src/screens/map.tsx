@@ -82,7 +82,9 @@ export function MapScreen() {
                 aria-label={`${r.name}. ${unlocked ? `${prog.played} sesiones jugadas. Tocar para abrir la región.` : shipped ? `Se desbloquea al alcanzar el nivel ${r.unlockLevel}.` : `Región en desarrollo: llegará en la Etapa ${r.stage}.`}`}
                 className={cn(
                   "group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-2xl p-2 transition-[scale,filter] duration-200",
-                  unlocked ? "hover:scale-110 focus-visible:scale-110 focus-visible:outline-2 focus-visible:outline-primary" : "cursor-default",
+                  // En PC el icono NO se mueve ni crece al pasar el ratón:
+                  // solo un brillo suave (la escala queda para el teclado).
+                  unlocked ? "hover:brightness-110 focus-visible:scale-110 focus-visible:outline-2 focus-visible:outline-primary" : "cursor-default",
                 )}
                 style={{ left: `${r.map.x}%`, top: `${r.map.y}%` }}
               >

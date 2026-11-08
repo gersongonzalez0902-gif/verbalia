@@ -116,7 +116,7 @@ export function HanoiGame({ def, onFinish, onExit }: ArcadeGameProps) {
       const score = Math.max(30, Math.round(160 - (moves - perfect) * 6 + Math.max(0, 300 - time) / 4));
       onFinish(score, { subtitle: `${moves} movimientos (perfecto: ${perfect}).` });
     }
-  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [done]);  
 
   const tapTower = (t: number) => {
     if (done) return;
@@ -259,21 +259,6 @@ export function SudokuGame({ def, onFinish, onExit }: ArcadeGameProps) {
   };
 
   const complete = cells.every((v, i) => v === solution[i]);
-  useEffect(() => {
-    if (complete && levelIdx !== null) {
-      sfx.sessionWin();
-      const gained = 60 + S4_LEVELS[levelIdx].holes * 10 - mistakes * 8;
-      setScore((s) => s + Math.max(15, gained));
-      const nextLevel = levelIdx + 1;
-      setTimeout(() => {
-        if (nextLevel >= S4_LEVELS.length) {
-          onFinish(score + Math.max(15, gained), { subtitle: "Los tres sudokus del cronista, resueltos." });
-        } else {
-          start(nextLevel);
-        }
-      }, 700);
-    }
-  }, [complete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (v: number) => {
     if (picked === null || puzzle[picked] !== 0) return;
@@ -283,6 +268,20 @@ export function SudokuGame({ def, onFinish, onExit }: ArcadeGameProps) {
     if (v === solution[picked]) {
       sfx.correct(1);
       setStreak((s) => s + 1);
+      // Victoria comprobada desde el propio evento (sin efecto sincrónico).
+      if (levelIdx !== null && next.every((val, i) => val === solution[i])) {
+        sfx.sessionWin();
+        const gained = 60 + S4_LEVELS[levelIdx].holes * 10 - mistakes * 8;
+        setScore((s) => s + Math.max(15, gained));
+        const nextLevel = levelIdx + 1;
+        setTimeout(() => {
+          if (nextLevel >= S4_LEVELS.length) {
+            onFinish(score + Math.max(15, gained), { subtitle: "Los tres sudokus del cronista, resueltos." });
+          } else {
+            start(nextLevel);
+          }
+        }, 700);
+      }
     } else {
       sfx.wrong(true);
       setMistakes((m) => m + 1);
@@ -506,7 +505,7 @@ export function SlidingPuzzleGame({ def, onFinish, onExit }: ArcadeGameProps) {
       const score = Math.max(25, Math.round(150 - moves * 1.5));
       onFinish(score, { subtitle: `«${MOTTO}» ordenado en ${moves} movimientos.` });
     }
-  }, [won]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [won]);  
 
   const slide = (i: number) => {
     const blank = tiles.indexOf(0);
@@ -517,7 +516,7 @@ export function SlidingPuzzleGame({ def, onFinish, onExit }: ArcadeGameProps) {
     [next[i], next[blank]] = [next[blank], next[i]];
     setTiles(next);
     setMoves((m) => m + 1);
-    sfx.place();
+    sfx.slide();
   };
 
   return (
@@ -614,7 +613,7 @@ export function TicTacToeGame({ def, onFinish, onExit }: ArcadeGameProps) {
       }
     }, 800);
     return () => clearTimeout(t);
-  }, [winner]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [winner]);  
 
   const play = (i: number) => {
     if (board[i] || winner || thinking) return;
@@ -745,7 +744,7 @@ export function Connect4Game({ def, onFinish, onExit }: ArcadeGameProps) {
       }
     }, 900);
     return () => clearTimeout(t);
-  }, [win, full]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [win, full]);  
 
   const drop = (col: number) => {
     if (thinking || win || full) return;

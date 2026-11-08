@@ -240,7 +240,7 @@ export function MusicStationScreen() {
             Carga tus canciones (MP3, OGG, WAV…)
           </p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Se guardan solo en este dispositivo (IndexedDB) y siguen sonando mientras navegas.
+            Se guardan solo en este dispositivo y siguen sonando mientras navegas.
             Nada se sube a ningún servidor.
           </p>
           <Button className="mt-3 font-bold" onClick={() => fileRef.current?.click()}>

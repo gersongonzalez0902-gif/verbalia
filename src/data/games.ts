@@ -254,6 +254,19 @@ export const GAMES: Record<GameId, GameInfo> = {
     secondsPerItem: 30,
     timeLimit: null,
   },
+  "conecta-bosque": {
+    id: "conecta-bosque",
+    name: "Senda del Léxico",
+    tagline: "Palabra, sinónimo y campo",
+    description:
+      "Las palabras del bosque cuelgan de las ramas y sus parejas descansan entre los helechos: definiciones, sinónimos y campos de significado.",
+    skill: "vocabulario",
+    icon: "Waypoints",
+    instructions:
+      "Toca una palabra de la columna izquierda y después su pareja en la derecha: su definición, su sinónimo o su campo. Cada acierto tiende un puente más en la senda.",
+    secondsPerItem: 40,
+    timeLimit: null,
+  },
   "vf-bosque": {
     id: "vf-bosque",
     name: "Verdad o Hierba",

@@ -72,8 +72,14 @@ import { dateKey } from "@/engine/missions";
 export function GameScreen() {
   const params = useRouterParams();
   const navigate = useUiStore((s) => s.navigate);
-  const gameStore = useGameStore();
-  const { profile, core, srs, settings } = gameStore;
+  // Selectores finos: la pantalla de juego no se repinta con cada tick del
+  // almacén, solo cuando cambian los datos que de verdad usa.
+  const core = useGameStore((s) => s.core);
+  const profile = useGameStore((s) => s.profile);
+  const srs = useGameStore((s) => s.srs);
+  const settings = useGameStore((s) => s.settings);
+  const completeSession = useGameStore((s) => s.completeSession);
+  const finishPlacement = useGameStore((s) => s.finishPlacement);
   const sounds = useSoundEffects();
 
   const [spec, setSpec] = useState<SessionSpec | null>(null);
@@ -311,12 +317,12 @@ export function GameScreen() {
       const placementAnswers = answers
         .filter((a) => a.kind === "exercise")
         .map((a) => ({ skill: a.skill, difficulty: a.difficulty, correct: a.correct === true }));
-      gameStore.finishPlacement(placementAnswers);
+      finishPlacement(placementAnswers);
     }
-    gameStore.completeSession(spec, answers, durationMs);
+    completeSession(spec, answers, durationMs);
     sounds.levelUp();
     navigate({ name: "results" });
-  }, [spec, answers, gameStore, sounds, navigate]);
+  }, [spec, answers, completeSession, finishPlacement, sounds, navigate]);
 
   const handleContinue = useCallback(() => {
     setFeedback(null);
@@ -451,6 +457,7 @@ export function GameScreen() {
       case "oye-fortaleza":
       case "oye-puerto":
         return <OyeGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "conecta-bosque":
       case "conecta-ciudad":
       case "conecta-biblioteca":
       case "conecta-puerto":
@@ -569,9 +576,9 @@ export function GameScreen() {
           setExitOpen(false);
           if (answers.length > 0 && spec && spec.mode !== "placement") {
             const durationMs = Date.now() - startedAt.current;
-            gameStore.completeSession(spec, answers, durationMs);
+            completeSession(spec, answers, durationMs);
           }
-          navigate(spec.mode === "placement" ? { name: "home" } : { name: "home" });
+          navigate({ name: "home" });
         }}
       />
     </div>

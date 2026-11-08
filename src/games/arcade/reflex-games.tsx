@@ -192,20 +192,21 @@ export function MemoryPairsGame({ def, onFinish, onExit }: ArcadeGameProps) {
   const [open, setOpen] = useState<number[]>([]);
   const [found, setFound] = useState<number[]>([]);
   const [tries, setTries] = useState(0);
-  const time = useCountdown(90, true, () => finishRef.current());
-
   const done = found.length === deck.length;
 
-  const finishRef = useRef(() => {});
   const score = useMemo(() => Math.max(10, 140 - tries * 8), [tries]);
-  finishRef.current = () => onFinish(score, { subtitle: `${found.length / 2} de 6 parejas con ${tries} intentos.` });
+  // El callback del reloj se refresca en cada render dentro de useCountdown:
+  // la closure siempre ve el marcador vigente (sin refs intermedias).
+  const time = useCountdown(90, true, () =>
+    onFinish(score, { subtitle: `${found.length / 2} de 6 parejas con ${tries} intentos.` }),
+  );
 
   useEffect(() => {
     if (done) {
       sfx.sessionWin();
       setTimeout(() => onFinish(score, { subtitle: `¡Todas las parejas en ${tries} intentos!` }), 600);
     }
-  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [done]);  
 
   const flip = (i: number) => {
     if (open.includes(i) || found.includes(i) || open.length === 2) return;
@@ -266,17 +267,17 @@ const STROOP_COLORS = [
   { name: "ÁMBAR", css: "var(--xp)" },
 ] as const;
 
+function makeStroop() {
+  const word = STROOP_COLORS[Math.floor(Math.random() * 4)];
+  const ink = STROOP_COLORS[Math.floor(Math.random() * 4)];
+  return { word, ink };
+}
+
 export function StroopGame({ def, onFinish, onExit }: ArcadeGameProps) {
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [round, setRound] = useState(() => makeStroop());
   const time = useCountdown(45, true, () => onFinish(score));
-
-  function makeStroop() {
-    const word = STROOP_COLORS[Math.floor(Math.random() * 4)];
-    const ink = STROOP_COLORS[Math.floor(Math.random() * 4)];
-    return { word, ink };
-  }
 
   const answer = (i: number) => {
     if (STROOP_COLORS[i].name === round.ink.name) {
@@ -567,7 +568,7 @@ export function WordSecretGame({ def, onFinish, onExit }: ArcadeGameProps) {
       }
     }, 900);
     return () => clearTimeout(t);
-  }, [won, lost]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [won, lost]);  
 
   const submit = () => {
     const w = draft.trim().toLowerCase();

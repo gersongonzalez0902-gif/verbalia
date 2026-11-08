@@ -106,17 +106,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (c) => c.streak.best / 7,
   },
   {
-    id: "ac-racha-14",
-    name: "Fuego de dos semanas",
-    description: "Consigue una racha de 14 días.",
-    icon: "Flame",
-    xpReward: 140,
-    /** Gotas de tinta al recoger el logro. */
-    tintaReward: 7,
-    check: (c) => c.streak.best >= 14,
-    progress: (c) => c.streak.best / 14,
-  },
-  {
     id: "ac-palabras-25",
     name: "Semillero",
     description: "Aprende 25 palabras del jardín.",
@@ -445,17 +434,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (_c, ctx) => ctx.learnedWords / 125,
   },
   {
-    id: "ac-racha-30",
-    name: "Mes inquebrantable",
-    description: "Consigue una racha de 30 días.",
-    icon: "Flame",
-    xpReward: 250,
-    /** Gotas de tinta al recoger el logro. */
-    tintaReward: 12,
-    check: (c) => c.streak.best >= 30,
-    progress: (c) => c.streak.best / 30,
-  },
-  {
     id: "ac-combo-15",
     name: "Cadena de quince",
     description: "Consigue un combo de 15 aciertos seguidos.",
@@ -476,17 +454,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     tintaReward: 5,
     check: (c) => (c.stats.totalTimeMs ?? 0) >= 10 * 3_600_000,
     progress: (c) => (c.stats.totalTimeMs ?? 0) / (10 * 3_600_000),
-  },
-  {
-    id: "ac-sesiones-100",
-    name: "Cien sesiones a bordo",
-    description: "Completa 100 sesiones de juego.",
-    icon: "Flag",
-    xpReward: 120,
-    /** Gotas de tinta al recoger el logro. */
-    tintaReward: 6,
-    check: (c) => c.stats.totalSessions >= 100,
-    progress: (c) => c.stats.totalSessions / 100,
   },
   /* ==================== Mega-6: logros del Salón de Juegos ==================== */
   {

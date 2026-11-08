@@ -214,23 +214,6 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
     loadText();
   }, [loadText]);
 
-  // Reloj de la prueba.
-  useEffect(() => {
-    if (phase !== "run") return;
-    const t = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(t);
-          finish();
-          return 0;
-        }
-        if (s <= 6) sfx.tick(true);
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
 
   const start = () => {
     setTyped("");
@@ -262,6 +245,32 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
     });
   };
 
+  // El reloj llama a `finish` a través de esta referencia, actualizada en un
+  // efecto tras cada render: así ve el último texto tecleado (sin cierres viejos).
+  const finishRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    finishRef.current = finish;
+  });
+
+  // Reloj de la prueba. Los ticks van en una cuenta local y el final se
+  // dispara desde el propio intervalo (nunca dentro de un updater).
+  useEffect(() => {
+    if (phase !== "run") return;
+    let remaining = totalSeconds;
+    const t = setInterval(() => {
+      remaining -= 1;
+      setSecondsLeft(Math.max(0, remaining));
+      if (remaining <= 6 && remaining > 0) sfx.tick(true);
+      if (remaining <= 0) {
+        clearInterval(t);
+        // Cierre siempre fresco: ve el texto tecleado hasta el último momento.
+        finishRef.current();
+      }
+    }, 1000);
+    return () => clearInterval(t);
+  }, [phase, totalSeconds]);
+
+
   const onType = (value: string) => {
     if (phase !== "run") return;
     const prev = typed;
@@ -284,7 +293,7 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
     let correct = 0;
     for (let i = 0; i < typed.length && i < text.length; i++) if (typed[i] === text[i]) correct += 1;
     return Math.round(correct / 5 / elapsedMin);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [typed, phase, secondsLeft]);
 
   return (
@@ -421,24 +430,27 @@ function DrillGame({ onExit }: { onExit: () => void }) {
   const [levelIdx, setLevelIdx] = useState(() => Math.min(DRILL_LEVELS.length - 1, Math.floor(drillsDone / 3)));
   const level = DRILL_LEVELS[levelIdx];
 
-  const [prompt, setPrompt] = useState("");
+  const [roundKey, setRoundKey] = useState(0);
   const [typed, setTyped] = useState("");
   const [state, setState] = useState<"typing" | "ok">("typing");
   const [streak, setStreak] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const nextPrompt = useCallback(() => {
-    const rng = createRng(`drill-${levelIdx}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`);
-    const words = [...level.words].sort(() => rng() - 0.5).slice(0, 5);
-    setPrompt(words.join(" "));
-    setTyped("");
-    setState("typing");
-    setTimeout(() => inputRef.current?.focus(), 50);
-  }, [level, levelIdx]);
+  /** Palabras de la ronda, derivadas de nivel + ronda (sin estado ni efectos:
+   *  una sola generación por línea, siempre con el nivel vigente). */
+  const prompt = useMemo(() => {
+    const rng = createRng(`drill-${levelIdx}-${roundKey}`);
+    const words = [...level.words];
+    for (let i = words.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [words[i], words[j]] = [words[j], words[i]];
+    }
+    return words.slice(0, 5).join(" ");
+  }, [level, levelIdx, roundKey]);
 
   useEffect(() => {
-    nextPrompt();
-  }, [nextPrompt]);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, []);
 
   const onType = (value: string) => {
     if (state === "ok") return;
@@ -454,13 +466,19 @@ function DrillGame({ onExit }: { onExit: () => void }) {
       setStreak(nextStreak);
       recordTypingTest({ wpm: 0, accuracy: 100, words: prompt.split(" ").length, isDrill: true });
       sfx.sparkle();
-      if (nextStreak % 3 === 0) {
-        window.setTimeout(() => {
+      const subeDeNivel = nextStreak % 3 === 0 && levelIdx < DRILL_LEVELS.length - 1;
+      // Un único temporizador: nivel + ronda nueva se resuelven juntos y
+      // el prompt solo se regenera una vez por línea completada.
+      window.setTimeout(() => {
+        if (subeDeNivel) {
           sfx.stepUp();
-          if (levelIdx < DRILL_LEVELS.length - 1) setLevelIdx((i) => i + 1);
-        }, 450);
-      }
-      window.setTimeout(nextPrompt, 650);
+          setLevelIdx((i) => i + 1);
+        }
+        setTyped("");
+        setState("typing");
+        setRoundKey((k) => k + 1);
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }, 650);
     }
   };
 

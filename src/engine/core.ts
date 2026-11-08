@@ -35,6 +35,25 @@ const MAX_ERRORS = 120;
 const MAX_SESSIONS = 200;
 const MAX_ACTIVE_DAYS = 400;
 
+/** Recorta los mapas «por día» (claves YYYY-MM-DD, comparables como texto):
+ *  el historial detallado se conserva 400 días y no crece sin límite. */
+function pruneByDayMaps<T>(maps: Record<string, T>[], todayKey: string): void {
+  const cutoff = dayKeyOf(todayKey, -MAX_ACTIVE_DAYS);
+  for (const map of maps) {
+    for (const key of Object.keys(map)) {
+      if (key < cutoff) delete map[key];
+    }
+  }
+}
+
+/** Clave de día desplazada n días (−n hacia atrás) sin depender de DST. */
+function dayKeyOf(baseKey: string, offsetDays: number): string {
+  const [y, m, d] = baseKey.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + offsetDays);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
 /** Wallet por defecto (robusta ante núcleos muy antiguos sin wallet). */
 const DEFAULT_WALLET = (): GameCore["wallet"] => ({
   tinta: 0,
@@ -250,14 +269,17 @@ export function reduceSessionComplete(
   if (spec.mode !== "placement") {
     bonus = completionBonus(accuracy, gradable.length);
     if (bonus > 0) {
-      const overflow = xpToday + xpTotal + bonus - DAILY_XP_SOFT_CAP;
-      if (overflow > 0) {
-        const reduced = Math.round(overflow / 2);
-        cappedTotal += reduced;
-        bonus -= reduced;
+      // Tope diario suave, también para el bonus de cierre: solo la parte que
+      // cae por encima del cap rinde al 50 %. El bonus nunca resta XP.
+      const headroom = DAILY_XP_SOFT_CAP - (xpToday + xpTotal);
+      if (headroom < bonus) {
+        const fullPart = Math.max(0, headroom);
+        const excess = bonus - fullPart;
+        cappedTotal += excess;
+        bonus = fullPart + Math.round(excess / 2);
       }
     }
-    xpTotal += bonus;
+    xpTotal = Math.max(0, xpTotal + bonus);
   }
 
   // ---------- Contadores globales y diarios ----------
@@ -287,6 +309,15 @@ export function reduceSessionComplete(
     }
     // La sesión cuenta como "play" también para misiones de sesión.
     next.stats.totalSessions += 1;
+    // Poda: los mapas por día no crecen sin límite (se conservan 400 días).
+    pruneByDayMaps(
+      [next.stats.xpByDay, next.stats.sessionsByDay, next.stats.correctByDay, next.stats.comboByDay, next.stats.srsReviewsByDay],
+      dayKey,
+    );
+    pruneByDayMaps(
+      [next.stats.gamesByDay as unknown as Record<string, unknown>, next.stats.regionsByDay as unknown as Record<string, unknown>],
+      dayKey,
+    );
   } else {
     // La evaluación inicial da un pequeño premio fijo (sustituye al XP de ítems).
     xpTotal = 0;
