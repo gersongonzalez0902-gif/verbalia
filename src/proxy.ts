@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 /**
- * Middleware de seguridad de VERBALIA · "muro de la Fortaleza".
+ * Proxy de seguridad de VERBALIA · "muro de la Fortaleza".
  *
  * - Cabeceras de seguridad en TODAS las respuestas (CSP estricta,
  *   anti-clickjacking, anti-MIME-sniffing, referrer mínimo).
@@ -33,7 +33,7 @@ const CSP = [
   "object-src 'none'",
 ].join("; ");
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Método no permitido: 405 directo.
   if (!ALLOWED_METHODS.has(request.method)) {
     return new NextResponse(null, {

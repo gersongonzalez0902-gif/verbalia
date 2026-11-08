@@ -51,7 +51,7 @@ export function WelcomeScreen() {
         </div>
 
         <p className="max-w-md leading-relaxed text-muted-foreground">
-          Explora el <strong className="text-foreground">Archipiélago de las Palabras</strong>: seis regiones
+          Explora el <strong className="text-foreground">Archipiélago de las Palabras</strong>: ocho regiones
           llenas de minijuegos para entrenar vocabulario, gramática, ortografía y lectura en sesiones de 3 a 5 minutos.
         </p>
 

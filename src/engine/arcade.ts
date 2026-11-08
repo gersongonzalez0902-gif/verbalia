@@ -5,8 +5,8 @@ import { tintaForXp } from "./shop";
  * El Salón de Juegos Educativos · Lógica pura (Mega-actualización 5).
  *
  * Un apartado nuevo del Archipiélago dedicado a entrenar la mente más
- * allá del idioma: ajedrez con motor local (análisis estilo Stockfish),
- * damas, cálculo mental, memoria, lógica y reflejos.
+ * allá del idioma: cálculo mental, memoria, lógica, letras veloces
+ * y reflejos.
  *
  * - Los juegos se desbloquean con **tinta** (la moneda honesta: nunca
  *   se pierde nivel ni XP por comprar).

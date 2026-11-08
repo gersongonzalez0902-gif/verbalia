@@ -11,19 +11,13 @@ import type { Exercise } from "@/types";
 import { EXERCISES_BY_GAME, EXERCISES_BY_ID } from "./content";
 
 /* ---------- Tamaños estáticos (para contadores sin cargar el banco) ---------- */
+/* OJO: se importan desde sizes.json (artefacto pequeño generado junto a los
+ * bancos) y NUNCA con import estático de ./gen/mega8/*.ts: hacerlo metería
+ * los módulos de varios MB en el grafo inicial y el navegador los bajaría
+ * en el primer arranque. Los bancos solo se tocan con import() dinámico. */
+import m8SizesJson from "./gen/mega8/sizes.json";
 
-import { M8_CORE_SIZES } from "./gen/mega8/core";
-import { M8_GRAMMAR_SIZES } from "./gen/mega8/grammar";
-import { M8_LEXICON_SIZES } from "./gen/mega8/lexicon";
-import { M8_READING_SIZES } from "./gen/mega8/reading";
-import { M8_FORJA_SIZES } from "./gen/mega8/forja";
-import { M8_FORMATS_SIZES } from "./gen/mega8/formats";
-import { M8_TORRE_SIZES } from "./gen/mega8/torre";
-
-const M8_SIZES: Record<string, number> = {
-  ...M8_CORE_SIZES, ...M8_GRAMMAR_SIZES, ...M8_LEXICON_SIZES, ...M8_READING_SIZES,
-  ...M8_FORJA_SIZES, ...M8_FORMATS_SIZES, ...M8_TORRE_SIZES,
-};
+const M8_SIZES: Record<string, number> = m8SizesJson;
 
 /** ¿A qué grupo pertenece cada juego? */
 const GROUP_GAME_MAP: Record<string, string[]> = {
