@@ -30,29 +30,29 @@ import type { AnswerRecord, GameCore, SessionSpec, SrsCard } from "@/types";
 
 describe("motor de niveles y rangos", () => {
   test("la curva de nivel es incremental y coherente", () => {
-    expect(xpForLevelUp(1)).toBe(100);
-    expect(xpForLevelUp(2)).toBe(140);
-    expect(xpForLevelUp(5)).toBe(260);
+    expect(xpForLevelUp(1)).toBe(130);
+    expect(xpForLevelUp(2)).toBe(185);
+    expect(xpForLevelUp(5)).toBe(350);
   });
 
   test("nivel desde XP: acumulado exacto en el umbral", () => {
     expect(levelFromXp(0)).toBe(1);
-    expect(levelFromXp(99)).toBe(1);
-    expect(levelFromXp(100)).toBe(2);
-    expect(levelFromXp(100 + 140)).toBe(3);
-    expect(levelFromXp(100 + 139)).toBe(2);
+    expect(levelFromXp(129)).toBe(1);
+    expect(levelFromXp(130)).toBe(2);
+    expect(levelFromXp(130 + 185)).toBe(3);
+    expect(levelFromXp(130 + 184)).toBe(2);
   });
 
   test("el XP acumulado es la suma de tramos", () => {
     expect(cumulativeXpForLevel(1)).toBe(0);
-    expect(cumulativeXpForLevel(3)).toBe(100 + 140);
+    expect(cumulativeXpForLevel(3)).toBe(130 + 185);
   });
 
   test("el progreso dentro del nivel es correcto", () => {
-    const p = levelProgress(150); // nivel 2, 50/140
+    const p = levelProgress(150); // nivel 2, 20/185
     expect(p.level).toBe(2);
-    expect(p.into).toBe(50);
-    expect(p.needed).toBe(140);
+    expect(p.into).toBe(20);
+    expect(p.needed).toBe(185);
   });
 
   test("los rangos crecen con el nivel", () => {
@@ -1756,7 +1756,7 @@ describe("candados ampliados: requisitos y etiquetas", () => {
 
   test("lockChipText es legible para botones y fichas", () => {
     expect(lockChipText("mitos", 4)).toContain("3 logros");
-    expect(lockChipText("voz", 5)).toContain("Nivel 6");
+    expect(lockChipText("voz", 5)).toContain("Nivel 18");
     expect(lockChipText("rasca", 1)).toContain("tinta");
   });
 

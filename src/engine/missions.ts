@@ -127,6 +127,17 @@ export function metricValue(
   }
 }
 
+/** Clave de reclamo con ámbito de periodo: los IDs de plantilla se repiten
+ * cada día/semana, así que el registro de «ya recogida» lleva la fecha
+ * pegada. Sin esto, una misión reclamada ayer «se reclamaba sola» hoy. */
+export function dailyClaimKey(dayKey: string, missionId: string): string {
+  return `${dayKey}::${missionId}`;
+}
+
+export function weeklyClaimKey(wKey: string, missionId: string): string {
+  return `${wKey}::${missionId}`;
+}
+
 export interface MissionProgress {
   mission: MissionDef;
   current: number;
@@ -146,7 +157,7 @@ export function dailyProgress(core: GameCore, dayKey: string): MissionProgress[]
       current: Math.min(current, m.target),
       target: m.target,
       done: current >= m.target,
-      claimed: core.missions.daily.claimed.includes(m.id),
+      claimed: core.missions.daily.claimed.includes(dailyClaimKey(dayKey, m.id)),
       isShieldMission: false,
     };
   });
@@ -162,7 +173,7 @@ export function weeklyProgress(core: GameCore, wKey: string, days: string[]): Mi
       current: Math.min(current, m.target),
       target: m.target,
       done: current >= m.target,
-      claimed: core.missions.weekly.claimed.includes(m.id),
+      claimed: core.missions.weekly.claimed.includes(weeklyClaimKey(wKey, m.id)),
       isShieldMission: Boolean(m.shieldReward),
     };
   });

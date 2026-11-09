@@ -1,5 +1,6 @@
 import type { GameCore, PlayerProfile } from "@/types";
 import { createCore } from "./core";
+import { dateKey, weekKey } from "./missions";
 
 /**
  * Migración de partidas antiguas (Etapa 4).
@@ -42,7 +43,7 @@ export function migrateProfile(raw: Partial<PlayerProfile> | undefined | null): 
 export function migrateCore(raw: Partial<GameCore> | undefined | null): GameCore {
   const fresh = createCore();
   if (!raw) return fresh;
-  return {
+  const core: GameCore = {
     ...fresh,
     ...raw,
     skills: { ...fresh.skills, ...raw.skills },
@@ -73,4 +74,25 @@ export function migrateCore(raw: Partial<GameCore> | undefined | null): GameCore
     // Logros desbloqueados cuyas recompensas ya se recogieron (retro-compatible).
     achievementsClaimed: Array.isArray(raw.achievementsClaimed) ? [...raw.achievementsClaimed] : [],
   };
+  pruneMissionClaims(core);
+  return core;
+}
+
+/** Poda los registros de reclamo ajenos al periodo en curso.
+ *
+ * Desde la revisión de misiones las claves llevan el día/semana pegado
+ * («2026-11-09::d-md-xp»), de modo que reclamar ayer no «reclama solo»
+ * hoy. Las claves de periodos pasadas ya no valen para nada: fuera.
+ * Las claves antiguas sin fecha (formato previo) también se retiran —
+ * pertenecen a misiones de días anteriores y solo causaban fantasmas. */
+function pruneMissionClaims(core: GameCore): void {
+  const now = new Date();
+  const today = dateKey(now);
+  const wKey = weekKey(now);
+  core.missions.daily.claimed = core.missions.daily.claimed.filter(
+    (k) => k.startsWith(`${today}::`),
+  );
+  core.missions.weekly.claimed = core.missions.weekly.claimed.filter(
+    (k) => k.startsWith(`${wKey}::`),
+  );
 }

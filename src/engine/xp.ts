@@ -1,14 +1,15 @@
 /**
  * Motor de progresión · XP, niveles y rangos.
- * Curva incremental suave: subir de nivel n a n+1 cuesta
- * 100 + (n-1)·40 XP. Los rangos dan identidad al viaje.
+ * Curva exigente (ajustada a la revisión de dificultad): subir de
+ * nivel n a n+1 cuesta 130 + (n-1)·55 XP. Las primeras islas se
+ * sientan cerca, pero cada zarpazo nuevo exige más navegación.
  */
 
 export const MAX_LEVEL = 60;
 
 /** XP necesario para pasar del nivel n al n+1. */
 export function xpForLevelUp(level: number): number {
-  return 100 + (level - 1) * 40;
+  return 130 + (level - 1) * 55;
 }
 
 /** XP acumulado total necesario para alcanzar un nivel dado. */

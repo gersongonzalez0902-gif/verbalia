@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { db } from "@/lib/db";
 
 /**
  * Bóveda cifrada · API zero-knowledge.
@@ -16,6 +17,11 @@ import { z } from "zod";
  * - IDs aleatorios de 64 hex (no enumerables).
  * - Expiración perezosa a los 30 días; barrido en cada acceso.
  * - Sin cookies, sin sesiones, sin registro: identidad cero.
+ *
+ * Etapa 3 (terreno preparado): los sobres ahora viven en SQLite vía
+ * Prisma y sobreviven a los reinicios del servidor. Si la base de
+ * datos no está disponible, la ruta degrada a la RAM de siempre:
+ * la bóveda nunca rechaza a un náufrago por culpa del disco.
  */
 
 /* ------------------------------- Esquema ------------------------------- */
@@ -49,9 +55,27 @@ interface VaultEntry {
 const VAULT_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
 const MAX_ENTRIES = 500;
 
-/** Memoria del proceso: se pierde al reiniciar el servidor (aceptado:
- *  es un respaldo de emergencia, no un disco en la nube). */
+/** Respaldo en RAM si SQLite no está disponible (arranques a mano del
+ *  sandbox, contenedor sin disco): mejor efímero que cerrado. */
 const vault = new Map<string, VaultEntry>();
+
+/** Barrido + recorte en la base de datos. Fallos silenciados a favor
+ *  del respaldo en memoria: la disponibilidad manda. */
+async function sweepDb(): Promise<void> {
+  const now = Date.now();
+  await db.vaultEnvelope.deleteMany({ where: { expiresAt: { lt: new Date(now) } } });
+  const count = await db.vaultEnvelope.count();
+  if (count > MAX_ENTRIES) {
+    const oldest = await db.vaultEnvelope.findMany({
+      orderBy: { storedAt: "asc" },
+      take: count - MAX_ENTRIES,
+      select: { id: true },
+    });
+    if (oldest.length) {
+      await db.vaultEnvelope.deleteMany({ where: { id: { in: oldest.map((e) => e.id) } } });
+    }
+  }
+}
 
 function sweep() {
   const now = Date.now();
@@ -121,6 +145,7 @@ export async function POST(request: NextRequest) {
   }
 
   sweep();
+  void sweepDb().catch(() => {});
   const id = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
   const now = Date.now();
   vault.set(id, {
@@ -128,6 +153,19 @@ export async function POST(request: NextRequest) {
     storedAt: now,
     expiresAt: now + VAULT_TTL_MS,
   });
+  try {
+    await db.vaultEnvelope.create({
+      data: {
+        id,
+        ...parsed.data,
+        storedAt: new Date(now),
+        expiresAt: new Date(now + VAULT_TTL_MS),
+      },
+    });
+  } catch {
+    // Sin disco: queda la copia en RAM y el jugador puede descargar
+    // mientras el proceso viva. Nunca se pierde lo subido en caliente.
+  }
 
   return NextResponse.json(
     {
@@ -151,7 +189,24 @@ export async function GET(request: NextRequest) {
   }
 
   sweep();
-  const entry = vault.get(id);
+  let entry: VaultEntry | null = vault.get(id) ?? null;
+  if (!entry) {
+    try {
+      const row = await db.vaultEnvelope.findUnique({ where: { id } });
+      if (row) {
+        entry = {
+          nonce: row.nonce,
+          salt: row.salt,
+          ciphertext: row.ciphertext,
+          storedAt: row.storedAt.getTime(),
+          expiresAt: row.expiresAt.getTime(),
+        };
+      }
+    } catch {
+      // Base de datos no disponible: solo queda mirar la RAM.
+    }
+  }
+  void sweepDb().catch(() => {});
   if (!entry || entry.expiresAt < Date.now()) {
     // La misma respuesta para «no existe» y «expiró»: no filtramos información.
     return NextResponse.json(

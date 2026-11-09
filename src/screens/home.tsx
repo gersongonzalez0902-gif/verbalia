@@ -18,7 +18,7 @@ import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
 import { levelProgress, rankForLevel, rankName } from "@/engine/xp";
-import { dailyProgress, dateKey } from "@/engine/missions";
+import { dailyProgress, weeklyProgress, daysOfWeek, weekKey, dateKey } from "@/engine/missions";
 import { REGIONS, REGION_BY_ID } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { SRS_WORDS_FULL } from "@/data/content";
@@ -56,6 +56,8 @@ export function HomeScreen() {
   const { level, into, needed } = levelProgress(core.xp);
   const rank = rankForLevel(level);
   const today = dateKey(new Date());
+  const wKeyToday = weekKey(new Date());
+  const weekDaysToday = useMemo(() => daysOfWeek(new Date()), []);
   const xpToday = core.stats.xpByDay[today] ?? 0;
   const goalPct = Math.min(1, xpToday / settings.dailyGoalXp);
 
@@ -64,6 +66,17 @@ export function HomeScreen() {
   const missions = useMemo(() => dailyProgress(core, today), [core, today]);
   /** Misiones diarias completadas que esperan su recompensa en el apartado. */
   const claimableMissions = missions.filter((m) => m.done && !m.claimed).length;
+
+  /** Recompensas listas en total: diarias + semanales + logros sin recoger.
+ *  La misma cuenta que ve el jugador en Misiones y logros: si cero, la
+ *  tarjeta «recoger recompensas» desaparece de verdad. */
+  const weekly = useMemo(() => weeklyProgress(core, wKeyToday, weekDaysToday), [core, wKeyToday, weekDaysToday]);
+  const claimableWeekly = weekly.filter((m) => m.done && !m.claimed).length;
+  const unclaimedAchievements = useMemo(
+    () => Object.keys(core.achievements).filter((id) => !(core.achievementsClaimed ?? []).includes(id)).length,
+    [core.achievements, core.achievementsClaimed],
+  );
+  const readyRewards = claimableMissions + claimableWeekly + unclaimedAchievements;
 
   const greeting = useMemo(() => {
     const ctx = {
@@ -100,10 +113,10 @@ export function HomeScreen() {
     return pool[Math.floor(rng() * pool.length)];
   }, [today, srs]);
 
-  /** Destino de la sesión recomendada: tarjetas vencidas si toca, o la región más floja. */
+  /** Destino de la sesión recomendada: tarjetas vencidas si toca, o la región más floja ya abierta. */
   const recommended = useMemo(
-    () => buildRecommendedDestination({ srs, skills: core.skills, now: Date.now(), newCardsPerDay: settings.newCardsPerDay, seenExercises: core.seenExercises }, due.length),
-    [srs, core.skills, core.seenExercises, settings.newCardsPerDay, due.length],
+    () => buildRecommendedDestination({ srs, skills: core.skills, now: Date.now(), newCardsPerDay: settings.newCardsPerDay, seenExercises: core.seenExercises, level }, due.length),
+    [srs, core.skills, core.seenExercises, settings.newCardsPerDay, due.length, level],
   );
 
   /* ===== «Tu siguiente paso»: la recomendación con mayor prioridad ===== */
@@ -117,13 +130,13 @@ export function HomeScreen() {
       cta: string;
       go: Screen;
     };
-    if (claimableMissions > 0) {
+    if (readyRewards > 0) {
       return {
         icon: Gift,
         tone: "--xp",
         eyebrow: "Recompensas esperando",
-        title: claimableMissions === 1 ? "Una misión completada" : `${claimableMissions} misiones completadas`,
-        desc: "Pasa por el apartado de misiones y recoge tu tinta y XP antes de zarpar.",
+        title: readyRewards === 1 ? "Una recompensa lista" : `${readyRewards} recompensas listas`,
+        desc: "Misiones y logros con la tinta y el XP ya ganados: pásate por el apartado y cógelos antes de zarpar.",
         cta: "Recoger recompensas",
         go: { name: "missions" },
       } satisfies Step;
@@ -171,7 +184,7 @@ export function HomeScreen() {
       cta: "Explorar el mapa",
       go: { name: "map" },
     } satisfies Step;
-  }, [claimableMissions, core.errors.length, due.length, goalPct, recommended, settings.dailyGoalXp, xpToday]);
+  }, [readyRewards, core.errors.length, due.length, goalPct, recommended, settings.dailyGoalXp, xpToday]);
 
   /** Mini resumen para la tira de estadísticas (visible en móvil). */
   const statsMini = useMemo(() => {
@@ -239,13 +252,13 @@ export function HomeScreen() {
           className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full opacity-20 blur-2xl"
           style={{ background: `var(${nextStep.tone})` }}
         />
-        <div className="relative flex flex-wrap items-center gap-4">
+        <div className="relative flex flex-col gap-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
           <span
-            className="gloss anim-bob flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
+            className="gloss anim-bob flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white sm:h-14 sm:w-14"
             style={{ background: `linear-gradient(150deg, color-mix(in oklch, var(${nextStep.tone}) 76%, white 18%), var(${nextStep.tone}) 58%, color-mix(in oklch, var(${nextStep.tone}) 82%, #000 16%))` }}
             aria-hidden
           >
-            <NextIcon className="h-7 w-7" />
+            <NextIcon className="h-6 w-6 sm:h-7 sm:w-7" />
           </span>
           <div className="min-w-0 flex-1">
             <p
@@ -254,14 +267,14 @@ export function HomeScreen() {
             >
               Tu siguiente paso
             </p>
-            <h2 id="next-step-title" className="font-display text-xl font-bold leading-tight">
+            <h2 id="next-step-title" className="font-display text-lg font-bold leading-tight sm:text-xl">
               {nextStep.title}
             </h2>
             <p className="mt-0.5 text-xs leading-snug text-muted-foreground sm:text-sm">{nextStep.desc}</p>
           </div>
           <Button
             size="lg"
-            className="h-12 shrink-0 text-sm font-bold sm:text-base"
+            className="h-12 w-full shrink-0 text-sm font-bold sm:w-auto sm:text-base"
             onClick={() => {
               sfx.whoosh();
               navigate(nextStep.go);
@@ -272,6 +285,9 @@ export function HomeScreen() {
           </Button>
         </div>
       </section>
+
+      {/* ===== Frase del día: protagonista, arriba — no al final ===== */}
+      <FraseCard className="mt-4" />
 
       {/* ===== Léxico ===== */}
       <LexicoBubble mood={xpToday >= settings.dailyGoalXp ? "happy" : "idle"} text={greeting.text({ name: profile.name, streak: core.streak.current, dueCards: due.length })} className="mt-4" />
@@ -411,9 +427,10 @@ export function HomeScreen() {
         seeAllLabel="Ver mapa"
         className="mt-6"
       >
-        {REGIONS.map((r) => {
+        {REGIONS.map((r, i) => {
           const Icon = getIcon(r.icon);
           const unlocked = level >= r.unlockLevel;
+          const islandNo = i + 1;
           return (
             <button
               key={r.id}
@@ -439,7 +456,7 @@ export function HomeScreen() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-display text-base font-bold">{r.name}</span>
                   <span className="numeric block text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                    {unlocked ? `Isla ${r.unlockLevel} · ${r.games.length} formatos` : `Se abre en el nivel ${r.unlockLevel}`}
+                    {unlocked ? `Isla ${islandNo} · ${r.games.length} formatos` : `Se abre en el nivel ${r.unlockLevel}`}
                   </span>
                 </span>
                 {unlocked ? (
@@ -494,9 +511,6 @@ export function HomeScreen() {
 
       {/* Consejo diario */}
       <LexicoBubble text={`Consejo de Léxico: ${dailyTip.text}`} compact className="mt-6 opacity-90" />
-
-      {/* ===== Frase del día (rota con cada navegación) ===== */}
-      <FraseCard className="mt-5" />
     </div>
   );
 }

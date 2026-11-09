@@ -23,7 +23,7 @@ import { createCore, reduceSessionComplete, computePlacement } from "@/engine/co
 import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { EMPTY_PROFILE, migrateProfile, migrateCore } from "@/engine/migrate";
 import { applyPurchase, applyEquip, claimDailyGift, MAX_SHIELDS } from "@/engine/shop";
-import { dailyMissions, weeklyMissions, metricValue, dateKey, weekKey, daysOfWeek } from "@/engine/missions";
+import { dailyMissions, weeklyMissions, metricValue, dateKey, weekKey, daysOfWeek, dailyClaimKey, weeklyClaimKey } from "@/engine/missions";
 import { levelFromXp } from "@/engine/xp";
 import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { applyArcadeUnlock, applyArcadeScore, applyTypingTest, type TypingResult } from "@/engine/arcade";
@@ -303,8 +303,11 @@ export const useGameStore = create<GameStore>((set, get) => {
       const scopeDays = scope === "daily" ? [dateKey(now)] : daysOfWeek(now);
       const reached = metricValue(core, def.metric, { days: scopeDays });
       if (reached < def.target) return { ok: false, xp: 0, tinta: 0, shield: false };
+      // Clave con ámbito de periodo: reclamar «d-md-xp» un martes no puede
+      // marcar la misión del mismo nombre del jueves (ni impedir cobrarla).
+      const claimKey = scope === "daily" ? dailyClaimKey(dateKey(now), missionId) : weeklyClaimKey(weekKey(now), missionId);
       const store = scope === "daily" ? core.missions.daily : core.missions.weekly;
-      if (store.claimed.includes(missionId)) return { ok: false, xp: 0, tinta: 0, shield: false };
+      if (store.claimed.includes(claimKey)) return { ok: false, xp: 0, tinta: 0, shield: false };
 
       const xp = def.xpReward;
       const tinta = def.tintaReward ?? 0;
@@ -314,7 +317,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         wallet: { ...core.wallet, tinta: core.wallet.tinta + tinta },
         missions: {
           ...core.missions,
-          [scope]: { ...store, claimed: [...store.claimed, missionId] },
+          [scope]: { ...store, claimed: [...store.claimed, claimKey] },
         } as GameCore["missions"],
       };
       if (def.shieldReward) {

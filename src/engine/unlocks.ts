@@ -45,17 +45,17 @@ export const GAME_REQUIREMENTS: Partial<Record<GameId, ExtraRequirement>> = {
   labpunt: { achievements: 6 },
 
   /* ── Biblioteca (isla 4): salas reservadas ── */
-  jeroglificos: { level: 5 },
+  jeroglificos: { level: 14 },
   mitos: { achievements: 3 },
   lectura: { achievements: 5 },
 
   /* ── Puerto (isla 5): micrófonos y ecos finos ── */
-  voz: { level: 6 },
-  eco: { level: 6 },
+  voz: { level: 18 },
+  eco: { level: 18 },
   fonetica: { achievements: 4 },
 
   /* ── Torre (isla 6): relatos largos ── */
-  historias: { level: 7 },
+  historias: { level: 22 },
 
   /* ── Observatorio (isla 7): mapas de palabras ── */
   regiones: { achievements: 6 },

@@ -8,8 +8,10 @@ import type { AnswerRecord, Difficulty } from "@/types";
  * esfuerzo: castigar no enseña.
  */
 
-/** Tope diario de XP a ritmo completo; a partir de aquí, XP a mitad. */
-export const DAILY_XP_SOFT_CAP = 600;
+/** Tope diario de XP a ritmo completo; a partir de aquí, XP a mitad.
+ *  Bajado de 600 a 400 en la revisión de dificultad: constancia > farmeo,
+ *  y ninguna isla se gana en una sola sentada. */
+export const DAILY_XP_SOFT_CAP = 400;
 /** Ventana (ms) en la que repetir un ejercicio rinde XP reducido. */
 export const REPEAT_WINDOW_MS = 3 * 86_400_000;
 /** Multiplicador para ejercicios vistos hace poco (anti-farmeo). */

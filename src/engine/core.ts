@@ -10,7 +10,7 @@ import { levelFromXp } from "./xp";
 import { applySkillDelta } from "./xp";
 import { bestComboFrom, completionBonus, itemXp, DAILY_XP_SOFT_CAP } from "./scoring";
 import { updateStreak } from "./streak";
-import { dateKey, weekKey, dailyMissions, weeklyMissions, metricValue, daysOfWeek } from "./missions";
+import { dateKey, weekKey, dailyMissions, weeklyMissions, metricValue, daysOfWeek, dailyClaimKey, weeklyClaimKey } from "./missions";
 import { ACHIEVEMENTS, LEVEL_ACHIEVEMENTS } from "@/data/achievements";
 import { REPEAT_WINDOW_MS } from "./scoring";
 import { tintaForXp } from "./shop";
@@ -375,14 +375,14 @@ export function reduceSessionComplete(
 
     const level = levelFromXp(next.xp);
     for (const m of dailyMissions(dayKey, level)) {
-      if (next.missions.daily.claimed.includes(m.id)) continue;
+      if (next.missions.daily.claimed.includes(dailyClaimKey(dayKey, m.id))) continue;
       if (metricValue(next, m.metric, { days: [dayKey] }) >= m.target) {
         missionsCompleted.push(m.id);
       }
     }
     const weekDays = daysOfWeek(now);
     for (const m of weeklyMissions(wKey, level)) {
-      if (next.missions.weekly.claimed.includes(m.id)) continue;
+      if (next.missions.weekly.claimed.includes(weeklyClaimKey(wKey, m.id))) continue;
       if (metricValue(next, m.metric, { days: weekDays }) >= m.target) {
         missionsCompleted.push(m.id);
       }

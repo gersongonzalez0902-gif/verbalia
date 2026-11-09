@@ -32,6 +32,9 @@ export interface BuildContext {
   /** Palabras que el jugador ya conoce (para no repetir tarjetas nuevas). */
   now: number;
   newCardsPerDay: number;
+  /** Nivel del navegante: la recomendación nunca zarpa hacia una isla
+   *  cerrada. Sin nivel, solo cuentan las islas de nivel 1. */
+  level?: number;
   /** Formatos aún cerrados (isla + logros/tinta/nivel): las misiones
    *  los saltan con gracia y sirven material de formatos abiertos. */
   lockedGames?: Set<GameId>;
@@ -562,7 +565,8 @@ export function buildPlacementSession(): SessionSpec {
 /** Sesión recomendada del dashboard: prioriza tarjetas vencidas o la región más floja. */
 export function buildRecommendedSession(ctx: BuildContext): SessionSpec {
   const due = dueCards(ctx);
-  const active: RegionId[] = REGIONS.filter((r) => r.games.length > 0).map((r) => r.id);
+  const lvl = ctx.level ?? 1;
+  const active: RegionId[] = REGIONS.filter((r) => r.games.length > 0 && r.unlockLevel <= lvl).map((r) => r.id);
   if (due.length >= 5) {
     return buildMissionSession("bosque", ctx);
   }
@@ -577,8 +581,10 @@ export function buildRecommendedDestination(
   dueCount: number,
 ): { gameId: GameId; mode: "training" | "mission"; regionId?: RegionId } {
   if (dueCount >= 3) return { gameId: "srs", mode: "training" };
-  // Región más floja (misión completa de 3-5 min con mecánicas variadas).
-  const active = REGIONS.filter((r) => r.games.length > 0);
+  // Región más floja ya desbloqueada (misión completa de 3-5 min con
+  // mecánicas variadas). Nunca recomienda una isla cerrada.
+  const lvl = ctx.level ?? 1;
+  const active = REGIONS.filter((r) => r.games.length > 0 && r.unlockLevel <= lvl);
   const weakest = active.reduce((a, b) =>
     ctx.skills[REGION_BY_ID[a.id].skill] <= ctx.skills[REGION_BY_ID[b.id].skill] ? a : b,
   );

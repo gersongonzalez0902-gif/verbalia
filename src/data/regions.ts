@@ -45,7 +45,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "Una ciudad de puentes y avenidas donde las oraciones se construyen ladrillo a ladrillo. Sus habitantes exigen que todo esté en su sitio.",
     skill: "gramatica",
-    unlockLevel: 2,
+    unlockLevel: 4,
     stage: 1,
     games: ["puzzle", "cloze", "sortea-ciudad", "vf-ciudad", "conecta-ciudad", "intruso-ciudad", "escribe-ciudad", "concordancia", "serestar", "porpara", "subjuntivo", "tiempos", "pronombres", "relativos", "estilo", "pasiva", "genero"],
     map: { x: 49.1, y: 18.3 },
@@ -60,7 +60,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "Una fortaleza de piedra donde se custodian las reglas de escritura. Los errores intentan escalar sus muros cada noche.",
     skill: "ortografia",
-    unlockLevel: 3,
+    unlockLevel: 8,
     stage: 1,
     games: ["errores", "tildes", "tipeo", "labpunt", "sortea-fortaleza", "vf-fortaleza", "escribe-fortaleza", "oye-fortaleza", "memoria-fortaleza", "bv", "gj", "hach", "lly", "csz", "homofonos", "puntuacion", "mayusculas", "cifras"],
     map: { x: 78.5, y: 30 },
@@ -75,7 +75,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "Una biblioteca cuyas estanterías se multiplican sin fin. Cada libro se reordena solo… salvo cuando necesita que tú lo hagas.",
     skill: "lectura",
-    unlockLevel: 4,
+    unlockLevel: 12,
     stage: 1,
     games: ["parrafos", "cloze", "lectura", "jeroglificos", "mitos", "conecta-biblioteca", "vf-biblioteca", "intruso-biblioteca", "memoria-biblioteca", "sortea-biblioteca", "titulo", "idea", "resumen", "tono", "inferencia", "secuencia", "proposito", "vocabctx"],
     map: { x: 67.4, y: 50.8 },
@@ -90,7 +90,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "Un puerto donde atracan rumores, ecos y dictados. Sus faros convierten el sonido en escritura, tilde a tilde.",
     skill: "audicion",
-    unlockLevel: 5,
+    unlockLevel: 16,
     stage: 2,
     games: ["dictado", "matices", "fonetica", "voz", "eco", "oye-puerto", "memoria-puerto", "vf-puerto", "conecta-puerto", "sortea-puerto", "entonacion", "oye-acento", "oyenumero"],
     map: { x: 73.9, y: 68 },
@@ -105,7 +105,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "La torre más alta del Archipiélago. En sus terrazas se escriben historias que cambian contigo, dichos viejos y retos de un minuto.",
     skill: "expresion",
-    unlockLevel: 6,
+    unlockLevel: 20,
     stage: 2,
     games: ["historias", "refranes", "minuto", "vf-torre", "conecta-torre", "sortea-torre", "escribe-torre", "memoria-torre", "iniciadores", "cierre", "descripciones"],
     map: { x: 88, y: 73.8 },
@@ -120,7 +120,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "La cúpula de cristal más alta del Archipiélago. Su telescopio no mira las estrellas: mira el viaje de las palabras, desde el latín y el árabe hasta el náhuatl y el quechua.",
     skill: "cultura",
-    unlockLevel: 7,
+    unlockLevel: 24,
     stage: 2,
     games: ["vf-observatorio", "conecta-observatorio", "sortea-observatorio", "memoria-observatorio", "intruso-observatorio", "regiones", "falsosamigos"],
     map: { x: 16.4, y: 81.8 },
@@ -135,7 +135,7 @@ export const REGIONS: RegionInfo[] = [
     description:
       "La octava isla solo se abre a quienes ya dominan las otras siete: un taller de lava y yunques donde las palabras se funden hasta volverse estilo. Aquí se entrena la pluma, no solo la lengua.",
     skill: "expresion",
-    unlockLevel: 8,
+    unlockLevel: 28,
     stage: 4,
     games: ["metaforas", "registro", "conectores", "ironia", "titulos"],
     map: { x: 49.6, y: 81.7 },

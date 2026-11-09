@@ -82,13 +82,13 @@ export const INNOVATIVE_MODULES: RoadmapModule[] = [
 export const STAGE_LABELS: Record<Stage, string> = {
   1: "Etapa 1 · MVP jugable",
   2: "Etapa 2 · Experiencia avanzada",
-  3: "Etapa 3 · Cielo de formatos",
+  3: "Etapa 3 · Comunidad e IA",
   4: "Etapa 4 · El Códice Infinito",
 };
 
 export const STAGE_DESCRIPTIONS: Record<Stage, string> = {
   1: "La base completa y jugable: onboarding, evaluación, mapa, 7 minijuegos, progresión, misiones, repaso de errores y modo sin conexión.",
   2: "Audio, voz y expresión: Puerto de las Voces y Torre de la Expresión, lectura sincronizada, dictados, matices, historias ramificadas, refranes, sprint, sinónimos, reto del minuto y modo nocturno. Ahora también rasca-rasca, tinder de sinónimos, duelo de tipeo, laboratorio de puntuación, jeroglíficos modernos, mitos y leyendas, fonética visual y dictado por voz con grabación: los 22 módulos de la etapa, todos listos.",
-  3: "Cielo de formatos: 35 minijuegos nuevos (memoria, el intruso, clasifica, verdadero/falso, escribe, oye, conecta), la isla del Observatorio, mascota reactiva, 6 paletas, estación de música y bóveda cifrada.",
+  3: "Comunidad e IA: el tutor Léxico mayor despierta (proxy del servidor con tu clave, jamás en el navegador), perfil de navegante con presencia en servidor, amistades, tabla de honor del faro y retos entre navegantes; y sobre esa base, role-play conversacional, modo escritor con IA, editor fantasma de estilo, crucigramas adaptativos, adivinanzas etimológicas, mapas mentales de familias, detective de fake news y podcasts personalizados. Terreno ya preparado: base de datos real (SQLite→Postgres sin cambiar código) y proxy de IA operativo.",
   4: "El Códice Infinito: la octava isla (Forja del Escritor) con 5 formatos de estilo, economía de tinta con el Bazar del Copista, +150 palabras, +100 frases, perfil 3.0 con marcos y títulos, estadísticas 3.0, háptics y ajustes de voz.",
 };

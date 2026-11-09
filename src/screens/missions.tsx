@@ -135,8 +135,19 @@ export function MissionsScreen() {
                   {totalReady} {totalReady === 1 ? "recompensa lista" : "recompensas listas"}
                 </p>
                 <p className="text-xs leading-snug text-muted-foreground">
-                  {readyDaily.length + readyWeekly.length > 0 && `${readyDaily.length + readyWeekly.length} misión(es) · `}
-                  {unclaimedAchievements.length} logro(s). Recógelas aquí.
+                  {[
+                    readyDaily.length + readyWeekly.length === 1
+                      ? "1 misión"
+                      : `${readyDaily.length + readyWeekly.length} misiones`,
+                    unclaimedAchievements.length === 1
+                      ? "1 logro"
+                      : unclaimedAchievements.length > 0
+                        ? `${unclaimedAchievements.length} logros`
+                        : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  . Recógelas aquí.
                 </p>
               </div>
               <Button className="shrink-0 font-bold" onClick={claimAll}>
