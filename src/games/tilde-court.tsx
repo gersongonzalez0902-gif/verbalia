@@ -13,6 +13,29 @@ import { cn } from "@/lib/utils";
 import { useGameProps } from "./props";
 import { OptionButton } from "./common";
 
+/**
+ * Resalta TODAS las apariciones de la palabra en la frase, sin distinguir
+ * mayúsculas (la palabra puede abrir la frase: «Segun…» con word «segun»).
+ */
+function highlightWord(sentence: string, word: string): React.ReactNode {
+  const re = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let k = 0;
+  for (const m of sentence.matchAll(re)) {
+    const idx = m.index ?? 0;
+    out.push(sentence.slice(last, idx));
+    out.push(
+      <span key={`hl-${k++}`} className="font-bold text-foreground">
+        {m[0]}
+      </span>,
+    );
+    last = idx + m[0].length;
+  }
+  out.push(sentence.slice(last));
+  return out;
+}
+
 export function TildeCourt(props: useGameProps<TildeExercise>) {
   const { item, onAnswer, disabled } = props;
   const [chosen, setChosen] = useState<number | null>(null);
@@ -39,14 +62,7 @@ export function TildeCourt(props: useGameProps<TildeExercise>) {
       {/* Frase de contexto con la palabra señalada */}
       <div className="paper-texture w-full rounded-3xl border-2 border-border bg-card p-5 text-center shadow-sm sm:p-6">
         <p className="text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          {item.sentence.split(item.word).map((seg, i, arr) => (
-            <span key={i}>
-              {seg}
-              {i < arr.length - 1 && (
-                <span className="font-bold text-foreground">{item.word}</span>
-              )}
-            </span>
-          ))}
+          {highlightWord(item.sentence, item.word)}
         </p>
       </div>
 

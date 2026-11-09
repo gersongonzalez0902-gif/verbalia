@@ -891,6 +891,8 @@ export interface GameSettings {
   ttsRate: number;
   /** Vibración/háptics en aciertos y combos (si el dispositivo lo permite). */
   haptics: boolean;
+  /** ¿Suena la tecla al teclear en el Taller de Escritura? */
+  typingSounds: boolean;
 }
 
 /* ============================== Misiones / logros ============================== */

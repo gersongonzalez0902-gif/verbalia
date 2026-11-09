@@ -80,7 +80,7 @@ for (const e of ERRORS_PACK) {
 const strip = (s: string) => s.normalize("NFD").replace(/[\u0300-\u0302\u0304-\u036f]/g, "").normalize("NFC");
 for (const t of TILDES_PACK) {
   if (t.answerSyllable >= t.syllables.length) err(`${t.id}: answerSyllable fuera de rango`);
-  if (t.answerSyllable >= 0 && !t.sentence.includes(t.word)) err(`${t.id}: la palabra "${t.word}" no está en la frase`);
+  if (t.answerSyllable >= 0 && !strip(t.sentence).toLowerCase().includes(strip(t.word).toLowerCase())) err(`${t.id}: la palabra "${t.word}" no está en la frase`);
   if (t.answerSyllable >= 0 && strip(t.correctForm) !== strip(t.syllables.join(""))) {
     err(`${t.id}: correctForm "${t.correctForm}" ≠ sílabas "${t.syllables.join("")}"`);
   }

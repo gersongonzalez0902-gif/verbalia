@@ -347,6 +347,22 @@ export function SettingsScreen() {
                   />
                 </div>
 
+                {/* Teclado del Taller de Escritura */}
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <Label htmlFor="typing-sounds" className="text-sm font-bold">Sonido de las teclas</Label>
+                    <p className="text-xs text-muted-foreground">
+                      El clac del Taller de Escritura al teclear. Apágalo si prefieres escribir en silencio.
+                    </p>
+                  </div>
+                  <Switch
+                    id="typing-sounds"
+                    checked={settings.typingSounds}
+                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ typingSounds: v }); }}
+                    aria-label="Sonido de las teclas"
+                  />
+                </div>
+
                 {/* Velocidad de la voz (Etapa 4) */}
                 <div>
                   <div className="flex items-baseline justify-between">

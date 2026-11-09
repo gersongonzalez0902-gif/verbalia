@@ -2,18 +2,23 @@
 
 /**
  * Tarjeta «Frase del día» · rota en cada navegación (navCount del
- * enrutador) para que el viaje siempre encuentre una frase nueva.
+ * enrutador) y con el botón «Otra frase» (fraseSpin), para que el
+ * viaje siempre encuentre una frase nueva a demanda del jugador.
  * Presentada como una nota pegada en la bitácora.
  */
 
 import { useMemo } from "react";
 import { useUiStore } from "@/store/ui-store";
 import { frasePara } from "@/data/frases";
+import { sfx } from "@/services/audio";
+import { RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function FraseCard({ className, compact = false }: { className?: string; compact?: boolean }) {
   const navCount = useUiStore((s) => s.navCount);
-  const frase = useMemo(() => frasePara(navCount * 7 + 3), [navCount]);
+  const fraseSpin = useUiStore((s) => s.fraseSpin);
+  const rotateFrase = useUiStore((s) => s.rotateFrase);
+  const frase = useMemo(() => frasePara(navCount * 7 + 3 + fraseSpin * 11), [navCount, fraseSpin]);
 
   return (
     <figure
@@ -35,13 +40,21 @@ export function FraseCard({ className, compact = false }: { className?: string; 
         }}
       />
       <blockquote className={cn("pt-2 text-center", compact ? "text-xs" : "text-sm")}>
-        <p className={cn("font-display italic leading-relaxed", compact ? "text-[13px]" : "text-base")}>
+        <p key={`${navCount}-${fraseSpin}`} className={cn("anim-slide-up font-display italic leading-relaxed", compact ? "text-[13px]" : "text-base")}>
           «{frase.text}»
         </p>
         <figcaption className="mt-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           — {frase.author}
         </figcaption>
       </blockquote>
+      <button
+        onClick={() => { sfx.flip(); rotateFrase(); }}
+        aria-label="Cambiar la frase"
+        title="Otra frase"
+        className="tap-target absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground/70 transition hover:bg-muted hover:text-primary active:scale-90"
+      >
+        <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+      </button>
     </figure>
   );
 }

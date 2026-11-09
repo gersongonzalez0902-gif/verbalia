@@ -12,7 +12,7 @@ import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { packStats } from "@/data/content";
-import { totalPoolOf } from "@/data/pool-loader";
+import { totalPoolOf, pendingDifficultyOf } from "@/data/pool-loader";
 import { CORE_MECHANICS, INNOVATIVE_MODULES, STAGE_LABELS, STAGE_DESCRIPTIONS } from "@/data/roadmap";
 import { getIcon } from "@/components/game/icons";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,12 @@ export function LibraryScreen() {
     () =>
       GAME_IDS.map((gid) => {
         const g = GAMES[gid];
+        // Distribución honesta: lo ya en memoria (estático + grupos cargados)
+        // más lo que aún vive en grupos perezosos sin cargar.
         const stats = { ...packStats(gid), total: totalPoolOf(gid) };
+        for (const [d, n] of Object.entries(pendingDifficultyOf(gid))) {
+          stats.byDifficulty[Number(d)] = (stats.byDifficulty[Number(d)] ?? 0) + n;
+        }
         const played = core.stats.byGame[gid]?.plays ?? 0;
         return { gid, g, stats, played };
       }),

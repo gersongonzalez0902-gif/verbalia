@@ -49,6 +49,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   stationInGames: false,
   ttsRate: 1,
   haptics: false,
+  typingSounds: true,
 };
 
 export interface GameStore {

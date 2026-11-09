@@ -27,6 +27,7 @@ import {
   Sparkles,
   Target,
   Volume2,
+  VolumeX,
 } from "lucide-react";
 import { createRng } from "@/engine/rng";
 
@@ -59,6 +60,8 @@ const MODES: { id: Mode; name: string; tagline: string; description: string; ico
 export function WritingScreen() {
   const core = useGameStore((s) => s.core);
   const navigate = useUiStore((s) => s.navigate);
+  const typingSounds = useGameStore((s) => s.settings.typingSounds);
+  const updateSettings = useGameStore((s) => s.updateSettings);
   const [mode, setMode] = useState<Mode>("speed");
   const [running, setRunning] = useState(false);
   const typing = core.arcade.typing ?? { bestWpm: 0, bestAccuracy: 0, testsDone: 0, totalWords: 0, streak: 0, lastDay: "", drillsDone: 0 };
@@ -80,6 +83,18 @@ export function WritingScreen() {
       <main className="mx-auto w-full max-w-4xl px-4 pb-28 pt-4">
         {/* Récords del taller */}
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-4">
+          <button
+            onClick={() => { sfx.toggle(); updateSettings({ typingSounds: !typingSounds }); }}
+            aria-pressed={typingSounds}
+            aria-label={typingSounds ? "Silenciar el teclado" : "Sonar las teclas al teclear"}
+            title={typingSounds ? "Teclado sonoro: encendido" : "Teclado sonoro: apagado"}
+            className={cn(
+              "tap-target absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border transition",
+              typingSounds ? "border-primary/50 bg-primary/15 text-primary" : "border-border bg-muted text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {typingSounds ? <Volume2 className="h-4 w-4" aria-hidden /> : <VolumeX className="h-4 w-4" aria-hidden />}
+          </button>
           <div className="flex flex-wrap items-center gap-4">
             <span className="gloss flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white" style={{ background: "linear-gradient(150deg, color-mix(in oklch, var(--region-biblioteca) 76%, white 18%), var(--region-biblioteca))" }} aria-hidden>
               <Keyboard className="h-7 w-7" />
@@ -193,6 +208,7 @@ const PRECISION_SECONDS = 90;
 function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => void }) {
   const recordTypingTest = useGameStore((s) => s.recordTypingTest);
   const best = useGameStore((s) => s.core.arcade.typing?.bestWpm ?? 0);
+  const keySoundsOn = useGameStore((s) => s.settings.typingSounds);
   const totalSeconds = precision ? PRECISION_SECONDS : SPEED_SECONDS;
 
   const [phase, setPhase] = useState<"ready" | "run" | "done">("ready");
@@ -279,8 +295,10 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
       keystrokes.current.total += 1;
       if (value[i] === text[i]) {
         keystrokes.current.correct += 1;
-        if (value[i] === " ") sfx.typeWord();
-        else sfx.typeKey();
+        if (keySoundsOn) {
+          if (value[i] === " ") sfx.typeWord();
+          else sfx.typeKey();
+        }
       }
     }
     setTyped(value);

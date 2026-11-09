@@ -23,20 +23,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createRng } from "@/engine/rng";
 import { FraseCard } from "@/components/game/frase-card";
-import { useMusicStore } from "@/services/music-station";
 import {
-  BookOpen,
   ChartColumn,
   ChevronRight,
   Dumbbell,
   Flame,
-  Keyboard,
-  Gamepad2,
   Library,
-  ListMusic,
-  NotebookPen,
   Play,
-  Quote,
   Settings as SettingsIcon,
   Sparkles,
   Sprout,
@@ -60,8 +53,6 @@ export function HomeScreen() {
   const missions = useMemo(() => dailyProgress(core, today), [core, today]);
   /** Misiones diarias completadas que esperan su recompensa en el apartado. */
   const claimableMissions = missions.filter((m) => m.done && !m.claimed).length;
-
-  const stationCount = useMusicStore((s) => s.tracks.length);
 
   const greeting = useMemo(() => {
     const ctx = {
@@ -449,18 +440,6 @@ export function HomeScreen() {
         </button>
       </section>
 
-      {/* ===== Accesos secundarios ===== */}
-      <section className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4" aria-label="Accesos rápidos">
-        <QuickLink icon={Sprout} label="Jardín" onClick={() => { sfx.whoosh(); navigate({ name: "game", gameId: "srs", mode: "training" }); }} hint={`${due.length} vencidas`} />
-        <QuickLink icon={NotebookPen} label="Errores" onClick={() => { sfx.click(); navigate({ name: "errors" }); }} hint={`${core.errors.length} pendientes`} />
-        <QuickLink icon={BookOpen} label="Colección" onClick={() => { sfx.flip(); navigate({ name: "collection" }); }} hint={`${Object.keys(srs).length}/${SRS_WORDS_FULL.length}`} />
-        <QuickLink icon={ChartColumn} label="Estadísticas" onClick={() => { sfx.click(); navigate({ name: "stats" }); }} hint={`${core.stats.totalSessions} sesiones`} />
-        <QuickLink icon={Gamepad2} label="Juegos" onClick={() => { sfx.whoosh(); navigate({ name: "arcade" }); }} hint="21 retos de mente" />
-        <QuickLink icon={ListMusic} label="Estación" onClick={() => { sfx.click(); navigate({ name: "music" }); }} hint={`${stationCount} canciones`} />
-        <QuickLink icon={Keyboard} label="Escritura" onClick={() => { sfx.whoosh(); navigate({ name: "writing" }); }} hint="tipeo y mecanografía" />
-        <QuickLink icon={Quote} label="Frases" onClick={() => { sfx.tap(); navigate({ name: "frases" }); }} hint="bitácora completa" />
-      </section>
-
       {/* Consejo diario */}
       <LexicoBubble text={`Consejo de Léxico: ${dailyTip.text}`} compact className="mt-6 opacity-90" />
 
@@ -499,30 +478,5 @@ function StatStripCell({
       <span className="numeric font-display text-base font-black leading-none text-foreground">{value}</span>
       <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
     </span>
-  );
-}
-
-function QuickLink({
-  icon: Icon,
-  label,
-  hint,
-  onClick,
-}: {
-  icon: React.ElementType;
-  label: string;
-  hint: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="tap-3d flex flex-col items-start gap-1 rounded-2xl border bg-card p-3.5 text-left"
-    >
-      <span className="chip-icon flex h-8 w-8 items-center justify-center rounded-lg">
-        <Icon className="h-4.5 w-4.5" aria-hidden />
-      </span>
-      <span className="text-sm font-bold">{label}</span>
-      <span className="text-[11px] text-muted-foreground">{hint}</span>
-    </button>
   );
 }

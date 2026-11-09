@@ -2,33 +2,20 @@ import type { Exercise, SkillId } from "@/types";
 import { TRIVIA_PACK } from "./trivia";
 import { CLOZE_PACK } from "./cloze";
 import { TILDES_PACK } from "./tildes";
-import { TILDES_PACK_X } from "./gen/tildes-x";
 import { ERRORS_PACK } from "./errors-hunt";
 import { PUZZLE_PACK } from "./puzzles";
 import { PARAGRAPHS_PACK } from "./paragraphs";
-import { DICTADO_PACK } from "./dictado";
-import { MATICES_PACK } from "./matices";
-import { LECTURA_PACK } from "./lectura";
 import { SPRINT_PACK } from "./sprint";
-import { SINONIMOS_PACK } from "./sinonimos";
-import { HISTORIAS_PACK } from "./historias";
-import { REFRANES_PACK } from "./refranes";
-import { MINUTO_PACK } from "./minuto";
 import { SRS_WORDS } from "./words-srs";
 import { SRS_WORDS_C1 } from "./gen/words-srs-c1";
 import { SRS_WORDS_D1 } from "./gen/words-srs-d1";
 import { SRS_WORDS_E1 } from "./gen/words-srs-e1";
-// ---- Etapa 3 · duplicación de variedad (packs ampliados) ----
-import { TRIVIA_PACK_X } from "./gen/trivia-x";
-import { CLOZE_PACK_X } from "./gen/cloze-x";
-import { DICTADO_PACK_X } from "./gen/dictado-x";
-import { ERRORS_PACK_X } from "./gen/errors-hunt-x";
-import { ERRORS_PACK_Y } from "./gen/errors-hunt-y";
-import { MATICES_PACK_X } from "./gen/matices-x";
-import { LECTURA_PACK_X } from "./gen/lectura-x";
-import { MINUTO_PACK_X } from "./gen/minuto-x";
-import { SINONIMOS_PACK_X } from "./gen/sinonimos-x";
-import { HISTORIAS_PACK_X } from "./gen/historias-x";
+// ---- Packs perezosos: dictados, historias, sinónimos, matices, refranes… ----
+// Los packs grandes de los juegos de Etapa 2+ ya NO se importan aquí: viven
+// en grupos «pk-*» de pool-loader.ts y llegan con import() dinámico al
+// entrar al minijuego. content.ts queda solo con el núcleo inmediato
+// (evaluación inicial + primeros juegos) y el paquete inicial adelgaza
+// cientos de KB.
 // ---- Etapa 3 · nuevos formatos (memoria, intruso, sortea, vf, escribe, oye, conecta) ----
 import { MEMORIA_PACKS } from "./formats/memoria";
 import { INTRUSO_PACKS } from "./formats/intruso";
@@ -37,7 +24,7 @@ import { VF_PACKS } from "./formats/verdadero-falso";
 import { ESCRIBE_PACKS } from "./formats/escribe";
 import { OYE_PACKS } from "./formats/oye";
 import { CONECTA_PACKS } from "./formats/conecta";
-import { CONECTA_BOSQUE_X } from "./gen/conecta-bosque-x";
+// (CONECTA_BOSQUE_X se carga bajo demanda: grupo pk-conecta.)
 // ---- Etapa 4 · Forja del Escritor (estilo y retórica) ----
 import { FORJA_PACKS } from "./forja";
 // ---- Etapa 4 · palabras SRS ampliadas ----
@@ -121,21 +108,14 @@ export const MEGA7_PACKS: Exercise[] = [
  */
 
 export const ALL_EXERCISES: Exercise[] = [
-  ...TRIVIA_PACK, ...TRIVIA_PACK_X,
+  ...TRIVIA_PACK,
   ...PUZZLE_PACK,
-  ...CLOZE_PACK, ...CLOZE_PACK_X,
-  ...ERRORS_PACK, ...ERRORS_PACK_X, ...ERRORS_PACK_Y,
-  ...TILDES_PACK, ...TILDES_PACK_X,
+  ...CLOZE_PACK,
+  ...ERRORS_PACK,
+  ...TILDES_PACK,
   ...PARAGRAPHS_PACK,
-  // ---- Etapa 2 ----
-  ...DICTADO_PACK, ...DICTADO_PACK_X,
-  ...MATICES_PACK, ...MATICES_PACK_X,
-  ...LECTURA_PACK, ...LECTURA_PACK_X,
+  // ---- Etapa 2 · núcleo inmediato (sprint); el resto llega bajo demanda ----
   ...SPRINT_PACK,
-  ...SINONIMOS_PACK, ...SINONIMOS_PACK_X,
-  ...HISTORIAS_PACK, ...HISTORIAS_PACK_X,
-  ...REFRANES_PACK,
-  ...MINUTO_PACK, ...MINUTO_PACK_X,
   // ---- Etapa 3 · cinco nuevos por ciudad ----
   ...MEMORIA_PACKS,
   ...INTRUSO_PACKS,
@@ -143,7 +123,7 @@ export const ALL_EXERCISES: Exercise[] = [
   ...VF_PACKS,
   ...ESCRIBE_PACKS,
   ...OYE_PACKS,
-  ...CONECTA_PACKS, ...CONECTA_BOSQUE_X,
+  ...CONECTA_PACKS,
   // ---- Etapa 4 · Forja del Escritor ----
   ...FORJA_PACKS,
   // ---- Mega-7 · 45 minijuegos nuevos ----

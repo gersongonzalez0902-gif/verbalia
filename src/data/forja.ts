@@ -731,7 +731,8 @@ const TITULOS: Omit<TitulosExercise, "id" | "type" | "cefr">[] = [
 function build(): Exercise[] {
   const out: Exercise[] = [];
   METAFORAS.forEach((e, i) => {
-    out.push({ ...e, id: `mf-fj-${String(i + 1).padStart(2, "0")}`, type: "metaforas", cefr: "B1", tags: ["forja", ...e.tags] });
+    const cefr = e.difficulty <= 2 ? "A2" : e.difficulty >= 4 ? "C1" : "B1";
+    out.push({ ...e, id: `mf-fj-${String(i + 1).padStart(2, "0")}`, type: "metaforas", cefr, tags: ["forja", ...e.tags] });
   });
   REGISTRO.forEach((e, i) => {
     const cefr = e.difficulty <= 2 ? "A2" : e.difficulty >= 4 ? "C1" : "B1";

@@ -111,7 +111,9 @@ export function MusicStationScreen() {
               </p>
               <p className="numeric mt-0.5 text-xs text-muted-foreground">
                 {station.tracks.length > 0
-                  ? `${station.tracks.length} canciones en la bitácora`
+                  ? station.tracks.length === 1
+                    ? "1 canción en la playlist"
+                    : `${station.tracks.length} canciones en la playlist`
                   : "La estación está vacía"}
               </p>
             </div>
@@ -240,8 +242,8 @@ export function MusicStationScreen() {
             Carga tus canciones (MP3, OGG, WAV…)
           </p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Se guardan solo en este dispositivo y siguen sonando mientras navegas.
-            Nada se sube a ningún servidor.
+            Viven solo en este dispositivo y siguen sonando mientras navegas:
+            nada viaja a ningún servidor.
           </p>
           <Button className="mt-3 font-bold" onClick={() => fileRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" aria-hidden />
@@ -253,11 +255,11 @@ export function MusicStationScreen() {
         <section aria-labelledby="playlist-title">
           <h2 id="playlist-title" className="font-display mb-2.5 flex items-center gap-2 text-lg font-bold">
             <ListMusic className="h-5 w-5 text-primary" aria-hidden />
-            Bitácora sonora
+            Playlist del navegante
           </h2>
           {station.tracks.length === 0 ? (
             <p className="card-aurora rounded-3xl border bg-card p-5 text-center text-sm text-muted-foreground">
-              La bitácora está en blanco: añade canciones y Léxico pinchará la primera.
+              La playlist está vacía: añade canciones y Léxico pinchará la primera.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -276,7 +278,7 @@ export function MusicStationScreen() {
         </section>
 
         <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-          La estación respeta tu privacidad: canciones y progreso viven solo aquí.
+          La estación respeta tu privacidad: canciones y progreso viven solo aquí, en tu dispositivo.
           Si la estación suena, la música ambiental del juego se calla para no pisar tu ritmo.
         </p>
       </main>

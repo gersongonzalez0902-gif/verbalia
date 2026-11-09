@@ -84,12 +84,16 @@ interface UiStore {
   stationPlaying: boolean;
   /** Contador de navegaciones: rota la frase del día en cada salto. */
   navCount: number;
+  /** Giros manuales de la frase del día (botón «Otra frase»). */
+  fraseSpin: number;
   /** ID de desbloqueo/región abierta en el mapa (hoja lateral). */
   mapSheetRegion: string | null;
   /** Palabra que debe entrar sí o sí en el próximo entrenamiento SRS (Palabra del Día). */
   srsFocusWordId: string | null;
   /** Navega a una pantalla (apila en el historial del navegador). */
   navigate: (screen: Screen) => void;
+  /** Hace girar la frase del día manualmente. */
+  rotateFrase: () => void;
   /** Retrocede una pantalla (si hay historial del navegador). */
   back: () => void;
   syncFromHash: () => void;
@@ -102,6 +106,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
   screen: { name: "home" },
   stationPlaying: false,
   navCount: 0,
+  fraseSpin: 0,
   mapSheetRegion: null,
   srsFocusWordId: null,
 
@@ -119,6 +124,10 @@ export const useUiStore = create<UiStore>((set, get) => ({
       if (window.history.length > 1) window.history.back();
       else get().navigate({ name: "home" });
     }
+  },
+
+  rotateFrase() {
+    set((s) => ({ fraseSpin: s.fraseSpin + 1 }));
   },
 
   syncFromHash() {
