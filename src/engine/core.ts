@@ -233,6 +233,12 @@ export function reduceSessionComplete(
       next.errors = next.errors.slice(0, MAX_ERRORS);
     }
 
+    // Resolución de errores: al acertar un ejercicio (en repaso o en
+    // cualquier juego), su entrada sale del cuaderno. Ya se domina.
+    if (a.correct === true && a.exercise && next.errors.some((e) => e.exerciseId === a.exercise!.id)) {
+      next.errors = next.errors.filter((e) => e.exerciseId !== a.exercise!.id);
+    }
+
     // Contadores por juego.
     const g = (next.stats.byGame[a.gameId] ||= { plays: 0, answers: 0, correct: 0, bestCombo: 0 });
     if (a.kind === "srs") {

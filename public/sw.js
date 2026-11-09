@@ -13,7 +13,7 @@
  * la app instalada siempre esté al día.
  */
 
-const VERSION = "verbalia-v2.2.0"; // regreso local-first: cache nueva para olvidar las cachés de la etapa online
+const VERSION = "verbalia-v2.3.0"; // mega-actualización 6: 50 juegos, sonidos reales y correcciones
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGES_CACHE = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline.html";
@@ -39,7 +39,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-const STATIC_PREFIXES = ["/_next/static/", "/icons/", "/icon.svg"];
+const STATIC_PREFIXES = ["/_next/static/", "/icons/", "/icon.svg", "/sounds/"];
 
 function isStaticAsset(url) {
   return STATIC_PREFIXES.some((p) => url.pathname.startsWith(p));

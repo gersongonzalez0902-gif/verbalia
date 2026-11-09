@@ -25,6 +25,7 @@ import {
 } from "@/engine/shop";
 import { useToast } from "@/hooks/use-toast";
 import { DAILY_GIFT_TINTA, dailyGiftPending, featuredShopItem, msUntilNextGift, PREMIUM_PALETTES } from "@/engine/shop";
+import { isAdminName, ADMIN_TINTA_LABEL } from "@/engine/admin";
 import { Gift, Star } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
@@ -353,7 +354,7 @@ export function ShopScreen() {
             </p>
           </div>
           <div className="gloss flex shrink-0 flex-col items-center rounded-2xl border bg-background px-3 py-2">
-            <span className="numeric font-display title-sheen text-xl font-bold">{wallet.tinta}</span>
+            <span className="numeric font-display title-sheen text-xl font-bold">{isAdminName(profile.name) ? ADMIN_TINTA_LABEL : wallet.tinta}</span>
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
               <Droplets className="h-3 w-3 text-primary" aria-hidden /> tinta
             </span>

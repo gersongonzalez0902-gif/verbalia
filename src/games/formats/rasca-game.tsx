@@ -136,10 +136,13 @@ export function RascaGame(props: useGameProps<RascaExercise>) {
                   gone ? "pointer-events-none opacity-0" : "opacity-100",
                 )}
                 style={{
+                  /* Mezclas al 100 % (opacas): si las porcentajes de
+                     color-mix no suman 100 %, el resultado es translúcido
+                     y la palabra se adivina por detrás. */
                   background:
                     (i * 7 + 3) % 3 === 0
-                      ? "color-mix(in oklch, var(--primary) 26%, #000 12%)"
-                      : "color-mix(in oklch, var(--primary) 16%, #000 20%)",
+                      ? "color-mix(in oklch, var(--primary) 34%, #000)"
+                      : "color-mix(in oklch, var(--primary) 20%, #000)",
                   boxShadow: gone ? "none" : "inset 0 0 0 1px rgba(0,0,0,0.06)",
                 }}
               />

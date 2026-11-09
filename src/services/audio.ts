@@ -90,6 +90,7 @@ export function initAudioUnlock(): void {
   const unlock = () => {
     ensureCtx();
     unlocked = true;
+    warmupSfxFiles(); // los archivos reales llegan con el primer gesto
     if (currentScene) startScene(currentScene); // la música arranca al desbloquear
     detach();
   };
@@ -854,7 +855,7 @@ export function getAudioState() {
 /** Variación ligera para no repetir: +-6% de afinación. */
 const vary = (f: number) => f * (0.94 + Math.random() * 0.12);
 
-export const sfx = {
+const synthSfx = {
   /* ------- acierto: tres niveles con brillo creciente ------- */
   correct(level = 0) {
     if (!enabled) return;
@@ -1107,6 +1108,150 @@ export const sfx = {
     tone(vary(196), 0.02, 0.06, 0.04, "sine");
   },
 };
+
+/* ==================== capa de ARCHIVOS SFX reales ====================
+ * La gran actualización de sonido: los efectos ya no se sintetizan en
+ * vivo; son grabaciones reales servidas desde /sounds/*.mp3 (fuentes
+ * libres: ver public/sounds/CREDITOS-SONIDOS.md). Cada archivo se
+ * descarga, decodifica y queda en memoria; si algo falla (sin red en
+ * la primera visita, navegador caprichoso), el sintetizador original
+ * de arriba hace de respaldo instantáneo: el juego nunca se queda
+ * mudo ni añade retardo. */
+
+type SfxFileSpec = { src: string; rate?: number; gain?: number };
+
+/** Efecto → variantes de archivo. Los métodos sin entrada propia
+ *  reutilizan un archivo cercano con velocidad/volumen ajustados,
+ *  como haría un diseñador sonoro con su librería. */
+const SFX_FILES: Record<string, SfxFileSpec[]> = {
+  tap: [{ src: "/sounds/tap.mp3", gain: 0.85 }, { src: "/sounds/tap-2.mp3", gain: 0.85 }],
+  click: [{ src: "/sounds/click.mp3" }, { src: "/sounds/click-2.mp3" }],
+  toggle: [{ src: "/sounds/toggle.mp3" }],
+  pop: [{ src: "/sounds/pop.mp3" }, { src: "/sounds/pop-2.mp3" }],
+  correct: [{ src: "/sounds/correct.mp3" }, { src: "/sounds/correct-2.mp3" }],
+  wrong: [{ src: "/sounds/wrong.mp3" }, { src: "/sounds/wrong-2.mp3" }],
+  error: [{ src: "/sounds/error.mp3" }],
+  whoosh: [{ src: "/sounds/whoosh.mp3" }, { src: "/sounds/whoosh-2.mp3" }],
+  slide: [{ src: "/sounds/slide.mp3" }],
+  page: [{ src: "/sounds/page.mp3" }, { src: "/sounds/page-2.mp3" }],
+  flip: [{ src: "/sounds/flip.mp3" }],
+  deal: [{ src: "/sounds/deal.mp3" }],
+  place: [{ src: "/sounds/place.mp3" }],
+  snap: [{ src: "/sounds/snap.mp3" }],
+  open: [{ src: "/sounds/open.mp3" }],
+  close: [{ src: "/sounds/close.mp3" }],
+  back: [{ src: "/sounds/back.mp3" }],
+  navigate: [{ src: "/sounds/navigate.mp3" }],
+  coin: [{ src: "/sounds/coin.mp3" }],
+  coins: [{ src: "/sounds/coins.mp3" }],
+  tinta: [{ src: "/sounds/tinta.mp3" }],
+  buy: [{ src: "/sounds/buy.mp3" }],
+  unlock: [{ src: "/sounds/unlock.mp3" }],
+  levelUp: [{ src: "/sounds/level-up.mp3" }],
+  achievement: [{ src: "/sounds/achievement.mp3" }],
+  gift: [{ src: "/sounds/gift.mp3" }],
+  claim: [{ src: "/sounds/claim.mp3" }],
+  streak: [{ src: "/sounds/streak.mp3" }],
+  combo: [{ src: "/sounds/combo.mp3" }],
+  stepUp: [{ src: "/sounds/step-up.mp3" }],
+  sparkle: [{ src: "/sounds/sparkle.mp3" }],
+  confetti: [{ src: "/sounds/confetti.mp3" }],
+  chime: [{ src: "/sounds/chime.mp3" }],
+  sessionWin: [{ src: "/sounds/session-win.mp3" }],
+  sessionEnd: [{ src: "/sounds/session-end.mp3" }],
+  sessionLose: [{ src: "/sounds/session-lose.mp3" }],
+  go: [{ src: "/sounds/go.mp3" }],
+  countdown: [{ src: "/sounds/countdown.mp3" }],
+  tick: [{ src: "/sounds/tick.mp3", gain: 0.8 }],
+  tock: [{ src: "/sounds/tick.mp3", rate: 0.82, gain: 0.8 }],
+  stamp: [{ src: "/sounds/stamp.mp3" }],
+  buoy: [{ src: "/sounds/buoy.mp3" }],
+  typeKey: [{ src: "/sounds/snap.mp3", rate: 1.7, gain: 0.45 }],
+  typeWord: [{ src: "/sounds/tap.mp3", rate: 1.3, gain: 0.8 }],
+};
+
+const sfxBufferCache = new Map<string, AudioBuffer>();
+const sfxFileFailed = new Set<string>();
+const sfxFileLoading = new Set<string>();
+
+async function loadSfxFile(src: string): Promise<void> {
+  const c = ensureCtx();
+  if (!c || sfxBufferCache.has(src) || sfxFileFailed.has(src) || sfxFileLoading.has(src)) return;
+  sfxFileLoading.add(src);
+  try {
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(String(res.status));
+    const bytes = await res.arrayBuffer();
+    sfxBufferCache.set(src, await c.decodeAudioData(bytes));
+  } catch {
+    sfxFileFailed.add(src); // este archivo no llega: síntesis permanente para él
+  } finally {
+    sfxFileLoading.delete(src);
+  }
+}
+
+/** Precarga los sonidos más frecuentes justo tras el primer gesto. */
+export function warmupSfxFiles(): void {
+  for (const key of ["tap", "click", "correct", "wrong", "whoosh", "flip", "page"]) {
+    const spec = SFX_FILES[key]?.[0];
+    if (spec) void loadSfxFile(spec.src);
+  }
+}
+
+/** Intenta sonar con archivo. false → el sintetizador toma el turno. */
+function playSfxFile(name: string): boolean {
+  if (!enabled) return true; // silencio pedido: no suena nada (ni archivo ni síntesis)
+  const variants = SFX_FILES[name];
+  if (!variants || variants.length === 0) return false;
+  const spec = variants[Math.floor(Math.random() * variants.length)];
+  const c = ensureCtx();
+  if (!c) return false;
+  const buf = sfxBufferCache.get(spec.src);
+  if (!buf) {
+    if (sfxFileFailed.has(spec.src)) return false;
+    void loadSfxFile(spec.src); // llegará para la próxima llamada
+    return false;
+  }
+  try {
+    const node = c.createBufferSource();
+    node.buffer = buf;
+    node.playbackRate.value = spec.rate ?? 1;
+    const g = c.createGain();
+    g.gain.value = (spec.gain ?? 1) * sfxVolume;
+    node.connect(g);
+    g.connect(sfxBus ?? c.destination);
+    node.start();
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+/** Hápticos que vivían dentro de los métodos sintetizados: los
+ *  mantenemos aunque suene el archivo (la vibración es parte del golpe). */
+const HAPTIC_BY_SFX: Record<string, number | number[]> = {
+  correct: 10,
+  wrong: [16, 30, 16],
+  claim: [18, 30, 24],
+  levelUp: [28, 40, 28, 40, 60],
+};
+
+/** El sfx público: archivo real primero, síntesis de respaldo. */
+export const sfx = new Proxy(synthSfx, {
+  get(target, prop, receiver) {
+    const original = Reflect.get(target, prop, receiver);
+    if (typeof original !== "function") return original;
+    return (...args: unknown[]) => {
+      const name = String(prop);
+      if (playSfxFile(name)) {
+        const hp = HAPTIC_BY_SFX[name];
+        if (hp !== undefined) haptic(hp);
+        return;
+      }
+      return original.apply(target, args);
+    };
+  },
+}) as typeof synthSfx;
 
 /* ============================== voz (TTS) ============================== */
 

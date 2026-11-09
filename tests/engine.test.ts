@@ -1276,10 +1276,10 @@ import {
 } from "@/engine/arcade";
 
 describe("economía del Salón de Juegos", () => {
-  test("el catálogo tiene 21 juegos válidos y sin ajedrez ni damas", () => {
-    expect(ARCADE_GAMES.length).toBe(21);
+  test("el catálogo tiene 50 juegos válidos y sin ajedrez ni damas", () => {
+    expect(ARCADE_GAMES.length).toBe(50);
     const ids = new Set(ARCADE_GAMES.map((g) => g.id));
-    expect(ids.size).toBe(21);
+    expect(ids.size).toBe(50);
     for (const g of ARCADE_GAMES) {
       expect(g.price).toBeGreaterThanOrEqual(0);
       expect(g.xpCap).toBeGreaterThan(0);

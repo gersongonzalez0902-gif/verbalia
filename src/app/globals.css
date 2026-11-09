@@ -1609,9 +1609,16 @@ html.reduce-motion .anim-bounce-soft { animation: none; }
 .lexico-lid {
   transform-box: view-box;
   transform-origin: var(--lid-origin, 45px 34px);
+  /* Estado base OCULTO de forma intrínseca: si las animaciones no
+     corren (reduce-motion, ajustes del sistema, navegador estricto),
+     el párpado NO debe tapar el ojo. La animación lo controla igual. */
+  transform: scaleY(0);
   animation: blink 6s infinite;
 }
 html.reduce-motion .lexico-lid { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .lexico-lid { animation: none; }
+}
 
 /* ================================================================
    CAPA VIVA DE ESCRITORIO · Paridad de dinamismo PC ↔ móvil

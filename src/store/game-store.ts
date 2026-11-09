@@ -24,7 +24,8 @@ import { reviewCard, newCard, isLearned, isMastered } from "@/engine/srs";
 import { EMPTY_PROFILE, migrateProfile, migrateCore } from "@/engine/migrate";
 import { applyPurchase, applyEquip, claimDailyGift, MAX_SHIELDS } from "@/engine/shop";
 import { dailyMissions, weeklyMissions, metricValue, dateKey, weekKey, daysOfWeek, dailyClaimKey, weeklyClaimKey } from "@/engine/missions";
-import { levelFromXp } from "@/engine/xp";
+import { levelFromXp, cumulativeXpForLevel, MAX_LEVEL } from "@/engine/xp";
+import { isAdminName, ADMIN_TINTA } from "@/engine/admin";
 import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { applyArcadeUnlock, applyArcadeScore, applyTypingTest, type TypingResult } from "@/engine/arcade";
 import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
@@ -190,7 +191,21 @@ export const useGameStore = create<GameStore>((set, get) => {
         onboarded: true,
         placementDone: false,
       };
-      set({ profile, hasProfile: true });
+      // AdminG: navegante de pruebas con todo el archipiélago abierto.
+      if (isAdminName(profile.name)) {
+        const core = get().core;
+        set({
+          profile,
+          hasProfile: true,
+          core: {
+            ...core,
+            xp: Math.max(core.xp, cumulativeXpForLevel(MAX_LEVEL)),
+            wallet: { ...core.wallet, tinta: Math.max(core.wallet?.tinta ?? 0, ADMIN_TINTA) },
+          },
+        });
+      } else {
+        set({ profile, hasProfile: true });
+      }
       persist(true);
     },
 
@@ -245,7 +260,20 @@ export const useGameStore = create<GameStore>((set, get) => {
 
     updateProfile(partial) {
       const profile = { ...get().profile, ...partial };
-      set({ profile });
+      // Renombrarse a AdminG activa el modo de pruebas al vuelo.
+      if (isAdminName(profile.name) && !isAdminName(get().profile.name)) {
+        const core = get().core;
+        set({
+          profile,
+          core: {
+            ...core,
+            xp: Math.max(core.xp, cumulativeXpForLevel(MAX_LEVEL)),
+            wallet: { ...core.wallet, tinta: Math.max(core.wallet?.tinta ?? 0, ADMIN_TINTA) },
+          },
+        });
+      } else {
+        set({ profile });
+      }
       persist(true);
     },
 

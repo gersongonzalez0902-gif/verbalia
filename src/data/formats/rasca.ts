@@ -15,8 +15,8 @@ import { createRng, shuffle } from "@/engine/rng";
  * castiga la curiosidad y la capa se raya sola con el dedo.
  */
 
-/** Cuántas tarjetas por nivel de dificultad (total ≈ 360). */
-const PER_DIFFICULTY = 72;
+/** Cuántas tarjetas por nivel de dificultad (total ≈ 520). */
+const PER_DIFFICULTY = 104;
 /** Palabras por tarjeta: la buena + 2 distractores. */
 const OPTION_COUNT = 3;
 

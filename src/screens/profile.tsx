@@ -11,6 +11,7 @@ import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { levelProgress, rankForLevel, rankName, cefrFromSkill, skillMasteryLabel } from "@/engine/xp";
+import { isAdminName, ADMIN_TINTA_LABEL } from "@/engine/admin";
 import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { ACHIEVEMENTS } from "@/data/achievements";
 import { FRAMES, PREMIUM_BANNERS, premiumBannerCss, frameCss, titleText } from "@/engine/shop";
@@ -435,7 +436,7 @@ export function ProfileScreen() {
             <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs font-bold text-muted-foreground">
               <Droplets className="h-3.5 w-3.5 text-primary" aria-hidden />
               <span>Tinta del Bazar:</span>
-              <span className="numeric text-foreground">{core.wallet?.tinta ?? 0}</span>
+              <span className="numeric text-foreground">{isAdminName(profile.name) ? ADMIN_TINTA_LABEL : core.wallet?.tinta ?? 0}</span>
               <span>en el tintero</span>
               <span className="text-muted-foreground/70">· {tintaTotal} ganada en total</span>
             </p>

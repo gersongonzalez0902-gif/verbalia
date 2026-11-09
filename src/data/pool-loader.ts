@@ -181,6 +181,17 @@ const GROUPS: Record<string, GroupDef> = {
       };
     },
   },
+
+  /* ---- Variantes mecánicas (≥500 por entrenamiento) · Mega-6 ----
+   * Derivación sólida desde bancos existentes (frases de plantilla,
+   * jardín SRS, pack de sinónimos, refranes). Ver gen/variants.ts. */
+  variantes: {
+    games: ["tipeo", "eco", "voz", "fonetica", "tinder", "errores"],
+    load: async () => {
+      const v = await import("./gen/variants");
+      return v.variantPacks() as Record<string, Exercise[]>;
+    },
+  },
 };
 
 /** Índice inverso: juego → grupos que lo alimentan. */

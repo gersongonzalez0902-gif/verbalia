@@ -77,14 +77,13 @@ export function MapScreen() {
             return (
               <button
                 key={r.id}
-                onClick={() => { if (unlocked) { sfx.buoy(); setOpenRegion(r.id); } }}
-                disabled={!unlocked}
-                aria-label={`${r.name}. ${unlocked ? `${prog.played} sesiones jugadas. Tocar para abrir la región.` : shipped ? `Se desbloquea al alcanzar el nivel ${r.unlockLevel}.` : `Región en desarrollo: llegará en la Etapa ${r.stage}.`}`}
+                onClick={() => { sfx.buoy(); setOpenRegion(r.id); }}
+                aria-label={`${r.name}. ${unlocked ? `${prog.played} sesiones jugadas. Tocar para abrir la región.` : shipped ? `Bloqueada hasta el nivel ${r.unlockLevel}. Tocar para ver su información.` : `Región en desarrollo: llegará en la Etapa ${r.stage}. Tocar para ver su información.`}`}
                 className={cn(
                   "group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-2xl p-2 transition-[scale,filter] duration-200",
                   // En PC el icono NO se mueve ni crece al pasar el ratón:
                   // solo un brillo suave (la escala queda para el teclado).
-                  unlocked ? "hover:brightness-110 focus-visible:scale-110 focus-visible:outline-2 focus-visible:outline-primary" : "cursor-default",
+                  unlocked ? "hover:brightness-110 focus-visible:scale-110 focus-visible:outline-2 focus-visible:outline-primary" : "hover:brightness-95 cursor-pointer",
                 )}
                 style={{ left: `${r.map.x}%`, top: `${r.map.y}%` }}
               >
@@ -167,10 +166,9 @@ export function MapScreen() {
                 <li key={r.id}>
                   <button
                     onClick={() => { sfx.buoy(); setOpenRegion(r.id); }}
-                    disabled={!unlocked}
                     className={cn(
                       "tap-3d flex w-full items-center gap-3.5 rounded-2xl border bg-card p-4 text-left",
-                      unlocked ? "hover:border-primary/40" : "cursor-default opacity-60",
+                      unlocked ? "hover:border-primary/40" : "opacity-70 hover:border-primary/30",
                     )}
                   >
                     <span
@@ -241,10 +239,15 @@ function RegionSheet({
 }) {
   const region = regionId ? REGION_BY_ID[regionId] : null;
   const byGame = useGameStore((s) => s.core.stats.byGame);
+  const xp = useGameStore((s) => s.core.xp);
   if (!region) return null;
   const prog = progressOf(region.id);
   const accuracy = accuracyOf(region.id);
   const skillLabel = SKILL_LABELS[region.skill] ?? region.skill;
+  // Región bloqueada: se puede VISITAR (info) pero no JUGAR.
+  const shipped = region.games.length > 0;
+  const unlocked = shipped && levelProgress(xp).level >= region.unlockLevel;
+  const listLocked = !unlocked;
 
   return (
     <Sheet open={regionId !== null} onOpenChange={(v) => { if (v) sfx.open(); else { sfx.close(); onClose(); } }}>
@@ -271,6 +274,15 @@ function RegionSheet({
         <div className="space-y-5 px-4 pb-6 pt-3">
           <p className="text-sm leading-relaxed text-muted-foreground">{region.description}</p>
 
+          {listLocked && (
+            <p className="flex items-center gap-2.5 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs font-bold text-amber-600 dark:text-amber-400" role="note">
+              <Lock className="h-4 w-4 shrink-0" aria-hidden />
+              {!shipped
+                ? `Región en construcción: llegará en la Etapa ${region.stage}.`
+                : `Región bloqueada: se desbloquea al alcanzar el nivel ${region.unlockLevel}. Mientras tanto, puedes conocerla… pero sus aguas están calmadas y sus juegos, guardados.`}
+            </p>
+          )}
+
           <p className="rounded-2xl bg-secondary px-4 py-2.5 text-xs font-semibold text-secondary-foreground">
             Habilidad que entrena: {skillLabel}
           </p>
@@ -290,6 +302,7 @@ function RegionSheet({
           <Button
             size="lg"
             className="w-full text-base"
+            disabled={listLocked}
             style={{
               background: `var(${region.colorVar})`,
               color: "white",
@@ -297,8 +310,8 @@ function RegionSheet({
             }}
             onClick={() => { sfx.whoosh(); onPlayMissions(region.id); }}
           >
-            <Play className="mr-2 h-5 w-5" aria-hidden />
-            Misión de la región (3-5 min)
+            {listLocked ? <Lock className="mr-2 h-5 w-5" aria-hidden /> : <Play className="mr-2 h-5 w-5" aria-hidden />}
+            {listLocked ? "Bloqueada hasta el nivel " + region.unlockLevel : "Misión de la región (3-5 min)"}
           </Button>
 
           <div>
@@ -314,18 +327,22 @@ function RegionSheet({
                 return (
                   <button
                     key={gid}
-                    onClick={() => { sfx.whoosh(); onTrainGame(gid); }}
-                    className="tap-3d flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left"
+                    onClick={() => { if (listLocked) { sfx.error(); return; } sfx.whoosh(); onTrainGame(gid); }}
+                    aria-disabled={listLocked}
+                    className={cn(
+                      "tap-3d flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left",
+                      listLocked && "cursor-not-allowed opacity-55",
+                    )}
                   >
                     <span className="chip-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-bold">{g.name}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{g.tagline}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{listLocked ? `Disponible al nivel ${region.unlockLevel}` : g.tagline}</span>
                     </span>
                     <span className="shrink-0 text-right text-[11px] text-muted-foreground">
-                      {stats ? `${stats.plays} partidas` : "nuevo"}
+                      {listLocked ? <Lock className="ml-auto h-4 w-4" aria-hidden /> : stats ? `${stats.plays} partidas` : "nuevo"}
                     </span>
                   </button>
                 );

@@ -30,7 +30,17 @@ import {
   type ArcadeGameDef,
 } from "@/engine/arcade";
 import { levelProgress } from "@/engine/xp";
+import { isAdminName, ADMIN_TINTA_LABEL } from "@/engine/admin";
 import { MathGame, RomanGame, BinaryGame, DigitMemoryGame, TypingGame, AnagramGame, HangmanGame } from "@/games/arcade/quiz-games";
+import {
+  MemesBlitz, SinonimosBlitz, AntonimosBlitz, OrtografiaBlitz, GeneroBlitz, RefranesBlitz,
+  ColectivosBlitz, SufijosBlitz, ConectoresBlitz, MayusculasBlitz, FraccionesBlitz,
+  PotenciasBlitz, PorcentajesBlitz, SeriesBlitz, UnidadesBlitz, TiemposBlitz,
+  CuriosidadesBlitz, AnalogiasNumBlitz, SiguienteLetraBlitz, MemoriaPalabrasBlitz,
+  InversosBlitz, ComprasBlitz, ParImparBlitz, VocalConsonanteBlitz, CuentaLetrasBlitz,
+  SumasEncadenadasBlitz, MayorMenorBlitz, LetraVecinaBlitz,
+} from "@/games/arcade/quiz-blitz";
+import { SopaLetrasGame, CrucigramaGame } from "@/games/arcade/word-grid-games";
 import {
   LightsOutGame, HanoiGame, SudokuGame, MinesweeperGame,
   SlidingPuzzleGame, TicTacToeGame, Connect4Game,
@@ -66,10 +76,41 @@ const GAME_COMPONENTS: Record<string, React.ComponentType<{ def: ArcadeGameDef; 
   stroop: StroopGame,
   reaccion: ReactionGame,
   "flechas-danza": ArrowsDanceGame,
+  /* ---------- Mega-actualización 6 · +29 ---------- */
+  "memes-cultura": MemesBlitz,
+  crucigrama: CrucigramaGame,
+  "sopa-letras": SopaLetrasGame,
+  "sinonimos-relampago": SinonimosBlitz,
+  "antonimos-relampago": AntonimosBlitz,
+  "ortografia-relampago": OrtografiaBlitz,
+  "genero-relampago": GeneroBlitz,
+  "refranes-relampago": RefranesBlitz,
+  "colectivos-relampago": ColectivosBlitz,
+  "sufijos-relampago": SufijosBlitz,
+  "conectores-relampago": ConectoresBlitz,
+  "fracciones-relampago": FraccionesBlitz,
+  "potencias-raices": PotenciasBlitz,
+  "porcentajes-relampago": PorcentajesBlitz,
+  "series-numericas": SeriesBlitz,
+  "unidades-medida": UnidadesBlitz,
+  "tiempos-horas": TiemposBlitz,
+  "curiosidades-vf": CuriosidadesBlitz,
+  "analogias-num": AnalogiasNumBlitz,
+  "siguiente-letra": SiguienteLetraBlitz,
+  "memoria-palabras": MemoriaPalabrasBlitz,
+  "numeros-inversos": InversosBlitz,
+  "memoria-compras": ComprasBlitz,
+  "par-impar-relampago": ParImparBlitz,
+  "vocal-consonante": VocalConsonanteBlitz,
+  "cuenta-letras": CuentaLetrasBlitz,
+  "sumas-encadenadas": SumasEncadenadasBlitz,
+  "orden-numerico": MayorMenorBlitz,
+  "letra-vecina": LetraVecinaBlitz,
 };
 
 export function ArcadeScreen() {
   const core = useGameStore((s) => s.core);
+  const profile = useGameStore((s) => s.profile);
   const unlockArcade = useGameStore((s) => s.unlockArcade);
   const recordArcadeScore = useGameStore((s) => s.recordArcadeScore);
   const { toast } = useToast();
@@ -165,7 +206,7 @@ export function ArcadeScreen() {
     <div>
       <ScreenHeader
         title="Salón de Juegos"
-        subtitle="21 retos de cálculo, memoria, lógica y reflejos"
+        subtitle="50 retos de cálculo, memoria, lógica, letras y reflejos"
         backTo={{ name: "home" }}
       />
 
@@ -184,7 +225,7 @@ export function ArcadeScreen() {
             </div>
             <div className="flex items-center gap-2 rounded-2xl bg-primary/10 px-3 py-2">
               <Droplets className="h-4 w-4 text-primary" aria-hidden />
-              <span className="numeric text-lg font-black text-primary">{core.wallet.tinta}</span>
+              <span className="numeric text-lg font-black text-primary">{isAdminName(profile.name) ? ADMIN_TINTA_LABEL : core.wallet.tinta}</span>
             </div>
           </div>
 
