@@ -11,7 +11,7 @@ sleep 1
 # 2. Si el build de producción no existe (el sandbox lo borra al dormir), reconstruye
 if [ ! -f .next/standalone/server.js ]; then
   echo "→ Build de producción ausente: compilando…"
-  bun run build
+  bun run build:selfhost
 fi
 
 # 3. Arranca el servidor standalone en :3000, bien despegado de esta terminal
