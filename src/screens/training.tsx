@@ -17,6 +17,7 @@ import { sfx } from "@/services/audio";
 import { GAMES, GAME_IDS, type GameInfo } from "@/data/games";
 import { REGIONS, SKILL_COLORS } from "@/data/regions";
 import { levelFromXp } from "@/engine/xp";
+import { gameLock, lockChipText, unlockContext } from "@/engine/unlocks";
 import { SRS_WORDS_FULL } from "@/data/content";
 import { totalPoolOf } from "@/data/pool-loader";
 import { Button } from "@/components/ui/button";
@@ -74,18 +75,22 @@ export function TrainingScreen() {
     return map;
   }, []);
 
-  /** Catálogo enriquecido con región, candado y estadísticas. */
+  /** Catálogo enriquecido con región, candado y estadísticas.
+   *  El candado es de dos vueltas: nivel de la isla + requisito extra
+   *  del formato (logros, tinta o nivel) para los formatos de colección. */
+  const uctx = useMemo(() => unlockContext(core, level), [core, level]);
   const enriched = useMemo(
     () =>
       GAME_IDS.map((id) => {
         const g = GAMES[id];
         const region = gameRegion.get(id) ?? null;
-        const unlocked = !region || level >= region.unlockLevel;
+        const lock = gameLock(id, region?.unlockLevel, uctx);
+        const unlocked = !region || lock.unlocked;
         const stat = core.stats.byGame[id];
         const pool = id === "srs" ? SRS_WORDS_FULL.length : totalPoolOf(id);
-        return { g, region, unlocked, stat, pool };
+        return { g, region, unlocked, lock, stat, pool };
       }),
-    [core.stats.byGame, gameRegion, level],
+    [core.stats.byGame, gameRegion, uctx],
   );
 
   const unlockedCount = useMemo(() => enriched.filter((e) => e.unlocked).length, [enriched]);
@@ -192,7 +197,7 @@ export function TrainingScreen() {
           </p>
         ) : (
           <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map(({ g, region, unlocked, stat, pool }) => {
+            {filtered.map(({ g, region, unlocked, lock, stat, pool }) => {
               const Icon = ICONS[g.icon] ?? Sparkles;
               const color = SKILL_COLORS[g.skill];
               return (
@@ -222,13 +227,19 @@ export function TrainingScreen() {
                         <p className="truncate text-sm font-bold leading-tight">{g.name}</p>
                         <p className="truncate text-[11px] text-muted-foreground">
                           {region ? region.name : "Formato libre"}
-                          {!unlocked && region ? ` · Nivel ${region.unlockLevel}` : ""}
                         </p>
                       </div>
                       {!unlocked && <Lock className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />}
                     </div>
 
                     <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground/90">{g.description}</p>
+
+                    {/* Candado: requisito completo legible (isla + extra) */}
+                    {!unlocked && lock.reasons.length > 0 && (
+                      <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                        <Lock className="h-3 w-3 shrink-0" aria-hidden /> Requiere {lock.reasons.join(" · ")}
+                      </p>
+                    )}
 
                     <div className="mt-auto flex items-center justify-between gap-2">
                       <span className="numeric text-[10px] font-bold text-muted-foreground">
@@ -263,7 +274,7 @@ export function TrainingScreen() {
                         </span>
                       ) : (
                         <span className="flex shrink-0 items-center gap-1 rounded-full border bg-card px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
-                          <Lock className="h-3 w-3" aria-hidden /> Nivel {region?.unlockLevel}
+                          <Lock className="h-3 w-3" aria-hidden /> {lockChipText(g.id, region?.unlockLevel)}
                         </span>
                       )}
                     </div>
@@ -287,7 +298,14 @@ export function TrainingScreen() {
         }}
       >
         <DialogContent className="max-h-[85dvh] gap-0 overflow-y-auto rounded-3xl p-5 sm:max-w-md">
-          {detail && <GameDetail game={detail} unlocked={level >= (gameRegion.get(detail.id)?.unlockLevel ?? 1)} onPlay={() => play(detail.id)} />}
+          {detail && (
+          <GameDetail
+            game={detail}
+            unlocked={gameLock(detail.id, gameRegion.get(detail.id)?.unlockLevel, uctx).unlocked}
+            lockHint={lockChipText(detail.id, gameRegion.get(detail.id)?.unlockLevel)}
+            onPlay={() => play(detail.id)}
+          />
+        )}
         </DialogContent>
       </Dialog>
     </div>
@@ -298,10 +316,12 @@ export function TrainingScreen() {
 function GameDetail({
   game,
   unlocked,
+  lockHint,
   onPlay,
 }: {
   game: GameInfo;
   unlocked: boolean;
+  lockHint: string;
   onPlay: () => void;
 }) {
   const Icon = ICONS[game.icon] ?? Sparkles;
@@ -343,6 +363,12 @@ function GameDetail({
           value={game.timeLimit ? `${game.timeLimit} s máx.` : "sin prisa"}
         />
       </div>
+
+      {!unlocked && (
+        <p className="mt-3 rounded-2xl border border-dashed bg-muted/40 p-3 text-center text-xs font-bold text-muted-foreground">
+          Este formato se abre con {lockHint}: juega misiones, cosecha logros y estrena estilo en el Bazar.
+        </p>
+      )}
 
       <DialogFooter className="mt-4 p-0">
         <Button

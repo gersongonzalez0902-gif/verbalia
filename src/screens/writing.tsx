@@ -26,6 +26,7 @@ import {
   RotateCcw,
   Sparkles,
   Target,
+  Trophy,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -106,10 +107,11 @@ export function WritingScreen() {
               </p>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-5">
             <RecordChip icon={<Gauge className="h-3.5 w-3.5" aria-hidden />} value={`${typing.bestWpm}`} label="PPM récord" />
             <RecordChip icon={<Target className="h-3.5 w-3.5" aria-hidden />} value={`${typing.bestAccuracy}%`} label="mejor precisión" />
             <RecordChip icon={<Check className="h-3.5 w-3.5" aria-hidden />} value={`${typing.testsDone}`} label="pruebas hechas" />
+            <RecordChip icon={<Keyboard className="h-3.5 w-3.5" aria-hidden />} value={`${typing.drillsDone}`} label="líneas de drill" />
             <RecordChip icon={<Crown className="h-3.5 w-3.5" aria-hidden />} value={`${typing.totalWords}`} label="palabras tecleadas" />
           </div>
         </section>
@@ -215,7 +217,8 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
-  const [result, setResult] = useState<{ wpm: number; accuracy: number; words: number; xp: number } | null>(null);
+  const [result, setResult] = useState<{ wpm: number; accuracy: number; words: number; xp: number; isRecord: boolean } | null>(null);
+  const [wordFlash, setWordFlash] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const startedAt = useRef(0);
   const keystrokes = useRef({ total: 0, correct: 0 });
@@ -255,8 +258,14 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
       const words = Math.round(correctChars / 5);
       const wpm = Math.max(0, Math.round(words / elapsedMin));
       const res = recordTypingTest({ wpm, accuracy, words });
-      setResult({ wpm, accuracy, words, xp: res.xp });
-      sfx.sessionWin();
+      const isRecord = wpm > best && wpm > 0;
+      setResult({ wpm, accuracy, words, xp: res.xp, isRecord });
+      if (isRecord) {
+        sfx.sparkle();
+        window.setTimeout(() => sfx.confetti(), 180);
+      } else {
+        sfx.sessionWin();
+      }
       return "done";
     });
   };
@@ -296,8 +305,12 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
       if (value[i] === text[i]) {
         keystrokes.current.correct += 1;
         if (keySoundsOn) {
-          if (value[i] === " ") sfx.typeWord();
-          else sfx.typeKey();
+          if (value[i] === " ") {
+            sfx.typeWord();
+            setWordFlash((n) => n + 1);
+          } else {
+            sfx.typeKey();
+          }
         }
       }
     }
@@ -337,6 +350,38 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
 
       <Progress value={(1 - secondsLeft / totalSeconds) * 100} className="mt-3 h-1.5" />
 
+      {/* Tinta en vivo: barras que laten mientras se escribe (como la estación) */}
+      {phase === "run" && (
+        <div className="mt-3 flex items-center justify-center gap-4" aria-hidden>
+          <span className="flex items-end gap-0.5">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <span
+                key={i}
+                className="anim-sound-bar w-1 rounded-full bg-[var(--region-biblioteca)]"
+                style={{ height: `${6 + i * 3}px`, animationDelay: `${i * 0.11}s` }}
+              />
+            ))}
+          </span>
+          <span key={wordFlash} className="relative text-[11px] font-bold text-[var(--region-biblioteca)]">
+            {wordFlash > 0 && (
+              <span className="anim-ink-drop absolute -top-3 left-1/2 -translate-x-1/2">
+                <Droplets className="h-3.5 w-3.5" />
+              </span>
+            )}
+            <span className="numeric">{wordFlash}</span> palabras completas
+          </span>
+          <span className="flex items-end gap-0.5">
+            {[4, 3, 2, 1, 0].map((i) => (
+              <span
+                key={i}
+                className="anim-sound-bar w-1 rounded-full bg-[var(--region-biblioteca)]"
+                style={{ height: `${6 + i * 3}px`, animationDelay: `${i * 0.11}s` }}
+              />
+            ))}
+          </span>
+        </div>
+      )}
+
       {/* Texto a copiar */}
       <div
         className="mt-4 rounded-2xl border bg-background p-4 font-mono text-base leading-relaxed sm:text-lg"
@@ -352,7 +397,7 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
                 "whitespace-pre-wrap",
                 state === "ok" && "text-foreground",
                 state === "bad" && "bg-destructive/20 text-destructive underline decoration-destructive/60",
-                state === "cursor" && "bg-primary/25 rounded-sm",
+                state === "cursor" && "typing-caret",
                 state === "pend" && "text-muted-foreground/60",
               )}
             >
@@ -383,7 +428,7 @@ function TimedTyping({ precision, onExit }: { precision: boolean; onExit: () => 
           {precision ? "Empezar (90 s sin tachar)" : "¡Que empiece la prueba! (60 s)"}
         </Button>
       ) : (
-        result && <TypingResult wpm={result.wpm} accuracy={result.accuracy} words={result.words} xp={result.xp} onReplay={start} onExit={onExit} />
+        result && <TypingResult wpm={result.wpm} accuracy={result.accuracy} words={result.words} xp={result.xp} isRecord={result.isRecord} onReplay={start} onExit={onExit} />
       )}
     </section>
   );
@@ -394,6 +439,7 @@ function TypingResult({
   accuracy,
   words,
   xp,
+  isRecord,
   onReplay,
   onExit,
 }: {
@@ -401,14 +447,41 @@ function TypingResult({
   accuracy: number;
   words: number;
   xp: number;
+  isRecord: boolean;
   onReplay: () => void;
   onExit: () => void;
 }) {
   const isBest = wpm > 0 && accuracy >= 85;
   return (
-    <div className="anim-pop mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center">
-      <p className="font-display text-lg font-bold">
-        {isBest ? "¡Pluma afilada!" : "Prueba terminada"}
+    <div className="anim-pop relative mt-4 overflow-hidden rounded-2xl border border-primary/30 bg-primary/5 p-4 text-center">
+      {/* Confeti del récord: lluvia breve de papelitos */}
+      {isRecord && (
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          {Array.from({ length: 14 }).map((_, i) => (
+            <span
+              key={i}
+              className="confetti-bit absolute h-2 w-1.5 rounded-[1px]"
+              style={{
+                left: `${6 + i * 6.6}%`,
+                top: "0px",
+                background: ["var(--primary)", "var(--xp)", "var(--accent)", "var(--region-puerto)"][i % 4],
+                animationDelay: `${(i % 5) * 0.09}s`,
+                ["--dx" as string]: `${(i % 2 === 0 ? 1 : -1) * (4 + (i % 4) * 5)}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      <p className="font-display flex items-center justify-center gap-2 text-lg font-bold">
+        {isRecord ? (
+          <>
+            <Trophy className="h-5 w-5 text-[var(--xp)]" aria-hidden /> ¡Nuevo récord de pluma!
+          </>
+        ) : isBest ? (
+          "¡Pluma afilada!"
+        ) : (
+          "Prueba terminada"
+        )}
       </p>
       <div className="mt-3 grid grid-cols-3 gap-2">
         <div className="rounded-xl bg-card p-2.5">
@@ -526,7 +599,7 @@ function DrillGame({ onExit }: { onExit: () => void }) {
               className={cn(
                 "whitespace-pre",
                 state === "ok" && "text-foreground",
-                state === "cursor" && "rounded-sm bg-primary/25",
+                state === "cursor" && "typing-caret",
                 state === "pend" && "text-muted-foreground/50",
               )}
             >
@@ -534,7 +607,7 @@ function DrillGame({ onExit }: { onExit: () => void }) {
             </span>
           );
         })}
-        {state === "ok" && <span className="ml-2 text-success">✓</span>}
+        {state === "ok" && <span className="ml-2 anim-ink-drop text-success">✓</span>}
       </div>
 
       <input

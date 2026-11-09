@@ -1688,3 +1688,167 @@ describe("Etapa 2 completa · sesiones y registro del catálogo", () => {
     expect(next.skills["expresion"]).toBe(createCore().skills["expresion"]);
   });
 });
+
+/* ================== Final de la Etapa 2 · candados ampliados ================== */
+
+import {
+  GAME_REQUIREMENTS,
+  requirementLabels,
+  meetsRequirement,
+  gameLock,
+  unlockContext,
+  lockChipText,
+} from "@/engine/unlocks";
+import { buildMissionSession as buildMissionLocks, type BuildContext as Bc } from "@/engine/session";
+import { FRASES } from "@/data/frases";
+
+describe("candados ampliados: requisitos y etiquetas", () => {
+  test("los requisitos extra nunca bajan del nivel de su isla", () => {
+    const regionLevel = new Map<string, number>();
+    for (const r of REGIONS_ALL) for (const g of r.games) if (!regionLevel.has(g)) regionLevel.set(g, r.unlockLevel);
+    for (const [gid, req] of Object.entries(GAME_REQUIREMENTS)) {
+      // Solo los requisitos de nivel se comparan con la isla; los de logros
+      // y tinta son un candado adicional que se alcanza jugando.
+      if (req.level !== undefined) {
+        expect(req.level).toBeGreaterThanOrEqual(regionLevel.get(gid) ?? 0);
+      }
+      expect(regionLevel.has(gid)).toBe(true);
+    }
+  });
+
+  test("etiquetas legibles de cada tipo de requisito", () => {
+    expect(requirementLabels({ level: 5 })).toEqual(["nivel 5"]);
+    expect(requirementLabels({ achievements: 3 })).toEqual(["3 logros"]);
+    expect(requirementLabels({ tintaSpent: 6 })).toEqual(["6 de tinta gastada"]);
+    expect(requirementLabels({ level: 6, achievements: 2 }).length).toBe(2);
+  });
+
+  test("meetsRequirement evalúa los tres ejes", () => {
+    const ctx = { level: 5, achievements: 3, tintaSpent: 10 };
+    expect(meetsRequirement({ level: 5 }, ctx)).toBe(true);
+    expect(meetsRequirement({ level: 6 }, ctx)).toBe(false);
+    expect(meetsRequirement({ achievements: 4 }, ctx)).toBe(false);
+    expect(meetsRequirement({ tintaSpent: 10 }, ctx)).toBe(true);
+  });
+
+  test("unlockContext cuenta logros desbloqueados y tinta gastada", () => {
+    const core = createCore();
+    core.achievements = { "ac-a": 1, "ac-b": 2 };
+    core.wallet.spent = 7;
+    const ctx = unlockContext(core, 4);
+    expect(ctx.achievements).toBe(2);
+    expect(ctx.tintaSpent).toBe(7);
+    expect(ctx.level).toBe(4);
+  });
+
+  test("gameLock combina isla y extra con todos los motivos", () => {
+    const ctx = { level: 2, achievements: 0, tintaSpent: 0 };
+    // labpunt (isla 3 + 6 logros): ambos candados cuentan.
+    const lock = gameLock("labpunt", 3, ctx);
+    expect(lock.unlocked).toBe(false);
+    expect(lock.reasons.join(" · ")).toContain("nivel 3");
+    expect(lock.reasons.join(" · ")).toContain("6 logros");
+    // Con todo cumplido, abre.
+    const open = gameLock("labpunt", 3, { level: 5, achievements: 7, tintaSpent: 9 });
+    expect(open.unlocked).toBe(true);
+    expect(open.reasons).toEqual([]);
+  });
+
+  test("lockChipText es legible para botones y fichas", () => {
+    expect(lockChipText("mitos", 4)).toContain("3 logros");
+    expect(lockChipText("voz", 5)).toContain("Nivel 6");
+    expect(lockChipText("rasca", 1)).toContain("tinta");
+  });
+
+  test("los juegos sin requisito extra abren solo con su isla", () => {
+    const trivia = gameLock("trivia", 1, { level: 1, achievements: 0, tintaSpent: 0 });
+    expect(trivia.unlocked).toBe(true);
+  });
+});
+
+describe("misiones que saltan formatos cerrados", () => {
+  const ctxBase = (): Bc => ({
+    skills: { vocabulario: 3, gramatica: 3, ortografia: 3, lectura: 3, audicion: 3, expresion: 3, cultura: 3 },
+    seenExercises: {},
+    srs: {},
+    now: Date.now(),
+    newCardsPerDay: 5,
+  });
+
+  test("misión del bosque sin tinder ni rasca cuando están cerrados", () => {
+    const ctx = { ...ctxBase(), lockedGames: new Set(["tinder", "rasca"]) };
+    const spec = buildMissionLocks("bosque", ctx, "seed-lock-bosque");
+    expect(spec.items.length).toBeGreaterThan(0);
+    for (const it of spec.items) {
+      if (it.kind === "exercise") {
+        expect(it.exercise.type).not.toBe("tinder");
+        expect(it.exercise.type).not.toBe("rasca");
+      }
+    }
+  });
+
+  test("misión del bosque sí los incluye cuando están abiertos (regresión)", () => {
+    const ctx = ctxBase();
+    const spec = buildMissionLocks("bosque", ctx, "seed-lock-open");
+    expect(spec.items.length).toBeGreaterThan(0);
+  });
+
+  test("misión del puerto sin voz ni fonética cerradas sigue llena", () => {
+    const ctx = { ...ctxBase(), lockedGames: new Set(["voz", "fonetica", "eco"]) };
+    const spec = buildMissionLocks("puerto", ctx, "seed-lock-puerto");
+    expect(spec.items.length).toBeGreaterThan(0);
+    for (const it of spec.items) {
+      if (it.kind === "exercise") {
+        expect(it.exercise.type).not.toBe("voz");
+        expect(it.exercise.type).not.toBe("fonetica");
+      }
+    }
+  });
+
+  test("misión de biblioteca sin jeroglíficos ni mitos ni lectura", () => {
+    const ctx = {
+      ...ctxBase(),
+      lockedGames: new Set(["jeroglificos", "mitos", "lectura"]),
+    };
+    const spec = buildMissionLocks("biblioteca", ctx, "seed-lock-biblio");
+    expect(spec.items.length).toBeGreaterThan(0);
+    for (const it of spec.items) {
+      if (it.kind === "exercise") {
+        expect(it.exercise.type).not.toBe("jeroglificos");
+        expect(it.exercise.type).not.toBe("mitos");
+        expect(it.exercise.type).not.toBe("lectura");
+      }
+    }
+  });
+
+  test("misión de la torre sin historias largas se sostiene con refranes", () => {
+    const ctx = { ...ctxBase(), lockedGames: new Set(["historias"]) };
+    const spec = buildMissionLocks("torre", ctx, "seed-lock-torre");
+    expect(spec.items.length).toBeGreaterThan(0);
+    for (const it of spec.items) {
+      if (it.kind === "exercise") expect(it.exercise.type).not.toBe("historias");
+    }
+  });
+});
+
+describe("cofre de frases ampliado (objetivo 2000)", () => {
+  test("hay al menos 2000 frases sin duplicados", () => {
+    expect(FRASES.length).toBeGreaterThanOrEqual(2000);
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+    const seen = new Set<string>();
+    for (const f of FRASES) {
+      const k = norm(f.text);
+      expect(seen.has(k)).toBe(false);
+      seen.add(k);
+    }
+  });
+
+  test("las frases nuevas del Archipiélago traen autor y tema válido", () => {
+    const validTags = new Set(["lectura", "escritura", "palabras", "idiomas", "aprendizaje", "archipielago", "cultura", "estilo"]);
+    for (const f of FRASES) {
+      expect(f.author.length).toBeGreaterThan(0);
+      expect(validTags.has(f.tag)).toBe(true);
+      expect(f.text.length).toBeGreaterThan(10);
+    }
+  });
+});

@@ -11,10 +11,17 @@ import { FRASES_C } from "./frases-c";
 import { FRASES_D } from "./frases-d";
 import { FRASES_E } from "./frases-e";
 import { FRASES_F } from "./frases-f";
+import { FRASES_G } from "./frases-g";
+import { FRASES_H } from "./frases-h";
+import { FRASES_I } from "./frases-i";
+import { FRASES_J } from "./frases-j";
 
 export type { FraseDelDia };
 
-export const FRASES: FraseDelDia[] = [...FRASES_A, ...FRASES_B, ...FRASES_C, ...FRASES_D, ...FRASES_E, ...FRASES_F];
+export const FRASES: FraseDelDia[] = [
+  ...FRASES_A, ...FRASES_B, ...FRASES_C, ...FRASES_D, ...FRASES_E, ...FRASES_F,
+  ...FRASES_G, ...FRASES_H, ...FRASES_I, ...FRASES_J,
+];
 
 /** Frase estable para un índice de rotación dado (módulo, sin azar). */
 export function frasePara(rotation: number): FraseDelDia {

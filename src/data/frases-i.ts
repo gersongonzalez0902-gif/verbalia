@@ -1,0 +1,227 @@
+/**
+ * Frases del día · parte I (aforismos del Archipiélago, tercera tanda).
+ * Cierre del cofre de frases del mundo de VERBALIA: islas, oficios,
+ * aprendizajes y despedidas de puerto. Autoría original de VerbalIA.
+ */
+
+import type { FraseDelDia } from "./frases-a";
+
+export const FRASES_I: FraseDelDia[] = [
+  // ── Despertar del navegante ─────────────────────────────────────────────
+  { text: "El primer pensamiento del día debería ser palabra nueva: el desayuno de la mente.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Quien despierta con una duda se acuesta con una isla: las preguntas son cartas de marear.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La mañana es la marea alta de la memoria: estudia cuando el mar aún está de tu lado.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El alba no discute con la niebla: la espera: también la paciencia aclara las frases.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Cada amanecer el mar borra la pizarra: por eso hay que escribir todos los días.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "El gallo del puerto despierta a todos con el mismo idioma: la puntualidad no traduce.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Lavarse la cara con agua de mar despierta hasta las palabras dormidas.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "El navegante madrugador ve dos puertos: el que deja y el que busca.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La primera taza es la carta de navegación del día: elige bien las palabras que la acompañan.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Despertar sin ganas también es humano: zarpar igual también es de navegantes.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+
+  // ── Los zapatos del principiante ───────────────────────────────────────
+  { text: "Todo experto calzó zapatos de principiante: por eso conoce el camino de memoria.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El novato que pregunta no se pierde: se pierde el que finge saber el rumbo.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Primer día de clase: el mapa está en blanco y por eso es el mejor día.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Nadie tropieza dos veces con la misma tilde: la segunda vez ya es saludo.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El silencio del principiante no es ignorancia: es bodega en construcción.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Aprender el alfabeto es recibir las llaves del astillero entero.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El niño que pregunta por qué el mar es salado ya está haciendo poesía.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Principiante que sonríe al equivocarse navega más lejos que experto que se enfada.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La primera palabra en otro idioma siempre se dice con el corazón en la boca.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Todos fuimos analfabetos de todo: la vida es un archipiélago que se aprende isla a isla.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+
+  // ── El cuaderno y sus páginas ──────────────────────────────────────────
+  { text: "La primera página del cuaderno es la más tímida: arráncale una sonrisa.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "Cuaderno sin fecha es barco sin diario de a bordo: navega, pero no recuerda.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "La página par y la impar tienen vocaciones distintas: escucha a las dos.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "El margen es el descanso del texto: hasta las palabras necesitan hamaca.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Escribe la palabra que no entiendes en la última página: el cuaderno también sabe esperar.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Un cuaderno lleno de palomitas y tachones es un mapa de batallas ganadas.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La espiral del cuaderno es un pequeño rompeolas: detiene las ideas para que no se vayan de golpe.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "El cuaderno forrado con cariño dura el viaje entero: las cosas también aprenden lealtad.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "Arranca la hoja solo si la frase se salvó antes en otra parte: el papel también merece piedad.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "El último renglón de la página es una orilla: las buenas frases saben desembarcar.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+
+  // ── Maestros y faroleros ───────────────────────────────────────────────
+  { text: "El buen maestro no llena la bodega: enseña a leer las estrellas.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Quien enseña dos veces aprende tres.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El maestro paciente siembra islas: nunca sabrá cuáles florecieron.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La maestra que corrige con lápiz rosado deja menos marca y más recuerdo.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Enseñar no es abrazar el timón: es enseñar a leer el viento y soltar el mando.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El mejor maestro del Archipiélago es un farolero: enciende su luz y se retira a dormir.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Toda escuela es un astillero: se entra con maderas sueltas y se sale con quilla.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El maestro que admite su error enseña la lección más difícil: la humildad.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Alumnos y maestros reman el mismo barco: solo miran de distinta borda.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Quien deja un libro en manos de un niño contrata un constructor de futuros.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+
+  // ── Errores y arrecifes ────────────────────────────────────────────────
+  { text: "El arrecife no hundió al barco por maldad: estaba aprendiendo a ser isla.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Toda rayadura del casco escribe una lección en el diario del astillero.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El error anotado es un faro; el error repetido, un naufragio con horario.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Corregir a tiempo es calafatear: se hace con el barco todavía en seco.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El escollo conocido deja de ser escollo: se llama entonces experiencia.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Naufragar con el diario a salvo no es naufragar: es recolectar madera para el próximo barco.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La cicatriz del timonel es su título de navegación.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Donde encallaste ayer, pon hoy una boya: el error corregido protege a los demás.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El examen con errores es un mapa con sondeos: dice exactamente dónde está el fondo.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Quien nunca embarrancó navegó siempre cerca de la costa.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+
+  // ── Comodidades y pequeños placeres ────────────────────────────────────
+  { text: "Leer bajo la hamaca del mediodía es robarle un rato al calor.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "El café de la biblioteca sabe a página recién pasada.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "Las gaviotas de la mañana deletrean mejor que las de la tarde: están más despiertas.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "El olor a libro viejo es la única máquina del tiempo que cabe en un bolsillo.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "Una silla a la sombra y un diccionario abierto: así se fundan imperios pacíficos.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "La siesta del lector termina donde empieza el siguiente capítulo.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "El chicle de menta y la lista de vocabulario comparten barco: ambos refrescan la travesía.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Contar chistes en otro idioma es el diploma invisible del viaje.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "La libreta de espiral y el lápiz mordido son los mejores amigos del principio.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "La lluvia en el tejado del bazar es música sin derechos de autor: aprovéchala para leer.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+
+  // ── Las siete islas, una a una ─────────────────────────────────────────
+  { text: "En el Bosque del Vocabulario los árboles dan sombra en varios idiomas.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "La Ciudad de la Gramática tiene semáforos que nunca se descomponen: las concordancias.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "En la Fortaleza de la Ortografía los guardianes cobran en tildes bien puestas.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "La Biblioteca Infinita crece por dentro: nadie ha visto su pared final.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "En el Puerto de las Voces atracan acentos de todas las latitudes y ninguno paga peaje.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "La Torre de la Expresión se sube escribiendo: cada renglón, un peldaño.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "El Observatorio de la Palabra tiene el único telescopio que mira hacia adentro de las cosas.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "La Forja del Escritor solo abre para quemaduras felices: las del estilo propio.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Quien recorre las ocho islas comprende que eran la misma isla con ocho nombres.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El mapa del Archipiélago se dibuja a mano alzada: la memoria es su única tinta oficial.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+
+  // ── Diccionarios y gramáticas ──────────────────────────────────────────
+  { text: "El diccionario es el único barco que cabe entero en un cajón.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "La gramática no es policía: es la lotera del idioma: reparte los números para que todos jueguen igual.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Hojeando el diccionario al azar se aprende a pescar de caña: una palabra, y a veces dos.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Las palabras en cursiva del diccionario son las que vinieron de otros mares: extranjeras ilustres.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "El verbo conjugado es un barco con todas las velas listas.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Quien desconfía de la gramática nunca cruzó un puente: ambos son estructuras para no caerse.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El diccionario de sinónimos es un archipiélago dentro del Archipiélago.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Las notas al pie del diccionario son los faroles pequeños del muelle: iluminan sin deslumbrar.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "La etimología en el diccionario es el apellido de la palabra: cuenta de qué familia viene.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "Toda regla gramatical tiene su excepción embarcada: viaja con ella, no contra ella.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+
+  // ── Traducciones y traductores ─────────────────────────────────────────
+  { text: "Traducir es besar a la idea con la boca de otro idioma.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El traductor honesto pierde una palabra por cada orilla: las dos playas lo agradecen.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Traducción literal es cruzar el estrecho a nado con los bolsillos llenos de piedras.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Todo traductor conoce dos puertos y ama a los dos con lealtades distintas.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Lo que se pierde en la traducción se encuentra en el traductor.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El chiste traducido que hace gracia en dos lenguas merece estatua en la plaza del puerto.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "Subtitular es escribir con marea: el tiempo se lleva las letras que sobran.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Traducir poesía es desarmar un barco y volverlo a armar en otro mar: que flote es el milagro.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El intérprete vive en el estrecho: dos mundos conversan a través de su voz.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Cada lengua nombra un color que las demás no ven: por eso se traduce con humildad.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+
+  // ── Nombres y bautizos ─────────────────────────────────────────────────
+  { text: "Bautizar una isla con su nombre es la forma humana de darle la bienvenida.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Los nombres propios son faros familiares: desde lejos, uno reconoce el suyo entre mil.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Todo nombre llevó apellidos de viaje: la historia los fue soltando en los puertos.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "El apodo cariñoso es la traducción del nombre al idioma del cariño.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Nombrar bien la mitad de un problema es tener el mapa del naufragio.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Las cosas sin nombre dan más miedo: el vocabulario también sirve de linterna.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "El nombre de la barca se repinta cada generación: las palabras también renuevan su casco.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "Preguntar el nombre es el saludo más antiguo del navegante educado.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Un nombre bien pronunciado abre puertas que la fuerza no abre.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "En el Archipiélago, hasta los barcos llevan nombre de palabra favorita.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+
+  // ── Despedidas y regresos ──────────────────────────────────────────────
+  { text: "Adiós es la frase más corta y la más larga del idioma.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Toda despedida de puerto incluye una promesa de vocabulario: volver con palabras nuevas.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Hasta pronto es el ancla que dejan los que planean volver.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "El regreso del navegante se nota en sus frases: traen salitre y otros mares.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Volver al puerto de la infancia y encontrar las mismas palabras: ese es el verdadero fondeadero.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "Nadie se despide del todo de un idioma aprendido: se queda viviendo en la boca.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "La despedida del maestro es un timón que te deja en la mano.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Regresar con las manos llenas de palabras es volver con la bodega llena.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El puerto donde aprendiste a leer siempre te estará esperando con la luz encendida.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "Despedirse bien también es estilo: hasta el final se escribe con tinta.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+
+  // ── Paciencia de astillero ─────────────────────────────────────────────
+  { text: "El barco se construye con la marea en mente, no con la prisa en la mano.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Tres capas de barniz y una de paciencia: así se conserva una quilla y una amistad.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La madera buena no se apura: el idioma tampoco.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Astillero vacío un día, nao gloriosa al año: el vocabulario también es obra de meses.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El clavo bien clavado no hace ruido: la palabra bien puesta tampoco.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Quien lija dos veces pinta una: quien repasa dos veces aprende una.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El trencillo de popa no sostiene el barco, pero le da alma: también hay trencillos en el estilo.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Cada viga sabe para qué sirve: cada palabra debería saberlo también.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "El aserrín del astillero es la infamia del roble: del error también se construye.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Navegar empieza mucho antes de zarpar: con la madera, el hacha y la calma.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+
+  // ── Pequeños tesoros del idioma ────────────────────────────────────────
+  { text: "Las palabras esdrújulas son las sirenas del diccionario: gráciles y de difícil abordaje.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "La eñe es la única ola que viaja impresa en papel.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El gerundio bien usado es un muelle en movimiento: embarca sin detener la travesía.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Las palabras agudas clavan el final de verso; las llanas, lo mecen.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Hiato y diptongo son hermanos de marea: uno separa, otro junta, los dos suenan.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El subjuntivo es el mar de los deseos: por eso ningún imperio lo pudo domar del todo.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "La metáfora olvidada se volvió palabra literal: así se hicieron todas las palabras.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Los refranes son la sopa de la abuela gramatical: recalentados, saben mejor.", author: "Sabiduría del Archipiélago", tag: "cultura" },
+  { text: "Palíndromo: la frase que sabe remar para los dos lados.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "La coma de Vocativo, la que abraza al nombre: sin ella, el saludo naufraga.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+
+  // ── El silencio y sus bolsillos ────────────────────────────────────────
+  { text: "El silencio del Archipiélago no está vacío: está lleno de palabras esperando turno.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Quien sabe callar a tiempo escribe mejor cuando habla.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Las pausas del buen conversador son fondeaderos: no detienen el viaje, lo ordenan.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Hay silencios que traducen mejor que cualquier diccionario.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "El eco de la cueva devuelve la palabra exacta: por eso hay que elegirla bien antes de gritar.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Un buen oyente es un puerto de aguas profundas: atracan las conversaciones grandes.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El silencio del bibliotecario es profesional: el del lector, agradecido.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "Contar hasta diez antes de responder es subir al cazamarinos a mirar el horizonte.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "En la conversación, el silencio también lleva timón.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "La palabra que se calló por amabilidad valió dos que se dijeron por orgullo.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+
+  // ── Proverbios del bazar ───────────────────────────────────────────────
+  { text: "En el bazar se regatea el precio, no la palabra: lo barato sale caro en idiomas.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Mercader que no sabe contar hasta diez en la lengua del puerto, pierde la cuenta.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Tinta contada, tinta invertida: el bazar premia al que sabe gastar en su propio estilo.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "El velo azul del tendero escribe versos cuando el viento del mediodía entra a la tienda.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "En el bazar, hasta los aldabones hablan: si sabes escucharlos en dos idiomas, mejor.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "El trueque más justo del mundo: una historia a cambio de otra.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "La balanza del bazar pesa tinta y ganas: cuando las dos se equilibran, el navegante vuelve.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "Nadie compró estilo de segunda mano: en el bazar se venden plumas, no voces.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "El mercado del puerto amanece con diez idiomas y se entiende en todos.", author: "Sabiduría del Archipiélago", tag: "idiomas" },
+  { text: "Regatear en verso es la exquisitez del Archipiélago: lo barato sale poético.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+
+  // ── El mapa y la rosa ──────────────────────────────────────────────────
+  { text: "La rosa de los vientos tiene un pétalo para cada duda del navegante.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Todo mapa es una opinión dibujada del mar: por eso hay que navegarlo igual.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Aquí dragones, decían los mapas viejos: era el nombre educado del miedo.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "El mapa del navegante sabio tiene más anotaciones que líneas: la tinta propia seca distinto.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "Orientarse no es seguir el norte: es saber de dónde viene tu viento.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Los mapas del Archipiélago se redibujan con cada alumno: cada aprendizaje mueve la costa.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La escala del mapa es un pacto con la realidad: también lo es el resumen bien hecho.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Isla sin cartografiar no es desconocida: es una invitación con sello.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El compás del cartógrafo y el del poeta miden distinto: el uno leguas, el otro silencios.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Doblar el mapa por la mitad es doblar el viaje: guárdalo con los pliegues del primer día.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+
+  // ── Aprender a cualquier edad ──────────────────────────────────────────
+  { text: "La memoria no envejece de remo: envejece de desuso.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El alumno de canas navega con más mapa: lo que le falta de viento le sobra de experiencia.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Nunca es tarde para zarpar: los puertos no preguntan edad, preguntan rumbo.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El niño aprende el nombre de las olas; el abuelo, su calendario: ambos son alumnos del mar.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Aprender a los setenta es enseñar a los nietos que el mapa sigue abierto.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "La palabra aprendida en la madurez sabe a marea honda: llegó nadando contra la corriente.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Jubilarse del aprendizaje es anclar en plena travesía: el agua sigue corriendo debajo.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "El estudiante viejo es el más agradecido: sabe lo que cuesta cada palabra nueva.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "A cada edad su isla: ninguna se visita dos veces igual.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Los dientes del tiempo no muerden la curiosidad: solo las prisas.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+
+  // ── Cierre del cofre ───────────────────────────────────────────────────
+  { text: "Este cofre de frases no se cierra con llave: se cierra con una lectura más.", author: "Sabiduría del Archipiélago", tag: "lectura" },
+  { text: "La última frase del cofre es siempre la primera que todavía no escribiste.", author: "Sabiduría del Archipiélago", tag: "escritura" },
+  { text: "Frases del Archipiélago: hechas a mano, como las velas y los refranes.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "Cada frase de este cofre fue moneda en algún puerto: gástalas en buena conversación.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "El cofre se llena de nuevo cada travesía: las frases también son pesca del día.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Quien guarda una frase para el momento justo aprendió la mitad del arte de hablar.", author: "Sabiduría del Archipiélago", tag: "estilo" },
+  { text: "Las frases prestadas devuelven interés: quien las comparte las aprende dos veces.", author: "Sabiduría del Archipiélago", tag: "palabras" },
+  { text: "Al fondo del cofre siempre hay una frase que solo entiende quien ya navegó.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Toda frase es una isla: pequeña, rodeada, y sin embargo habitable.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "El cofre de frases no pesa: por eso los navegantes lo llevan hasta en balsas.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+  { text: "Cada frase bien aprendida es un puerto donde siempre te esperan.", author: "Sabiduría del Archipiélago", tag: "aprendizaje" },
+  { text: "Frases para el viaje, tinta para el diario, y mar de sobra: así se cruzan los archipiélagos.", author: "Sabiduría del Archipiélago", tag: "archipielago" },
+];

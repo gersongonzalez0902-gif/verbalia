@@ -25,6 +25,8 @@ const TAG_LABELS: Record<string, string> = {
   idiomas: "Idiomas",
   aprendizaje: "Aprendizaje",
   archipielago: "Archipiélago",
+  cultura: "Cultura",
+  estilo: "Estilo",
 };
 
 const CHUNK = 24;

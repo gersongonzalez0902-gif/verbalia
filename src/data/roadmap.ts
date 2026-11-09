@@ -17,6 +17,9 @@ export interface RoadmapModule {
 /** Catálogo obligatorio (25 mecánicas). */
 export const CORE_MECHANICS: RoadmapModule[] = [
   { name: "Repetición Espaciada Dinámica (SRS)", description: "Tarjetas inteligentes que reaparecen según el rendimiento.", skill: "vocabulario", stage: 1, status: "listo" },
+  { name: "Candados Ampliados de Formatos", description: "Los formatos de colección se abren con isla + logros, tinta gastada o nivel: la progresión se gana jugando.", skill: "vocabulario", stage: 2, status: "listo" },
+  { name: "Cofre de 2000 Frases", description: "La bitácora de frases llega a las 2000 notas de escritores y del Archipiélago, sin repetir una sola.", skill: "lectura", stage: 2, status: "listo" },
+  { name: "Panel «Tu siguiente paso»", description: "El inicio recomienda la prioridad real del navegante: recompensas, cuaderno de errores, jardín vencido u objetivo del día.", skill: "vocabulario", stage: 2, status: "listo" },
   { name: "Sprint de Vocabulario", description: "Relacionar palabras bajo presión de tiempo (10 s por definición).", skill: "vocabulario", stage: 2, status: "listo" },
   { name: "Trivia Relámpago", description: "Clasificar palabras en sustantivos, verbos, adjetivos y adverbios.", skill: "vocabulario", stage: 1, status: "listo" },
   { name: "Tarjetas Rasca-Rasca", description: "Revelar palabras y definiciones ocultas.", skill: "vocabulario", stage: 2, status: "listo" },

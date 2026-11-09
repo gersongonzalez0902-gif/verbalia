@@ -14,6 +14,8 @@ import { cefrFromSkill, levelProgress } from "@/engine/xp";
 import { REGIONS,  SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { GAMES, GAME_IDS } from "@/data/games";
 import { dateKey } from "@/engine/missions";
+import { collectionStats } from "@/engine/session";
+import { SRS_WORDS_FULL } from "@/data/content";
 import { getIcon } from "@/components/game/icons";
 import { LexicoBubble } from "@/components/game/lexico";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -126,6 +128,29 @@ export function StatsScreen() {
       ? Math.round((core.stats.totalCorrect / core.stats.totalAnswers) * 100)
       : null;
 
+  /** Colección de palabras: aprendidas, dominadas y pendientes del jardín. */
+  const words = useMemo(() => {
+    const cs = collectionStats(srs);
+    const seen = Object.keys(srs).length;
+    return {
+      ...cs,
+      seen,
+      unseen: Math.max(0, cs.total - seen),
+      pctLearned: cs.total > 0 ? Math.round((cs.learned / cs.total) * 100) : 0,
+      pctMastered: cs.total > 0 ? Math.round((cs.mastered / cs.total) * 100) : 0,
+    };
+  }, [srs]);
+
+  /** Duración media de sesión y XP medio por sesión. */
+  const sessionAverages = useMemo(() => {
+    const n = core.stats.totalSessions;
+    if (n <= 0) return null;
+    return {
+      minutes: ((core.stats.totalTimeMs ?? 0) / n / 60000).toFixed(1),
+      xp: Math.round(core.xp / n),
+    };
+  }, [core.stats.totalSessions, core.stats.totalTimeMs, core.xp]);
+
   /** Exactitud por isla (agregada desde los juegos). */
   const skillAccuracy = useMemo(() => {
     const acc: Partial<Record<SkillId, { correct: number; answers: number }>> = {};
@@ -169,7 +194,31 @@ export function StatsScreen() {
               <SummaryCard value={formatPlaytime(core.stats.totalTimeMs ?? 0)} label="Tiempo jugado" />
               <SummaryCard value={avgAccuracy !== null ? `${avgAccuracy}%` : "—"} label="Exactitud global" />
               <SummaryCard value={`${records.bestComboEver}`} label="Mejor combo" />
+              <SummaryCard value={`${words.learned}`} label={`Palabras aprendidas (${words.pctLearned}%)`} />
+              <SummaryCard value={`${words.mastered}`} label={`Palabras dominadas (${words.pctMastered}%)`} />
+              <SummaryCard value={sessionAverages ? `${sessionAverages.minutes} min` : "—"} label="Sesión media" hint={sessionAverages ? `~${sessionAverages.xp} XP por sesión` : undefined} />
+              <SummaryCard value={`${records.activeDays}`} label="Días navegados" hint={`de ${SRS_WORDS_FULL.length > 0 ? words.total : 0} palabras en el jardín`} />
             </div>
+
+            {/* Progreso del jardín de palabras */}
+            <section className="card-aurora mt-3 rounded-3xl border bg-card p-4" aria-labelledby="garden-title">
+              <div className="mb-2.5 flex items-baseline justify-between gap-2">
+                <h3 id="garden-title" className="font-display text-base font-bold">Tu jardín de palabras</h3>
+                <span className="numeric text-xs font-bold text-muted-foreground">
+                  {words.seen} vistas · {words.unseen} por descubrir
+                </span>
+              </div>
+              <div className="groove h-3 overflow-hidden rounded-full">
+                <div className="flex h-full w-full">
+                  <div className="h-full bg-primary transition-[width] duration-500" style={{ width: `${words.pctMastered}%` }} title="Dominadas" />
+                  <div className="h-full bg-[color-mix(in_oklch,var(--primary)_45%,var(--muted))] transition-[width] duration-500" style={{ width: `${Math.max(0, words.pctLearned - words.pctMastered)}%` }} title="Aprendidas" />
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                <span className="font-bold text-primary">{words.mastered} dominadas</span> (dos repasos largos sin fallar) ·{" "}
+                <span className="font-bold">{words.learned} aprendidas</span> de {words.total} semillas del Archipiélago.
+              </p>
+            </section>
 
             {/* Récords */}
             <section className="card-aurora mt-3 rounded-3xl border bg-card p-4" aria-labelledby="records-title">
@@ -634,11 +683,12 @@ function RecordRow({ icon, label, value, hint }: { icon: React.ReactNode; label:
   );
 }
 
-function SummaryCard({ value, label }: { value: string; label: string }) {
+function SummaryCard({ value, label, hint }: { value: string; label: string; hint?: string }) {
   return (
     <div className="gloss card-aurora rounded-2xl border bg-card p-3 text-center">
       <p className="numeric font-display title-sheen truncate text-lg font-bold">{value}</p>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      {hint && <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground/80">{hint}</p>}
     </div>
   );
 }

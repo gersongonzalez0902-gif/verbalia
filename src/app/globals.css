@@ -2825,3 +2825,39 @@ html.dark .ambient-island-near { fill: color-mix(in oklch, var(--primary) 16%, v
 html.dark .ambient-vignette { background: radial-gradient(120% 90% at 50% 40%, transparent 55%, color-mix(in oklch, #000 32%, transparent) 100%); }
 @media (prefers-reduced-motion: reduce) { .ambient-ghost-letter { animation: none; } }
 
+
+/* ===== Taller de Escritura · paridad de animaciones (final Etapa 2) ===== */
+
+/* Cursor de mecanografía que respira mientras espera la tecla. */
+@keyframes caret-breathe {
+  0%, 45% { background: color-mix(in oklch, var(--primary) 38%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent); }
+  50%, 95% { background: color-mix(in oklch, var(--primary) 88%, transparent); box-shadow: 0 0 10px color-mix(in oklch, var(--primary) 55%, transparent); }
+  100% { background: color-mix(in oklch, var(--primary) 38%, transparent); box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent); }
+}
+.typing-caret { animation: caret-breathe 1.06s ease-in-out infinite; border-radius: 2px; }
+html.reduce-motion .typing-caret { animation: none; }
+
+/* Tecla recién acertada: destello que se desvanece. */
+@keyframes key-flash {
+  0% { background: color-mix(in oklch, var(--xp) 42%, transparent); transform: scale(1.06); }
+  100% { background: transparent; transform: scale(1); }
+}
+.key-flash { animation: key-flash 0.28s ease-out both; border-radius: 2px; }
+html.reduce-motion .key-flash { animation: none; }
+
+/* Acierto de palabra completa: gota de tinta que brilla. */
+@keyframes ink-drop {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.6); }
+  35% { opacity: 1; transform: translateY(0) scale(1.15); }
+  100% { opacity: 0; transform: translateY(5px) scale(0.9); }
+}
+.anim-ink-drop { animation: ink-drop 0.65s ease-out both; }
+
+/* Confeti del récord nuevo en el taller. */
+@keyframes confetti-fall {
+  0% { opacity: 0; transform: translate3d(0, -10px, 0) rotate(0deg); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--dx, 0px), 130px, 0) rotate(340deg); }
+}
+.confetti-bit { animation: confetti-fall 1.5s ease-in both; }
+html.reduce-motion .confetti-bit { animation: none; }

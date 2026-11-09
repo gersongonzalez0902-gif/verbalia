@@ -23,6 +23,7 @@ import { REGIONS, REGION_BY_ID } from "@/data/regions";
 import type {
   AnswerRecord,
   Exercise,
+  GameId,
   SessionSpec,
   SrsWord,
 } from "@/types";
@@ -75,6 +76,7 @@ import { VozGame } from "@/games/formats/voz-game";
 import { EcoGame } from "@/games/formats/eco-game";
 import { itemXp } from "@/engine/scoring";
 import { levelFromXp } from "@/engine/xp";
+import { gameLock, lockChipText, unlockContext } from "@/engine/unlocks";
 import { dateKey } from "@/engine/missions";
 
 export function GameScreen() {
@@ -159,9 +161,43 @@ export function GameScreen() {
     }
   }, [stationInGames]);
 
+  /* Candado de formato (Etapa 2 · final): los formatos «de colección»
+   * exigen isla + logros/tinta/nivel. Se computa antes de construir la
+   * sesión: las misiones saltan los formatos cerrados y la URL directa
+   * corta el paso con elegancia. */
+  const gameRegionLevel = useMemo(() => {
+    for (const r of REGIONS) {
+      if (r.games.includes(params.gameId)) return r.unlockLevel;
+    }
+    return undefined;
+  }, [params.gameId]);
+  const uctx = useMemo(
+    () => unlockContext(core, levelFromXp(core.xp)),
+    [core],
+  );
+  const lockInfo = useMemo(
+    () => gameLock(params.gameId, gameRegionLevel, uctx),
+    [params.gameId, gameRegionLevel, uctx],
+  );
+  /** Conjunto de formatos cerrados para las misiones (islas + extras). */
+  const lockedGameSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of REGIONS) {
+      if (uctx.level < r.unlockLevel) {
+        for (const g of r.games) set.add(g);
+      } else {
+        for (const g of r.games) {
+          if (!gameLock(g, r.unlockLevel, uctx).unlocked) set.add(g);
+        }
+      }
+    }
+    return set;
+  }, [uctx]);
+
   /* ---------------- Construcción de la sesión ---------------- */
   useEffect(() => {
     if (!core) return;
+    if (!lockInfo.unlocked && params.mode !== "placement" && params.mode !== "mission" && params.mode !== "review") return;
     let cancelled = false;
     void (async () => {
       try {
@@ -178,12 +214,14 @@ export function GameScreen() {
         }
         if (cancelled) return;
         const ctx = {
-        skills: core.skills,
-        seenExercises: core.seenExercises,
-        srs,
-        now: Date.now(),
-        newCardsPerDay: settings.newCardsPerDay,
-      };
+          skills: core.skills,
+          seenExercises: core.seenExercises,
+          srs,
+          now: Date.now(),
+          newCardsPerDay: settings.newCardsPerDay,
+          // Formatos cerrados: las misiones los saltan con gracia.
+          lockedGames: lockedGameSet as Set<GameId>,
+        };
       // Palabra del Día: se cuela la primera en el entrenamiento SRS.
       const focusWordId = useUiStore.getState().srsFocusWordId;
       if (focusWordId) useUiStore.getState().setSrsFocusWordId(null);
@@ -216,7 +254,7 @@ export function GameScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [params.gameId, params.mode, params.regionId]);
+  }, [params.gameId, params.mode, params.regionId, lockInfo.unlocked, lockedGameSet]);
 
   const item = spec?.items[index];
 
@@ -349,6 +387,30 @@ export function GameScreen() {
   }, [spec, index, finishSession]);
 
   /* ---------------- Render ---------------- */
+
+  if (!lockInfo.unlocked && params.mode !== "placement") {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
+        <LexicoMascot size={96} mood="think" interactive={false} />
+        <div className="max-w-sm">
+          <h1 className="font-display text-xl font-bold">Este formato aún está cerrado</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            «{GAMES[params.gameId]?.name ?? "Este formato"}» se abre con {lockChipText(params.gameId, gameRegionLevel)}.
+            Juega misiones, cosecha logros y estrena estilo en el Bazar: la llave llega sola.
+          </p>
+        </div>
+        <Button
+          className="font-bold"
+          onClick={() => {
+            sfx.back();
+            navigate({ name: "training" });
+          }}
+        >
+          Volver a los entrenamientos
+        </Button>
+      </div>
+    );
+  }
 
   if (error) {
     // ¿Qué región le conviene entrenar ahora? (botón de rescate)
