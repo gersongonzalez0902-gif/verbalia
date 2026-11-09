@@ -598,12 +598,12 @@ export function SettingsScreen() {
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="acerca">
           <h2 id="acerca" className="font-display text-lg font-bold">Acerca de VerbalIA</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Etapa 4 · 100 minijuegos, 8 regiones y miles de ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
+            Etapa 2 completa · 110 minijuegos, 8 regiones y miles de ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
             Los niveles MCER que se muestran son estimaciones orientativas: VerbalIA no certifica el
             dominio oficial de un idioma.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v4.0.0-etapa4</span>
+            <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v5.0.0-etapa2-completa</span>
             <button
               className="font-bold text-primary hover:underline"
               onClick={() => { sfx.page(); navigate({ name: "library" }); }}

@@ -785,6 +785,59 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (c) => (c.stats.uniqueGames?.length ?? 0) >= 75,
     progress: (c) => Math.min((c.stats.uniqueGames?.length ?? 0) / 75, 1),
   },
+
+  /* ==================== Etapa 2 completa ==================== */
+  {
+    id: "ac-voz-del-faro",
+    name: "La voz del faro",
+    description: "Deja que el micrófono trabaje por ti: completa tu primera sesión de Dictado por Voz.",
+    icon: "Mic",
+    xpReward: 60,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 3,
+    check: (c) => (c.stats.byGame["voz"]?.plays ?? 0) >= 1,
+    progress: (c) => Math.min(1, c.stats.byGame["voz"]?.plays ?? 0),
+  },
+  {
+    id: "ac-mecanografo-marino",
+    name: "Mecanógrafo marino",
+    description: "Acierta 20 duelos de tipeo con la frase exacta.",
+    icon: "Keyboard",
+    xpReward: 120,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 6,
+    check: (c) => (c.stats.byGame["tipeo"]?.correct ?? 0) >= 20,
+    progress: (c) => Math.min(1, (c.stats.byGame["tipeo"]?.correct ?? 0) / 20),
+  },
+  {
+    id: "ac-leyendas-vivas",
+    name: "Guardián de leyendas",
+    description: "Vive tres mitos y leyendas del patrimonio oral.",
+    icon: "BookMarked",
+    xpReward: 100,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 5,
+    check: (c) => (c.stats.byGame["mitos"]?.plays ?? 0) >= 3,
+    progress: (c) => Math.min(1, (c.stats.byGame["mitos"]?.plays ?? 0) / 3),
+  },
+  {
+    id: "ac-etapa2-completa",
+    name: "Experiencia avanzada",
+    description: "Prueba los 9 formatos nuevos de la Etapa 2: rasca-rasca, tinder, tipeo, laboratorios, jeroglíficos, mitos, fonética, voz y eco.",
+    icon: "BadgeCheck",
+    xpReward: 300,
+    /** Gotas de tinta al recoger el logro. */
+    tintaReward: 15,
+    check: (c) =>
+      ["rasca", "tinder", "tipeo", "labpunt", "jeroglificos", "mitos", "fonetica", "voz", "eco"].every(
+        (g) => (c.stats.byGame[g]?.plays ?? 0) >= 1,
+      ),
+    progress: (c) =>
+      ["rasca", "tinder", "tipeo", "labpunt", "jeroglificos", "mitos", "fonetica", "voz", "eco"].reduce(
+        (acc, g) => acc + Math.min(1, c.stats.byGame[g]?.plays ?? 0),
+        0,
+      ) / 9,
+  },
 ];
 
 /**

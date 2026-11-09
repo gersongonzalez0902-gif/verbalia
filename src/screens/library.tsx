@@ -134,7 +134,10 @@ export function LibraryScreen() {
             {stages.map((stage) => {
               const coreMods = CORE_MECHANICS.filter((m) => m.stage === stage);
               const innovMods = INNOVATIVE_MODULES.filter((m) => m.stage === stage);
-              const isCurrent = stage === 1;
+              // Una etapa está disponible cuando todos sus módulos están listos
+              // (transparencia: el sello no se pinta a mano, se deriva del estado real).
+              const allReady = [...coreMods, ...innovMods].every((m) => m.status === "listo");
+              const isCurrent = allReady;
               return (
                 <section key={stage} aria-labelledby={`stage-${stage}`} className={cn("card-aurora rounded-3xl border p-5", isCurrent ? "border-primary/50 bg-primary/5" : "bg-card")}>
                   <div className="flex items-center justify-between gap-3">

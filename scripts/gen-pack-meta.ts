@@ -108,6 +108,33 @@ const PACK_GROUPS: Record<string, () => Promise<Record<string, Exercise[]>>> = {
   "pk-conecta": async () => ({
     "conecta-bosque": (await import("../src/data/gen/conecta-bosque-x")).CONECTA_BOSQUE_X,
   }),
+
+  /* ---- Etapa 2 completa: los 9 formatos restantes ---- */
+  etapa2b: async () => {
+    const [rasca, tinder, tipeo, labpunt, jeroglificos, mitos, fonetica, voz, eco] =
+      await Promise.all([
+        import("../src/data/formats/rasca"),
+        import("../src/data/formats/tinder"),
+        import("../src/data/formats/tipeo"),
+        import("../src/data/formats/labpunt"),
+        import("../src/data/formats/jeroglificos"),
+        import("../src/data/formats/mitos"),
+        import("../src/data/formats/fonetica"),
+        import("../src/data/formats/voz"),
+        import("../src/data/formats/eco"),
+      ]);
+    return {
+      rasca: rasca.RASCA_PACK,
+      tinder: tinder.TINDER_PACK,
+      tipeo: tipeo.TIPEO_PACK,
+      labpunt: labpunt.LABPUNT_PACK,
+      jeroglificos: jeroglificos.JEROGLIFICOS_PACK,
+      mitos: mitos.MITOS_PACK,
+      fonetica: fonetica.FONETICA_PACK,
+      voz: voz.VOZ_PACK,
+      eco: eco.ECO_PACK,
+    };
+  },
 };
 
 /* ---------------- Recuento ---------------- */

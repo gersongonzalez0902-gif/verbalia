@@ -205,7 +205,7 @@ export function reduceSessionComplete(
       combo,
       seenRecently: a.wasSeenRecently,
       xpToday: xpToday + xpTotal,
-      timed: a.gameId === "trivia" || a.gameId === "sprint",
+      timed: a.gameId === "trivia" || a.gameId === "sprint" || a.gameId === "tipeo",
     });
 
     xpTotal += r.xp;

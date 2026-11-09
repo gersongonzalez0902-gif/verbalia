@@ -129,7 +129,7 @@ export function TrainingScreen() {
               <Sparkles className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-lg font-bold leading-tight">Cien formas de entrenar la lengua</h2>
+              <h2 className="font-display text-lg font-bold leading-tight">{GAME_IDS.length} formas de entrenar la lengua</h2>
               <p className="text-xs leading-snug text-muted-foreground">
                 Todos los formatos del Archipiélago en una sola sala: elige el tuyo y salta directo al ejercicio.
                 Los formatos se abren al subir de nivel, igual que las islas del mapa.

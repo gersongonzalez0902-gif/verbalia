@@ -65,6 +65,14 @@ import {
   OyeAcentoGame,
   OyeNumeroGame,
 } from "@/games/formats/mega7-games";
+import { RascaGame } from "@/games/formats/rasca-game";
+import { TinderGame } from "@/games/formats/tinder-game";
+import { TipeoGame } from "@/games/formats/tipeo-game";
+import { JeroglificosGame } from "@/games/formats/jeroglificos-game";
+import { LabPuntGame } from "@/games/formats/labpunt-game";
+import { FoneticaGame } from "@/games/formats/fonetica-game";
+import { VozGame } from "@/games/formats/voz-game";
+import { EcoGame } from "@/games/formats/eco-game";
 import { itemXp } from "@/engine/scoring";
 import { levelFromXp } from "@/engine/xp";
 import { dateKey } from "@/engine/missions";
@@ -111,9 +119,11 @@ export function GameScreen() {
   const itemStart = useRef(Date.now());
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* Léxico se vuelve curioso al entrar en los formatos de la Forja (Etapa 4). */
+  /* Léxico se vuelve curioso al entrar en los formatos de la Forja (Etapa 4)
+   * y al asomarse a los micrófonos del Puerto (Etapa 2 completa). */
   const isForjaGame = (g?: string) =>
     Boolean(g && ["metaforas", "registro", "conectores", "ironia", "titulos"].includes(g));
+  const isMicGame = (g?: string) => Boolean(g && ["voz", "eco"].includes(g));
 
   /* Léxico se duerme si el navegante se ausenta 40 s (Etapa 4). */
   useEffect(() => {
@@ -136,6 +146,8 @@ export function GameScreen() {
   useEffect(() => {
     if (isForjaGame(params.gameId)) {
       flashMood("curioso", "¡La Forja! Afina el oído: aquí las palabras suenan al golpe del yunque.");
+    } else if (isMicGame(params.gameId)) {
+      flashMood("curioso", "Micrófono a bordo: habla con calma, el faro escucha mejor a quien no corre.");
     }
   }, [params.gameId]);
 
@@ -291,7 +303,7 @@ export function GameScreen() {
         combo: nextCombo,
         seenRecently: answer.wasSeenRecently,
         xpToday: core.stats.xpByDay[dateKey(new Date())] ?? 0,
-        timed: answer.gameId === "trivia" || answer.gameId === "sprint",
+        timed: answer.gameId === "trivia" || answer.gameId === "sprint" || answer.gameId === "tipeo",
       });
       setLiveXp((x) => x + xpPreview.xp);
 
@@ -529,6 +541,25 @@ export function GameScreen() {
         return <OyeAcentoGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       case "oyenumero":
         return <OyeNumeroGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      /* ---- Etapa 2 completa · los 9 formatos restantes ---- */
+      case "rasca":
+        return <RascaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "tinder":
+        return <TinderGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "tipeo":
+        return <TipeoGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "labpunt":
+        return <LabPuntGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "jeroglificos":
+        return <JeroglificosGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "mitos":
+        return <HistoriasRamificadas item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "fonetica":
+        return <FoneticaGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "voz":
+        return <VozGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
+      case "eco":
+        return <EcoGame item={ex} onAnswer={handleAnswer} disabled={feedback !== null} />;
       default:
         return null;
     }

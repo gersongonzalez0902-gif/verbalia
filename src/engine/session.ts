@@ -199,6 +199,16 @@ const TRAINING_SIZES: Partial<Record<GameId, number>> = {
   conectores: 8,
   ironia: 8,
   titulos: 8,
+  // ---- Etapa 2 completa · sesiones a medida ----
+  rasca: 8,
+  tinder: 10,
+  tipeo: 5,
+  labpunt: 8,
+  jeroglificos: 8,
+  mitos: 2,
+  fonetica: 8,
+  voz: 6,
+  eco: 3,
   // ---- Mega-7 · sesiones más cortas en juegos de redacción ----
   titulo: 8,
   resumen: 8,
@@ -221,34 +231,43 @@ export function buildMissionSession(
   const games = region.games.filter((g) => g !== "srs");
 
   if (regionId === "bosque") {
-    // El Bosque abre con tarjetas SRS y mezcla sus tres mecánicas.
-    const cards = srsCardsForSession(ctx, 5);
+    // El Bosque abre con tarjetas SRS y mezcla sus mecánicas, incluidas
+    // las Tarjetas Rasca-Rasca y el Tinder de Sinónimos (Etapa 2 completa).
+    const cards = srsCardsForSession(ctx, 4);
     for (const w of cards) items.push({ kind: "srs", word: w });
     items.push(...selectExercises("trivia", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("sprint", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("sinonimos", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("tinder", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("rasca", region.skill, 1, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     // Si no había tarjetas suficientes, rellena con trivia (u otros del bosque).
     while (items.length < Math.min(MISSION_SIZE, 8)) {
-      const filler: GameId[] = ["trivia", "sprint", "sinonimos"];
+      const filler: GameId[] = ["trivia", "sprint", "sinonimos", "tinder"];
       const g = filler[items.length % filler.length];
       const e = selectExercises(g, region.skill, 1, ctx, rng)[0];
       if (!e) break;
       items.push({ kind: "exercise", exercise: e });
     }
   } else if (regionId === "puerto") {
-    // Puerto: dictados y ecos, a partes iguales.
-    items.push(...selectExercises("dictado", region.skill, 6, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
-    items.push(...selectExercises("matices", region.skill, 6, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    // Puerto: dictados y ecos, más el laboratorio de fonética (Etapa 2 completa).
+    items.push(...selectExercises("dictado", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("matices", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("fonetica", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("voz", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
   } else if (regionId === "torre") {
     // Torre: ítems largos; una sesión honesta de 3-5 minutos.
     items.push(...selectExercises("historias", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("refranes", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("minuto", region.skill, 1, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
   } else if (regionId === "biblioteca") {
-    // Biblioteca: párrafos y cloze, rematado con una lectura inmersiva.
-    items.push(...selectExercises("parrafos", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    // Biblioteca: párrafos y cloze, jeroglíficos y una lectura (o mito).
+    items.push(...selectExercises("parrafos", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
     items.push(...selectExercises("cloze", region.skill, 4, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
-    items.push(...selectExercises("lectura", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    items.push(...selectExercises("jeroglificos", region.skill, 2, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
+    // Mitos y lecturas comparten ventana: primero mitos si hay fresco.
+    const mito = selectExercises("mitos", region.skill, 1, ctx, rng)[0];
+    if (mito) items.push({ kind: "exercise", exercise: mito });
+    else items.push(...selectExercises("lectura", region.skill, 1, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
   } else if (regionId === "observatorio") {
     // Observatorio: los cinco formatos de cultura lingüística, mezclados.
     items.push(...selectExercises("vf-observatorio", region.skill, 3, ctx, rng).map((e) => ({ kind: "exercise", exercise: e }) as SessionItem));
@@ -467,6 +486,21 @@ function inferSkill(gameId: GameId): SkillId {
     case "regiones":
     case "falsosamigos":
       return "cultura";
+    // ---- Etapa 2 completa ----
+    case "rasca":
+    case "tinder":
+      return "vocabulario";
+    case "tipeo":
+    case "labpunt":
+      return "ortografia";
+    case "jeroglificos":
+    case "mitos":
+      return "lectura";
+    case "fonetica":
+      return "audicion";
+    case "voz":
+    case "eco":
+      return "expresion";
   }
 }
 

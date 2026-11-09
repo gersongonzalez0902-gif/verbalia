@@ -3,20 +3,27 @@ import type {
   ClozeExercise,
   ConectaExercise,
   DictadoExercise,
+  EcoExercise,
   ErrorHuntExercise,
   EscribeExercise,
+  FoneticaExercise,
   IntrusoExercise,
   IroniaExercise,
+  LabPuntExercise,
   MemoriaExercise,
   MinutoExercise,
   OyeExercise,
   ParagraphExercise,
   PuzzleExercise,
+  RascaExercise,
   SorteaExercise,
+  TinderExercise,
   TildeExercise,
   TitulosExercise,
+  TipeoExercise,
   TriviaExercise,
   VfExercise,
+  VozExercise,
 } from "@/types";
 
 /** Ejercicio de opciones con índice: forma mínima que comparten los
@@ -372,5 +379,120 @@ export function checkCensura(exercise: TitulosExercise, tokenIndex: number | "li
     correct,
     userAnswer: `tachó «${exercise.tokens[tokenIndex]}»`,
     correctAnswer: `tachar «${exercise.tokens[target]}»`,
+  };
+}
+
+/* ===================== Etapa 2 completa · validadores ===================== */
+
+/** Tarjetas Rasca-Rasca / Laboratorio de Puntuación / Jeroglíficos: índice de opción. */
+export function checkRasca(exercise: RascaExercise, chosenIndex: number): ValidationResult {
+  return {
+    correct: chosenIndex === exercise.answerIndex,
+    userAnswer: exercise.options[chosenIndex] ?? "—",
+    correctAnswer: exercise.options[exercise.answerIndex],
+  };
+}
+
+/** Tinder de Sinónimos: la pareja es intercambiable sí o no. */
+export function checkTinder(exercise: TinderExercise, saidYes: boolean): ValidationResult {
+  const correct = saidYes === exercise.isSynonym;
+  return {
+    correct,
+    userAnswer: `«${exercise.wordA}» y «${exercise.wordB}»: ${saidYes ? "equivalentes" : "no equivalentes"}`,
+    correctAnswer: `«${exercise.wordA}» y «${exercise.wordB}»: ${exercise.isSynonym ? "equivalentes" : "no equivalentes"}`,
+  };
+}
+
+/** Duelo de Tipeo: métricas de precisión y velocidad sobre la frase objetivo. */
+export interface TipeoMetrics {
+  /** Caracteres correctos sobre los tecleados (0-1). */
+  accuracy: number;
+  /** Palabras por minuto estándar (5 caracteres = 1 palabra). */
+  wpm: number;
+  /** Segundos empleados. */
+  seconds: number;
+}
+
+export function checkTipeo(
+  exercise: TipeoExercise,
+  typed: string,
+  elapsedMs: number,
+): ValidationResult & { metrics: TipeoMetrics } {
+  const seconds = Math.max(0.001, elapsedMs / 1000);
+  // Alineación: char a char sobre lo escrito (el excedente cuenta como fallo).
+  let hits = 0;
+  const len = Math.min(typed.length, exercise.sentence.length);
+  for (let i = 0; i < len; i++) {
+    if (typed[i] === exercise.sentence[i]) hits += 1;
+  }
+  const accuracy = typed.length === 0 ? 0 : hits / typed.length;
+  const wpm = (typed.length / 5) / (seconds / 60);
+  const exact = normalizeDictado(typed) === normalizeDictado(exercise.sentence);
+  // Duela ganada: frase exacta, precisión ≥ 92 % y dentro del tiempo objetivo × 1.6.
+  const correct = exact && accuracy >= 0.92 && seconds <= exercise.targetSeconds * 1.6;
+  return {
+    correct,
+    userAnswer: typed.trim() || "—",
+    correctAnswer: exercise.sentence,
+    metrics: { accuracy, wpm, seconds },
+  };
+}
+
+/** Laboratorio de Puntuación: la versión cuyo sentido es el pedido. */
+export function checkLabPunt(exercise: LabPuntExercise, chosenIndex: number): ValidationResult {
+  return {
+    correct: chosenIndex === exercise.answerIndex,
+    userAnswer: exercise.options[chosenIndex] ?? "—",
+    correctAnswer: exercise.options[exercise.answerIndex],
+  };
+}
+
+/** Laboratorio de Fonética Visual: cuál de las dos palabras sonó. */
+export function checkFonetica(exercise: FoneticaExercise, chosenIndex: number): ValidationResult {
+  return {
+    correct: chosenIndex === exercise.answerIndex,
+    userAnswer: exercise.pair[chosenIndex] ?? "—",
+    correctAnswer: exercise.pair[exercise.answerIndex],
+  };
+}
+
+/** Dictado por Voz: compara lo reconocido (o escrito a mano) con la frase objetivo. */
+export function checkVoz(exercise: VozExercise, heard: string): ValidationResult {
+  const clean = (s: string) =>
+    normalizeDictado(s)
+      .replace(/[¡¿«»,;:]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  const correct = clean(heard) === clean(exercise.sentence);
+  return {
+    correct,
+    userAnswer: heard.trim() || "—",
+    correctAnswer: exercise.sentence,
+  };
+}
+
+/**
+ * Eco del Mar (grabación + autoevaluación): como el Reto del Minuto,
+ * no hay acierto binario; la grade nace de la honestidad de la checklist.
+ */
+export function checkEco(
+  exercise: EcoExercise,
+  recordedMs: number,
+  checkedCriteria: number,
+  /** Si hubo grabación real o se respondió de oído (afecta al piso). */
+  didRecord: boolean,
+): Omit<ValidationResult, "correct"> & { correct: boolean | null; grade: "again" | "hard" | "good" | "easy" } {
+  const criteria = exercise.criteria.length;
+  let grade: "again" | "hard" | "good" | "easy";
+  if (!didRecord && checkedCriteria === 0) grade = "again";
+  else if (checkedCriteria === criteria && didRecord && recordedMs >= 800) grade = "easy";
+  else if (checkedCriteria >= Math.ceil(criteria / 2) && didRecord) grade = "good";
+  else if (checkedCriteria >= 1) grade = "good";
+  else grade = "hard";
+  return {
+    correct: null,
+    grade,
+    userAnswer: `${checkedCriteria}/${criteria} criterios${didRecord ? " grabando" : " de oído"}`,
+    correctAnswer: "Escúchate con honestidad y marca lo cumplido",
   };
 }

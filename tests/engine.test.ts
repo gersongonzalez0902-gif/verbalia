@@ -608,6 +608,7 @@ describe("validación trivia: mayúsculas y minúsculas", () => {
 
 import { checkDictado, dictadoDiff, normalizeDictado, checkOptionIndex, checkMinuto } from "@/engine/validation";
 import { buildMissionSession as buildMission2, buildTrainingSession as buildTraining2 } from "@/engine/session";
+import { EXERCISES_BY_GAME, EXERCISES_BY_ID } from "@/data/content";
 import { DICTADO_PACK } from "@/data/dictado";
 import { MATICES_PACK } from "@/data/matices";
 import { LECTURA_PACK } from "@/data/lectura";
@@ -618,6 +619,20 @@ import { REFRANES_PACK } from "@/data/refranes";
 import { MINUTO_PACK } from "@/data/minuto";
 import { SRS_WORDS } from "@/data/words-srs";
 import { ACHIEVEMENTS } from "@/data/achievements";
+
+/** En la app los packs grandes son perezosos y pool-loader los funde en
+ *  caliente al entrar a cada minijuego; en los tests se funden a mano
+ *  para probar el motor de sesiones con material real. */
+function mergePoolForTests(gid: string, pack: import("@/types").Exercise[]): void {
+  EXERCISES_BY_GAME[gid] = [...(EXERCISES_BY_GAME[gid] ?? []), ...pack];
+  for (const e of pack) EXERCISES_BY_ID[e.id] ??= e;
+}
+mergePoolForTests("dictado", DICTADO_PACK);
+mergePoolForTests("matices", MATICES_PACK);
+mergePoolForTests("lectura", LECTURA_PACK);
+mergePoolForTests("historias", HISTORIAS_PACK);
+mergePoolForTests("refranes", REFRANES_PACK);
+mergePoolForTests("minuto", MINUTO_PACK);
 
 describe("dictado: normalización y comparación", () => {
   const ex = { sentence: "El café de esta mañana estaba frío." };
@@ -696,10 +711,10 @@ describe("sesiones de las regiones de la Etapa 2", () => {
     expect(types).toContain("refranes");
     expect(s.items.length).toBeLessThanOrEqual(8);
   });
-  test("misión de biblioteca incluye lectura inmersiva", () => {
+  test("misión de biblioteca incluye lectura inmersiva (o mito de la Etapa 2 completa)", () => {
     const s = buildMission2("biblioteca", ctx, "seed-biblio");
     const types = s.items.map((i) => (i.kind === "exercise" ? i.exercise.type : "srs"));
-    expect(types).toContain("lectura");
+    expect(types.some((t) => t === "lectura" || t === "mitos")).toBe(true);
     expect(types).toContain("parrafos");
   });
   test("entrenamiento de minuto es una sola consigna", () => {
@@ -1242,10 +1257,13 @@ describe("Etapa 4: misiones y palabras ampliadas", () => {
     expect(texts.size).toBe(FRASES.length);
   });
 
-  test("todo el catálogo de ejercicios sigue sin ids duplicados y creció a 5080+", () => {
+  test("catálogo estático sin ids duplicados; el resto llega perezoso (58 000+ vía pack-meta)", () => {
     const ids = ALL_EXERCISES.map((e) => e.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ALL_EXERCISES.length).toBeGreaterThanOrEqual(5080);
+    // Tras la optimización de carga, el núcleo inmediato es estático y el
+    // grueso (bancos mega8 + packs pk-*) se funde bajo demanda: los
+    // totales veraces viven en src/data/gen/pack-meta.json.
+    expect(ALL_EXERCISES.length).toBeGreaterThanOrEqual(2600);
   });
 });
 
@@ -1353,5 +1371,320 @@ describe("regresiones del barrido de errores", () => {
     // El XP de la sesión nunca es negativo y el total del jugador no baja.
     expect(result.xpTotal).toBeGreaterThanOrEqual(0);
     expect(next.xp).toBeGreaterThanOrEqual(core.xp);
+  });
+});
+
+/* ==================== Etapa 2 completa · v5.0 «Experiencia avanzada» ==================== */
+
+import {
+  checkRasca, checkTinder, checkTipeo, checkLabPunt, checkFonetica, checkVoz, checkEco,
+} from "@/engine/validation";
+import { RASCA_PACK } from "@/data/formats/rasca";
+import { TINDER_PACK } from "@/data/formats/tinder";
+import { TIPEO_PACK } from "@/data/formats/tipeo";
+import { LABPUNT_PACK } from "@/data/formats/labpunt";
+import { JEROGLIFICOS_PACK } from "@/data/formats/jeroglificos";
+import { MITOS_PACK } from "@/data/formats/mitos";
+import { FONETICA_PACK } from "@/data/formats/fonetica";
+import { VOZ_PACK } from "@/data/formats/voz";
+import { ECO_PACK } from "@/data/formats/eco";
+import { GAMES, GAME_IDS } from "@/data/games";
+import { ICONS } from "@/components/game/icons";
+import { CORE_MECHANICS, INNOVATIVE_MODULES } from "@/data/roadmap";
+import type { Exercise } from "@/types";
+
+// Fundir los 9 packs nuevos en la caché del motor (como pool-loader).
+mergePoolForTests("rasca", RASCA_PACK);
+mergePoolForTests("tinder", TINDER_PACK);
+mergePoolForTests("tipeo", TIPEO_PACK);
+mergePoolForTests("labpunt", LABPUNT_PACK);
+mergePoolForTests("jeroglificos", JEROGLIFICOS_PACK);
+mergePoolForTests("mitos", MITOS_PACK);
+mergePoolForTests("fonetica", FONETICA_PACK);
+mergePoolForTests("voz", VOZ_PACK);
+mergePoolForTests("eco", ECO_PACK);
+
+describe("Etapa 2 completa · validadores nuevos", () => {
+  test("tinder: acierta en ambas direcciones y describe la pareja", () => {
+    const syn = TINDER_PACK[0]; // primera pareja es sinónima
+    const no = TINDER_PACK[TINDER_PACK.findIndex((e) => !e.isSynonym)];
+    expect(checkTinder(syn, true).correct).toBe(true);
+    expect(checkTinder(syn, false).correct).toBe(false);
+    expect(checkTinder(no, false).correct).toBe(true);
+    expect(checkTinder(no, true).correct).toBe(false);
+    const v = checkTinder(syn, true);
+    expect(v.userAnswer).toContain(syn.wordA);
+    expect(v.correctAnswer).toContain(syn.wordB);
+  });
+
+  test("tipeo: frase exacta y rápida gana; lenta o sucia pierde", () => {
+    const ex = TIPEO_PACK.find((e) => e.flavor === "frase")!;
+    const fastMs = Math.round(ex.targetSeconds * 1000 * 1.1);
+    const slowMs = Math.round(ex.targetSeconds * 1000 * 1.9);
+    expect(checkTipeo(ex, ex.sentence, fastMs).correct).toBe(true);
+    expect(checkTipeo(ex, ex.sentence, slowMs).correct).toBe(false);
+    expect(checkTipeo(ex, ex.sentence + "x", fastMs).correct).toBe(false);
+    // Métricas coherentes
+    const r = checkTipeo(ex, ex.sentence, fastMs);
+    expect(r.metrics.accuracy).toBe(1);
+    expect(r.metrics.wpm).toBeGreaterThan(0);
+    expect(r.metrics.seconds).toBeGreaterThan(0);
+  });
+
+  test("voz: tolera puntuación y mayúsculas del reconocimiento, no las tildes", () => {
+    const ex = VOZ_PACK[0];
+    expect(checkVoz(ex, ex.sentence).correct).toBe(true);
+    expect(checkVoz(ex, ex.sentence.replace(/[¿?]/g, "")).correct).toBe(true);
+    const sinTilde = ex.sentence.replace(/á/g, "a").replace(/é/g, "e").replace(/í/g, "i").replace(/ó/g, "o").replace(/ú/g, "u");
+    expect(checkVoz(ex, sinTilde).correct).toBe(false);
+  });
+
+  test("eco: la checklist honesta gradúa sin acierto binario", () => {
+    const ex = ECO_PACK[0];
+    const n = ex.criteria.length;
+    const nada = checkEco(ex, 0, 0, false);
+    expect(nada.correct).toBe(null);
+    expect(nada.grade).toBe("again");
+    const entera = checkEco(ex, 3200, n, true);
+    expect(entera.grade).toBe("easy");
+    const aMedias = checkEco(ex, 2000, 1, false);
+    expect(["hard", "good"]).toContain(aMedias.grade);
+  });
+
+  test("rasca, labpunt y fonetica comparan por índice", () => {
+    const rs = RASCA_PACK[0];
+    expect(checkRasca(rs, rs.answerIndex).correct).toBe(true);
+    const lp = LABPUNT_PACK[0];
+    expect(checkLabPunt(lp, lp.answerIndex).correct).toBe(true);
+    expect(checkLabPunt(lp, (lp.answerIndex + 1) % lp.options.length).correct).toBe(false);
+    const fn = FONETICA_PACK[0];
+    expect(checkFonetica(fn, fn.answerIndex).correct).toBe(true);
+    expect(checkFonetica(fn, 1 - fn.answerIndex).correct).toBe(false);
+  });
+});
+
+describe("Etapa 2 completa · integridad de los 9 packs", () => {
+  const packs: [string, Exercise[]][] = [
+    ["rasca", RASCA_PACK], ["tinder", TINDER_PACK], ["tipeo", TIPEO_PACK],
+    ["labpunt", LABPUNT_PACK], ["jeroglificos", JEROGLIFICOS_PACK], ["mitos", MITOS_PACK],
+    ["fonetica", FONETICA_PACK], ["voz", VOZ_PACK], ["eco", ECO_PACK],
+  ];
+
+  test("los 9 packs aportan 600+ ítems nuevos con ids únicos", () => {
+    const all = packs.flatMap(([, p]) => p);
+    const ids = new Set(all.map((e) => e.id));
+    expect(ids.size).toBe(all.length);
+    expect(all.length).toBeGreaterThanOrEqual(600);
+    // Ningún id pisa el catálogo estático ni los packs de la Etapa 2 clásica.
+    for (const e of all) expect(EXERCISES_BY_ID[e.id]).toBe(e);
+  });
+
+  test("cada pack cubre dificultades en rango válido (1-5)", () => {
+    for (const [name, pack] of packs) {
+      expect(pack.length).toBeGreaterThan(0);
+      for (const e of pack) {
+        expect(e.difficulty).toBeGreaterThanOrEqual(1);
+        expect(e.difficulty).toBeLessThanOrEqual(5);
+        expect(e.explanation.length).toBeGreaterThan(10);
+      }
+      const ds = new Set(pack.map((e) => e.difficulty));
+      expect(ds.size).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  test("rasca: la correcta no se concentra en una sola posición", () => {
+    const at = [0, 0, 0];
+    for (const e of RASCA_PACK) at[e.answerIndex] += 1;
+    expect(at[0]).toBeGreaterThan(0);
+    expect(at[1]).toBeGreaterThan(0);
+    expect(at[2]).toBeGreaterThan(0);
+  });
+
+  test("tinder: mitad sinónimos, mitad trampas, con nota pedagógica", () => {
+    const syn = TINDER_PACK.filter((e) => e.isSynonym).length;
+    const no = TINDER_PACK.length - syn;
+    expect(syn).toBeGreaterThanOrEqual(30);
+    expect(no).toBeGreaterThanOrEqual(30);
+    for (const e of TINDER_PACK) expect(e.note.length).toBeGreaterThan(15);
+  });
+
+  test("tipeo: metas coherentes con la longitud de la frase", () => {
+    for (const e of TIPEO_PACK) {
+      expect(e.sentence.length).toBeGreaterThanOrEqual(20);
+      expect(e.targetSeconds).toBeGreaterThanOrEqual(8);
+      expect(e.targetSeconds).toBeLessThanOrEqual(20);
+    }
+    expect(TIPEO_PACK.filter((e) => e.flavor === "trabalenguas").length).toBeGreaterThanOrEqual(10);
+  });
+
+  test("labpunt: las opciones comparten las palabras base y la correcta existe", () => {
+    for (const e of LABPUNT_PACK) {
+      expect(e.options.length).toBeGreaterThanOrEqual(3);
+      expect(e.answerIndex).toBeLessThan(e.options.length);
+      expect(e.meaning.length).toBeGreaterThan(10);
+    }
+  });
+
+  test("jeroglíficos: el cifrado tiene emojis o abreviaturas y 3 traducciones", () => {
+    for (const e of JEROGLIFICOS_PACK) {
+      expect(e.options.length).toBe(3);
+      const hasEmoji = /\p{Extended_Pictographic}/u.test(e.cipher);
+      const hasAbbr = /\d|[xq]\b/.test(e.cipher) || e.cipher.includes(" ");
+      expect(hasEmoji || hasAbbr).toBe(true);
+    }
+  });
+
+  test("fonetica: pares de dos palabras reales y respuesta alternada", () => {
+    const zeros = FONETICA_PACK.filter((e) => e.answerIndex === 0).length;
+    const ones = FONETICA_PACK.length - zeros;
+    expect(zeros).toBeGreaterThan(0);
+    expect(ones).toBeGreaterThan(0);
+    for (const e of FONETICA_PACK) {
+      expect(e.pair.length).toBe(2);
+      expect(e.pair[0]).not.toBe(e.pair[1]);
+      expect(e.contrast.length).toBeGreaterThan(20);
+    }
+  });
+
+  test("mitos: grafos válidos, finales alcanzables y origen declarado", () => {
+    expect(MITOS_PACK.length).toBeGreaterThanOrEqual(8);
+    for (const m of MITOS_PACK) {
+      expect(m.origin.length).toBeGreaterThan(3);
+      expect(m.start).toBeGreaterThanOrEqual(0);
+      expect(m.start).toBeLessThan(m.nodes.length);
+      let reachable = false;
+      for (const n of m.nodes) {
+        expect(n.choices.length).toBeGreaterThanOrEqual(2);
+        for (const c of n.choices) {
+          expect(c.next === -1 || (c.next >= 0 && c.next < m.nodes.length)).toBe(true);
+          if (c.next === -1) reachable = true;
+        }
+      }
+      expect(reachable).toBe(true);
+      expect(m.question.length).toBeGreaterThan(10);
+      expect(m.answerIndex).toBeLessThan(m.options.length);
+    }
+  });
+
+  test("voz y eco: frases con contenido y criterios honestos", () => {
+    for (const e of VOZ_PACK) {
+      expect(e.sentence.split(" ").length).toBeGreaterThanOrEqual(3);
+      expect(e.hint.length).toBeGreaterThan(2);
+    }
+    for (const e of ECO_PACK) {
+      expect(e.criteria.length).toBeGreaterThanOrEqual(3);
+      for (const c of e.criteria) expect(c.length).toBeGreaterThan(8);
+    }
+  });
+});
+
+describe("Etapa 2 completa · sesiones y registro del catálogo", () => {
+  const ctx2 = {
+    skills: { vocabulario: 3, gramatica: 3, ortografia: 3, lectura: 3, audicion: 3, expresion: 3 } as Record<string, number>,
+    seenExercises: {},
+    srs: {},
+    now: Date.now(),
+    newCardsPerDay: 8,
+  };
+
+  test("entrenamiento funciona en los 9 minijuegos nuevos", () => {
+    for (const gid of ["rasca", "tinder", "tipeo", "labpunt", "jeroglificos", "mitos", "fonetica", "voz", "eco"] as const) {
+      const s = buildTraining2(gid, ctx2, `seed-${gid}`);
+      expect(s.items.length).toBeGreaterThan(0);
+      expect(s.items.every((i) => i.kind === "exercise" && i.exercise.type === gid)).toBe(true);
+    }
+  });
+
+  test("misión del puerto ahora incluye fonética y voz", () => {
+    const s = buildMission2("puerto", ctx2, "seed-puerto-v5");
+    const types = new Set(s.items.map((i) => (i.kind === "exercise" ? i.exercise.type : "srs")));
+    expect(types.has("dictado")).toBe(true);
+    expect(types.has("fonetica")).toBe(true);
+    expect(types.has("voz")).toBe(true);
+  });
+
+  test("misión del bosque mezcla rasca y tinder", () => {
+    const s = buildMission2("bosque", ctx2, "seed-bosque-v5");
+    const types = new Set(s.items.map((i) => (i.kind === "exercise" ? i.exercise.type : "srs")));
+    expect(types.has("tinder") || types.has("rasca")).toBe(true);
+  });
+
+  test("misión de biblioteca incluye jeroglíficos", () => {
+    const s = buildMission2("biblioteca", ctx2, "seed-biblio-v5");
+    const types = s.items.map((i) => (i.kind === "exercise" ? i.exercise.type : "srs"));
+    expect(types).toContain("jeroglificos");
+  });
+
+  test("los 9 juegos están en el catálogo con icono y skills coherentes", () => {
+    expect(GAME_IDS.length).toBe(110);
+    for (const gid of ["rasca", "tinder", "tipeo", "labpunt", "jeroglificos", "mitos", "fonetica", "voz", "eco"] as const) {
+      expect(GAME_IDS).toContain(gid);
+      expect(Boolean(ICONS[GAMES[gid].icon])).toBe(true);
+      expect(GAMES[gid].instructions.length).toBeGreaterThan(20);
+    }
+    // Habilidades declaradas igual que el reparto de inferSkill.
+    expect(GAMES["rasca"].skill).toBe("vocabulario");
+    expect(GAMES["tipeo"].skill).toBe("ortografia");
+    expect(GAMES["mitos"].skill).toBe("lectura");
+    expect(GAMES["fonetica"].skill).toBe("audicion");
+    expect(GAMES["voz"].skill).toBe("expresion");
+  });
+
+  test("las regiones acogen los 9 juegos: 4 islas ampliadas", () => {
+    const regionGames = new Map(REGIONS_ALL.map((r) => [r.id, new Set(r.games)]));
+    expect(regionGames.get("bosque")!.has("rasca")).toBe(true);
+    expect(regionGames.get("bosque")!.has("tinder")).toBe(true);
+    expect(regionGames.get("fortaleza")!.has("tipeo")).toBe(true);
+    expect(regionGames.get("fortaleza")!.has("labpunt")).toBe(true);
+    expect(regionGames.get("biblioteca")!.has("jeroglificos")).toBe(true);
+    expect(regionGames.get("biblioteca")!.has("mitos")).toBe(true);
+    expect(regionGames.get("puerto")!.has("fonetica")).toBe(true);
+    expect(regionGames.get("puerto")!.has("voz")).toBe(true);
+    expect(regionGames.get("puerto")!.has("eco")).toBe(true);
+  });
+
+  test("el roadmap declara lista toda la Etapa 2", () => {
+    const pendientes = [...CORE_MECHANICS, ...INNOVATIVE_MODULES].filter(
+      (m) => m.stage === 2 && m.status !== "listo",
+    );
+    expect(pendientes.length).toBe(0);
+  });
+
+  test("logros de la Etapa 2 completa: existen y evalúan bien", () => {
+    const ids = ACHIEVEMENTS.map((a) => a.id);
+    for (const id of ["ac-voz-del-faro", "ac-mecanografo-marino", "ac-leyendas-vivas", "ac-etapa2-completa"]) {
+      expect(ids).toContain(id);
+    }
+    const cap = ACHIEVEMENTS.find((a) => a.id === "ac-etapa2-completa")!;
+    const casi = createCore();
+    for (const g of ["rasca", "tinder", "tipeo", "labpunt", "jeroglificos", "mitos", "fonetica", "voz"]) {
+      casi.stats.byGame[g] = { plays: 1, answers: 1, correct: 1, bestCombo: 1 };
+    }
+    expect(cap.check(casi, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(false);
+    casi.stats.byGame["eco"] = { plays: 1, answers: 1, correct: 1, bestCombo: 1 };
+    expect(cap.check(casi, { masteredWords: 0, learnedWords: 0, now: Date.now() })).toBe(true);
+  });
+
+  test("el reductor registra una sesión de eco como esfuerzo (grade, no acierto)", () => {
+    const now = new Date("2026-06-01T10:00:00");
+    const ex = ECO_PACK[0];
+    const spec: SessionSpec = {
+      label: "Eco", mode: "training", gameId: "eco",
+      items: [{ kind: "exercise", exercise: ex }],
+    };
+    const answer: AnswerRecord = {
+      itemId: ex.id, kind: "exercise", gameId: "eco", skill: "expresion",
+      difficulty: ex.difficulty, correct: null, grade: "good",
+      userAnswer: "2/3 criterios grabando", correctAnswer: "Escúchate con honestidad",
+      timeMs: 12_000, wasSeenRecently: false,
+    };
+    const { core: next, result } = reduceSessionComplete(createCore(), {
+      spec, answers: [answer], durationMs: 15_000, now, masteredWords: 0, learnedWords: 0,
+    });
+    expect(result.accuracy).toBe(null);
+    expect(result.xpTotal).toBeGreaterThan(0);
+    expect(next.stats.byGame["eco"].plays).toBe(1);
+    // El eco es esfuerzo (correct=null): la habilidad no se mueve en esta sesión.
+    expect(next.skills["expresion"]).toBe(createCore().skills["expresion"]);
   });
 });

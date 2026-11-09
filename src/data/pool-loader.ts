@@ -150,6 +150,37 @@ const GROUPS: Record<string, GroupDef> = {
     games: ["conecta-bosque"],
     load: async () => ({ "conecta-bosque": (await import("./gen/conecta-bosque-x")).CONECTA_BOSQUE_X }),
   },
+
+  /* ---- Etapa 2 completa: los 9 formatos restantes (rasca, tinder,
+   * tipeo, labpunt, jeroglíficos, mitos, fonética, voz, eco) ---- */
+  etapa2b: {
+    games: ["rasca", "tinder", "tipeo", "labpunt", "jeroglificos", "mitos", "fonetica", "voz", "eco"],
+    load: async () => {
+      const [rasca, tinder, tipeo, labpunt, jeroglificos, mitos, fonetica, voz, eco] =
+        await Promise.all([
+          import("./formats/rasca"),
+          import("./formats/tinder"),
+          import("./formats/tipeo"),
+          import("./formats/labpunt"),
+          import("./formats/jeroglificos"),
+          import("./formats/mitos"),
+          import("./formats/fonetica"),
+          import("./formats/voz"),
+          import("./formats/eco"),
+        ]);
+      return {
+        rasca: rasca.RASCA_PACK,
+        tinder: tinder.TINDER_PACK,
+        tipeo: tipeo.TIPEO_PACK,
+        labpunt: labpunt.LABPUNT_PACK,
+        jeroglificos: jeroglificos.JEROGLIFICOS_PACK,
+        mitos: mitos.MITOS_PACK,
+        fonetica: fonetica.FONETICA_PACK,
+        voz: voz.VOZ_PACK,
+        eco: eco.ECO_PACK,
+      };
+    },
+  },
 };
 
 /** Índice inverso: juego → grupos que lo alimentan. */

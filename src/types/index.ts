@@ -142,6 +142,18 @@ export type ForjaGameId =
   | "ironia" // Detector de Ironía: tono literal vs. irónico
   | "titulos"; // Censura del Editor: elimina la redundancia
 
+/** Minijuegos que completan la Etapa 2 («Experiencia avanzada»). */
+export type Etapa2BGameId =
+  | "rasca" // Tarjetas Rasca-Rasca: rascar y emparejar definición (Bosque)
+  | "tinder" // Tinder de Sinónimos: deslizar pares equivalentes (Bosque)
+  | "tipeo" // Duelo de Tipeo: frases y trabalenguas a toda velocidad (Fortaleza)
+  | "labpunt" // Laboratorio de Puntuación: los signos cambian el sentido (Fortaleza)
+  | "jeroglificos" // Jeroglíficos Modernos: mensajes de emojis y abreviaturas (Biblioteca)
+  | "mitos" // Biblioteca de Mitos y Leyendas: patrimonio oral ramificado (Biblioteca)
+  | "fonetica" // Laboratorio de Fonética Visual: pares mínimos al oído (Puerto)
+  | "voz" // Dictado por Voz: el micrófono escribe por ti (Puerto)
+  | "eco"; // Eco del Mar: graba, escúchate y evalúate (Puerto)
+
 /** Identificadores de los minijuegos implementados (Etapas 1-4). */
 export type GameId =
   | "srs" // Repetición espaciada (Bosque)
@@ -177,7 +189,9 @@ export type GameId =
   | GrafiaGameId
   | OyeNuevoGameId
   // ---- Etapa 4 · Forja del Escritor ----
-  | ForjaGameId;
+  | ForjaGameId
+  // ---- Etapa 2 completa · los 9 formatos restantes de la experiencia avanzada ----
+  | Etapa2BGameId;
 
 /** Identificadores de las regiones del Archipiélago. */
 export type RegionId =
@@ -521,6 +535,107 @@ export interface OyeNumeroExercise extends ExerciseBase {
   answerIndex: number;
 }
 
+/* ================= Etapa 2 completa · 9 formatos restantes ================= */
+
+/** Tarjetas Rasca-Rasca: rascar la capa y emparejar la palabra con su definición. */
+export interface RascaExercise extends ExerciseBase {
+  type: "rasca";
+  /** Palabra oculta bajo la capa de rascar. */
+  word: string;
+  /** Definición correcta de la palabra. */
+  options: string[];
+  answerIndex: number;
+}
+
+/** Tinder de Sinónimos: decidir si dos términos son intercambiables. */
+export interface TinderExercise extends ExerciseBase {
+  type: "tinder";
+  /** Palabra A (la fija). */
+  wordA: string;
+  /** Palabra B (la que se desliza). */
+  wordB: string;
+  /** ¿Son sinónimos intercambiables en la mayoría de contextos? */
+  isSynonym: boolean;
+  /** Nota que explica el matiz (se muestra al corregir). */
+  note: string;
+}
+
+/** Duelo de Tipeo: transcribir la frase exacta antes de que se apague el faro. */
+export interface TipeoExercise extends ExerciseBase {
+  type: "tipeo";
+  /** Frase objetivo (con puntuación y tildes exactas). */
+  sentence: string;
+  /** Segundos objetivo para el duelo (WPM de referencia). */
+  targetSeconds: number;
+  /** Trabalenguas u otra etiqueta de estilo. */
+  flavor: "frase" | "trabalenguas" | "cita";
+}
+
+/** Laboratorio de Puntuación: elige la puntuación que produce el sentido pedido. */
+export interface LabPuntExercise extends ExerciseBase {
+  type: "labpunt";
+  /** Palabras idénticas en todas las versiones (solo cambian los signos). */
+  base: string;
+  /** Versión con huecos: «Vamos a comer ___ niños». */
+  options: string[];
+  answerIndex: number;
+  /** Qué sentido debe tener la frase correcta. */
+  meaning: string;
+}
+
+/** Jeroglíficos Modernos: descodificar un mensaje de emojis y abreviaturas. */
+export interface JeroglificosExercise extends ExerciseBase {
+  type: "jeroglificos";
+  /** El mensaje cifrado (emojis, cifras, abreviaturas). */
+  cipher: string;
+  options: string[];
+  answerIndex: number;
+}
+
+/** Biblioteca de Mitos y Leyendas: patrimonio oral con decisiones y pregunta final. */
+export interface MitosExercise extends ExerciseBase {
+  type: "mitos";
+  title: string;
+  /** Región o tradición de la leyenda (p. ej. «México · tradición oral»). */
+  origin: string;
+  nodes: StoryNode[];
+  start: number;
+  question: string;
+  options: string[];
+  answerIndex: number;
+}
+
+/** Laboratorio de Fonética Visual: pares mínimos, oído y forma del sonido. */
+export interface FoneticaExercise extends ExerciseBase {
+  type: "fonetica";
+  /** Par mínimo: las dos palabras rivales. */
+  pair: [string, string];
+  /** Índice (0/1) de la palabra que suena. */
+  answerIndex: number;
+  /** Contraste fonético explicado (al corregir). */
+  contrast: string;
+  /** Descripción visual de la forma del sonido (boca/sonido). */
+  shape: string;
+}
+
+/** Dictado por Voz: habla y el micrófono transcribe; o escribe a mano si no hay voz. */
+export interface VozExercise extends ExerciseBase {
+  type: "voz";
+  /** Frase objetivo que hay que pronunciar. */
+  sentence: string;
+  /** Pista de contexto. */
+  hint: string;
+}
+
+/** Eco del Mar: escucha el modelo, grábate y autoevalúate con honestidad. */
+export interface EcoExercise extends ExerciseBase {
+  type: "eco";
+  /** Frase modelo para pronunciar. */
+  sentence: string;
+  /** Criterios de autoevaluación (checklist honesta). */
+  criteria: string[];
+}
+
 export type Exercise =
   | TriviaExercise
   | PuzzleExercise
@@ -557,7 +672,17 @@ export type Exercise =
   | MultiExercise
   | GrafiaExercise
   | OyeAcentoExercise
-  | OyeNumeroExercise;
+  | OyeNumeroExercise
+  /* ---- Etapa 2 completa ---- */
+  | RascaExercise
+  | TinderExercise
+  | TipeoExercise
+  | LabPuntExercise
+  | JeroglificosExercise
+  | MitosExercise
+  | FoneticaExercise
+  | VozExercise
+  | EcoExercise;
 
 /* ====================== Etapa 4 · Forja del Escritor ====================== */
 

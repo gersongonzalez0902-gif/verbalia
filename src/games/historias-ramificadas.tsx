@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react";
-import type { HistoriasExercise } from "@/types";
+import type { HistoriasExercise, MitosExercise } from "@/types";
 import { checkOptionIndex } from "@/engine/validation";
 import { sfx } from "@/services/audio";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,11 @@ interface Step {
   feedback?: string;
 }
 
-export function HistoriasRamificadas(props: useGameProps<HistoriasExercise>) {
+/** Historias Ramificadas y Mitos comparten motor: cualquier relato
+ *  ramificado con pregunta final pasa por aquí. */
+export type StoryExercise = HistoriasExercise | MitosExercise;
+
+export function HistoriasRamificadas(props: useGameProps<StoryExercise>) {
   const { item, onAnswer, disabled } = props;
   const [nodeIndex, setNodeIndex] = useState(item.start);
   const [trail, setTrail] = useState<Step[]>([{ nodeId: item.nodes[item.start].id }]);
@@ -70,12 +74,17 @@ export function HistoriasRamificadas(props: useGameProps<HistoriasExercise>) {
   return (
     <div className="flex w-full max-w-xl flex-col items-center gap-5">
       {/* Cabecera de la historia */}
-      <div className="flex w-full items-center justify-between gap-2">
+      <div className="flex w-full flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-primary">
-          <GitBranch className="h-5 w-5" aria-hidden />
+          <GitBranch className="h-5 w-5 shrink-0" aria-hidden />
           <p className="font-display text-lg font-bold">{item.title}</p>
         </div>
-        <p className="numeric flex items-center gap-1 text-xs font-bold text-muted-foreground" aria-label={`Paso ${trail.length} de la historia`}>
+        <p className="numeric flex items-center gap-2 text-xs font-bold text-muted-foreground" aria-label={`Paso ${trail.length} de la historia`}>
+          {"origin" in item && (
+            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-secondary-foreground">
+              {item.origin}
+            </span>
+          )}
           <MapPin className="h-3.5 w-3.5" aria-hidden />
           {trail.length}
         </p>
