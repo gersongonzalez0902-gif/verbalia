@@ -33,7 +33,6 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { ThemeColorId } from "@/types";
-import { uploadVault, downloadVault } from "@/lib/crypto-vault";
 import { Check, Database, Download, HardDrive, Lock, Moon, Palette, Sun, Trash2, Upload } from "lucide-react";
 
 const TEXT_SIZES = [
@@ -555,9 +554,6 @@ export function SettingsScreen() {
           </AlertDialog>
         </section>
 
-        {/* ===== Bóveda cifrada ===== */}
-        <VaultSection />
-
         {/* ===== Sin conexión ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="offline">
           <div className="flex items-center justify-between gap-4">
@@ -668,129 +664,5 @@ function ConfirmButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
-}
-
-/* ============================ Bóveda cifrada ============================ */
-
-function VaultSection() {
-  const exportJson = useGameStore((s) => s.exportJson);
-  const importJson = useGameStore((s) => s.importJson);
-  const { toast } = useToast();
-  const [pass, setPass] = useState("");
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [lastCode, setLastCode] = useState<string | null>(null);
-
-  const saveToVault = async () => {
-    if (pass.length < 8) {
-      toast({ title: "Contraseña corta", description: "Usa al menos 8 caracteres: cierra bien el sobre.", variant: "destructive" });
-      return;
-    }
-    const json = exportJson();
-    if (!json) return;
-    setBusy(true);
-    try {
-      const { id, expiresAt } = await uploadVault(json, pass);
-      setLastCode(id);
-      toast({
-        title: "Sobre guardado en la bóveda",
-        description: `Código ${id.slice(0, 10)}… Caduca el ${new Date(expiresAt).toLocaleDateString("es-ES")}. Anótalo junto a tu contraseña.`,
-      });
-    } catch (e) {
-      toast({ title: "No se pudo guardar", description: e instanceof Error ? e.message : "Error inesperado", variant: "destructive" });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const restoreFromVault = async () => {
-    if (!/^\\S+$/.test(code.trim())) {
-      toast({ title: "Falta el código", description: "Pega el código de 64 caracteres que te dieron al guardar.", variant: "destructive" });
-      return;
-    }
-    if (!pass) {
-      toast({ title: "Falta la contraseña", description: "La misma con la que sellaste el sobre.", variant: "destructive" });
-      return;
-    }
-    setBusy(true);
-    try {
-      const json = await downloadVault(code.trim(), pass);
-      const ok = await importJson(json);
-      toast({
-        title: ok ? "¡Bóveda abierta!" : "Sobre corrupto",
-        description: ok ? "Tu progreso ha regresado del viaje." : "El contenido no era una copia de VerbalIA.",
-        variant: ok ? undefined : "destructive",
-      });
-    } catch (e) {
-      toast({ title: "La bóveda no abrió", description: e instanceof Error ? e.message : "Error inesperado", variant: "destructive" });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="boveda">
-      <h2 id="boveda" className="font-display flex items-center gap-2 text-lg font-bold">
-        <Lock className="h-5 w-5 text-primary" aria-hidden /> Bóveda cifrada (zero-knowledge)
-      </h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        Tu progreso se cifra <strong>en este dispositivo</strong> (AES-GCM, PBKDF2 con 600 000
-        iteraciones) y el servidor solo guarda un sobre sellado que <em>no puede</em> abrir:
-        ni la contraseña ni el contenido viajan en claro. Ideal como copia de emergencia
-        con una contraseña que recuerdes.
-      </p>
-
-      <div className="mt-4 space-y-3">
-        <div>
-          <Label htmlFor="vault-pass" className="text-sm font-bold">Contraseña del sobre</Label>
-          <input
-            id="vault-pass"
-            type="password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            autoComplete="new-password"
-            aria-label="Contraseña de la bóveda"
-            className="mt-1.5 h-10 w-full rounded-2xl border border-border bg-card px-3 text-sm font-semibold outline-none focus:border-primary"
-            placeholder="Mínimo 8 caracteres"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2.5">
-          <Button onClick={saveToVault} disabled={busy} className="font-bold">
-            <Upload className="mr-2 h-4 w-4" aria-hidden /> Guardar copia cifrada
-          </Button>
-        </div>
-
-        {lastCode && (
-          <div className="anim-pop rounded-2xl border border-success/50 bg-success/10 p-3">
-            <p className="text-xs font-bold text-success">Código de tu sobre (anótalo):</p>
-            <p className="mt-1 break-all rounded-lg bg-card px-2 py-1.5 font-mono text-[11px]">{lastCode}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Se borra de la bóveda a los 30 días. Sin la contraseña, nadie (ni nosotros) puede abrirlo.
-            </p>
-          </div>
-        )}
-
-        <div>
-          <Label htmlFor="vault-code" className="text-sm font-bold">Recuperar con código</Label>
-          <input
-            id="vault-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            aria-label="Código del sobre guardado"
-            className="mt-1.5 h-10 w-full rounded-2xl border border-border bg-card px-3 font-mono text-xs outline-none focus:border-primary"
-            placeholder="Pega aquí el código de 64 caracteres"
-          />
-        </div>
-        <Button variant="outline" onClick={restoreFromVault} disabled={busy} className="font-bold">
-          <Download className="mr-2 h-4 w-4" aria-hidden /> Abrir sobre y restaurar
-        </Button>
-      </div>
-
-      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-        El servidor no guarda contraseñas, correos ni cookies de sesión: solo sobres cifrados
-        que caducan solos. Para máxima privacidad, sigue disponible la copia manual en tu dispositivo.
-      </p>
-    </section>
   );
 }

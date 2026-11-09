@@ -13,7 +13,7 @@
  * la app instalada siempre esté al día.
  */
 
-const VERSION = "verbalia-v2.0.0";
+const VERSION = "verbalia-v2.2.0"; // regreso local-first: cache nueva para olvidar las cachés de la etapa online
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGES_CACHE = `${VERSION}-pages`;
 const OFFLINE_URL = "/offline.html";
