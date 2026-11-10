@@ -1,6 +1,6 @@
 # VERBALIA · La aventura del lenguaje
 
-**VerbalIA** es un videojuego educativo de español construido como una **SPA 100 % offline**: el progreso se guarda **solo en el dispositivo** (sin cuentas, sin servidores, sin rastreadores) y la política de privacidad y cookies está integrada en el propio juego (pantalla Legal). El jugador explora el **Archipiélago de las Palabras**: ocho regiones, una por habilidad, con más de 100 minijuegos de lenguaje, misiones, logros y una economía de tinta.
+**VerbalIA** es un videojuego educativo de español. **Hoy funciona como una SPA 100 % offline** (el progreso se guarda **solo en el dispositivo**, sin cuentas ni rastreadores, con la política de privacidad y cookies integrada en el propio juego, pantalla Legal) y **está en camino de dejar de ser 100 % local**: la publicación en internet (ver [DEPLOY.md](DEPLOY.md)) es el primer paso de la hoja de ruta hacia funciones online — cuentas, sincronización de progreso y modos con otros jugadores — sobre esta misma base. El jugador explora el **Archipiélago de las Palabras**: ocho regiones, una por habilidad, con más de 100 minijuegos de lenguaje, misiones, logros y una economía de tinta.
 
 > Estado actual: **+100 minijuegos de lenguaje** en 8 regiones + Jardín de Tarjetas SRS · **~64.700 ejercicios** (6.515 curados a mano + 58.171 generados con reglas lingüísticas) · **1.844 palabras** con repetición espaciada · **1.003 frases del día** · **67 logros** · **50 minijuegos de mente** en el Salón de Juegos (Memes y Cultura Pop, Crucigrama y Sopa de Letras adaptativos incluidos) · Taller de Escritura · **14 temas** de color · **SFX reales en archivos** (48 efectos licencia libre) · PWA instalable · **255 tests del motor en verde**.
 
@@ -51,8 +51,11 @@ bun install
 # 2) Desarrollo (http://localhost:3000)
 bun run dev
 
-# 3) Build de producción (standalone)
+# 3) Build de producción para Vercel (next build puro)
 bun run build
+
+# 3b) Build auto-alojado (next build + standalone con static/public dentro)
+bun run build:selfhost
 ```
 
 ### Scripts útiles
@@ -71,6 +74,14 @@ Los paquetes Mega-8 ya están generados y versionados en `src/data/gen/mega8/`. 
 ```bash
 bun run scripts/mega8/generate.ts
 ```
+
+### Publicar en internet
+
+La guía paso a paso para no-programadores (GitHub Desktop → Vercel → probar en
+el móvil) está en [DEPLOY.md](DEPLOY.md). Ese despliegue es el primer peldaño
+de la hoja de ruta hacia las funciones online; las variables que usarán
+(`DATABASE_URL`, `APP_URL`, `RESEND_API_KEY`, `MAIL_FROM`, `CRON_SECRET`) ya
+están declaradas y comentadas en `.env.example`.
 
 ---
 

@@ -3,9 +3,13 @@
 Esta guía te lleva desde el proyecto en tu computadora hasta una dirección
 pública tipo `https://verbalia.vercel.app` que puedes abrir en cualquier móvil.
 
-**Importante:** el juego sigue siendo 100 % local (offline-first). Vercel solo
-reparte los archivos del juego por internet; tu progreso y tus datos siguen
-viviendo en tu propio dispositivo, como siempre. No se crea ninguna cuenta.
+**Dónde está hoy el proyecto:** el juego funciona **100 % local** (offline-first):
+el progreso se guarda solo en tu dispositivo y, al publicarlo, Vercel se limita
+a repartir los archivos del juego. Esta publicación en internet es **el primer
+paso de la hoja de ruta hacia las funciones online**: el juego seguirá
+funcionando sin conexión tal como hoy, y sobre esta misma base llegarán
+después cuentas, sincronización y modos con otros jugadores. Por eso no se
+crea ninguna cuenta todavía.
 
 Tiempo total: ~15 minutos · Costo: $0 (plan gratuito).
 
@@ -24,7 +28,8 @@ Tiempo total: ~15 minutos · Costo: $0 (plan gratuito).
 > git (ya no se usa ni se necesita). Lo seguro es **revocar o rotar esa clave**
 > en el panel de tu proveedor de IA antes de subir el repo, sobre todo si lo
 > vas a hacer público. Los archivos de código están limpios: la auditoría
-> solo la encontró en ese `.env` histórico.
+> solo la encontró en ese `.env` histórico. Este paso es aún más importante
+> ahora que el repo será la base de un proyecto con funciones online.
 
 ---
 
@@ -56,8 +61,10 @@ Tiempo total: ~15 minutos · Costo: $0 (plan gratuito).
    - **Framework Preset:** Next.js (lo detecta solo)
    - **Root Directory:** `./` (predeterminado)
    - **Build Command / Install Command:** valores por defecto
-   - **Environment Variables:** no pongas ninguna — el juego no usa secretos;
-     todo lo de `.env.example` está vacío a propósito.
+   - **Environment Variables:** no pongas ninguna — hoy el juego no usa
+     secretos; todo lo de `.env.example` está vacío a propósito. Cuando
+     lleguen las funciones online, esas variables reservadas se rellenarán
+     aquí mismo (nunca en el código).
 5. Pulsa **Deploy** y espera 1–2 minutos (verás el progreso en vivo).
 6. Cuando aparezca **«Congratulations»**, pulsa **Visit** o copia tu URL,
    algo como `https://verbalia.vercel.app`. ¡Ya está publicado!
@@ -113,6 +120,23 @@ Cada vez que cambies algo del juego:
 
 ---
 
+## 7. La hoja de ruta: por qué este despliegue es solo el primer paso
+
+VerbalIA empieza su vida pública exactamente como es hoy: un juego local que
+funciona incluso sin conexión. Pero el plan es que **deje de ser 100 % local**:
+
+1. **Ahora (esta guía):** el juego completo publicado en Vercel, funcionando
+   offline en el dispositivo y sin cuentas.
+2. **Próximo:** funciones online sobre esta misma base — cuentas y perfiles
+   compartidos entre dispositivos, progreso sincronizado y modos con otros
+   jugadores. El servidor de Vercel ya queda preparado para eso.
+3. **Por eso existen las variables reservadas** en `.env.example`
+   (`DATABASE_URL`, `APP_URL`, `RESEND_API_KEY`, `MAIL_FROM`, `CRON_SECRET`):
+   son los encajes que usarán las funciones online cuando lleguen. Hasta
+   entonces permanecen vacías y no hay que tocar nada.
+
+---
+
 ## Notas técnicas rápidas (para curiosos)
 
 - Vercel ejecuta `next build` (el script `build` de `package.json`).
@@ -121,5 +145,6 @@ Cada vez que cambies algo del juego:
   y `bun run start` la levanta. El script `scripts/revive.sh` del servidor
   propio ahora usa `build:selfhost`.
 - `GET /api/v1/health` responde `{"ok":true,"version":"…"}` sin base de datos.
-- `.env.example` documenta variables reservadas (todas vacías y comentadas);
-  hoy ninguna es necesaria para jugar ni para desplegar.
+- `.env.example` documenta las variables reservadas para las futuras funciones
+  online (todas vacías y comentadas): hoy ninguna es necesaria para jugar ni
+  para desplegar.
