@@ -219,6 +219,44 @@ un nombre distinto de repo (p. ej. `verbalia-v2`), y en Vercel crear el
 proyecto de nuevo con esa carpeta. La URL antigua sigue funcionando con la
 versión que tenía.
 
+### 7.1 Subí una versión vieja por error: cómo reemplazarla por la buena
+
+**Síntomas de que pasó esto:** tu URL funciona, pero le faltan cosas. Dos
+comprobaciones infalibles:
+- Abre `TU-URL.vercel.app/api/v1/health` → si sale **404**, es vieja (la
+  versión buena responde `{"ok":true,...}`).
+- Abre tu repo en `github.com` y mira la lista de archivos: si **no** ves
+  `DEPLOY.md` ni `.env.example`, es una copia antigua.
+
+**⚠️ Y una urgente:** en esa misma lista de archivos de GitHub, ¿aparece un
+archivo llamado **`.env`**? Las copias antiguas lo llevaban **con la clave de
+IA dentro**. Si aparece (o no estás seguro), usa la **Ruta A** de abajo sin
+pensarlo: borra el repo entero y vuelve a publicarlo limpio. No intentes
+«simplemente borrar el archivo», porque la clave quedaría en la historia del
+repo aunque lo borres de la vista.
+
+**Ruta A — Borrar y republicar limpio (~10 min):**
+
+1. **Vercel:** entra a tu proyecto → pestaña **Settings** → baja hasta el
+   fondo, zona roja **Danger Zone** → **Delete Project** → te pedirá escribir
+   el nombre del proyecto para confirmar → escríbelo y confirma.
+   *(Tranquilo: tu URL `verbalia.vercel.app` la recuperas en el paso 5.)*
+2. **GitHub:** entra a tu repo → pestaña **Settings** → baja al fondo,
+   **Danger Zone** → **Delete this repository** → «I want to delete this
+   repository» → escribe `usuario/verbalia` para confirmar → **Delete**.
+3. **Extrae el zip NUEVO** (el último que te entregué) en una carpeta nueva —
+   **no** encima de la carpeta vieja que ya tenías.
+4. **GitHub Desktop:** **File → Add local repository…** → elige la carpeta
+   nueva → **Publish repository** → Name: `verbalia` → casilla *Keep this
+   code private* marcada → **Publish repository**.
+5. **Vercel:** **Add New… → Project** → **Import** tu repo `verbalia` →
+   Project Name: `verbalia` → **Deploy** (sin tocar nada más, sin variables).
+   Si dice que el nombre `verbalia` está ocupado, espera unos minutos (se
+   libera al borrar el proyecto) o usa `verbalia-juego`.
+6. **Comprueba:** `TU-URL/api/v1/health` → `{"ok":true,"version":"0.2.1"}` ·
+   y en el juego, el mapa tiene **8 islas con 100 minijuegos** y suena al
+   pulsar.
+
 ---
 
 ## 8. Si algo falla (sospechosos habituales)
