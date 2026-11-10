@@ -56,3 +56,6 @@ server.log
 /skills/
 # artefactos de herramientas (no parte del código)
 /tool-results/
+# entregables y subidas del entorno (no son código del juego)
+/download/
+/upload/
