@@ -59,3 +59,7 @@ server.log
 # entregables y subidas del entorno (no son código del juego)
 /download/
 /upload/
+.neon
+
+# clave de la CLI de Neon (sesión de configuración; revocar después)
+.neon-key

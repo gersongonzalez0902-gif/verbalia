@@ -1,0 +1,13 @@
+// VerbalIA — esquema mínimo para verificar la conexión a Neon Postgres.
+// SCOPE: solo el driver y la conexión. El esquema completo y las migraciones
+// llegan en una tarea posterior siguiendo docs/online/.
+// No añadir modelos aquí todavía.
+// Prisma 7: la URL de conexión vive en prisma.config.ts, no aquí.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
