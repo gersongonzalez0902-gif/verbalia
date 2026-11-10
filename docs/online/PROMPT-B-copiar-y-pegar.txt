@@ -1,0 +1,114 @@
+Eres el desarrollador senior de VERBALIA (Next.js 16, App Router, TypeScript,
+Tailwind, shadcn/ui, PWA, Vitest). El juego offline funciona y ya está
+desplegado en Vercel. Hoy empieza la capa online: esta tarea es SOLO la
+Ola 0 + Ola 1 (infraestructura + cuentas + sincronización de progreso).
+
+══════════ 0. ESTADO DEL ENTORNO (ya hecho — NO lo repitas) ══════════
+- Neon enlazado: proyecto round-mouse-35849092, branch production, neon.ts.
+- .env.local ya contiene DATABASE_URL. .gitignore ya cubre .env* y .neon.
+- Prisma 7.10.1 + @prisma/adapter-pg + prisma.config.ts instalados.
+- prisma/schema.prisma actual es MÍNIMO (sin modelos): lo sustituirás.
+- Si alguna operación volviera a pedir autenticación de Neon, NO uses ninguna
+  clave anterior: pídeme crear una API key NUEVA en console.neon.tech → API
+  Keys. Nunca inventes ni reutilices claves.
+
+══════════ 1. LEE PRIMERO — Y RESPÉTALOS AL PIE DE LA LETRA ══════════
+- docs/online/README.md             (filosofía de datos y decisiones)
+- docs/online/01-arquitectura.md    (stack, anti-trampa, cron, seguridad)
+- docs/online/02-cuentas-auth.md    (auth completa: flujos, tokens, borrado)
+- docs/online/04-api.md             (SOLO: convenciones §1, auth #1–13,
+                                     progreso #14–18, códigos de error §4)
+- docs/online/06-sync-progreso.md   (políticas de mezcla por secciones)
+- docs/online/09-integracion.md     (carpetas, cambios en archivos, testing)
+- docs/online/schema.prisma         (esquema completo ya validado)
+Regla jerárquica: si un documento y tu criterio difieren, GANA el documento.
+Si algo es genuinamente imposible de implementar tal como está escrito,
+DETENTE y pregúntame antes de improvisar.
+
+══════════ 2. BASE DE DATOS — Prisma 7 (compatibilidad) ══════════
+- Sustituye el schema mínimo por el COMPLETO de docs/online/schema.prisma,
+  adaptando ÚNICAMENTE la cabecera a Prisma 7: generator "prisma-client"
+  (con output en src/generated/prisma) y datasource url = env("DATABASE_URL").
+- Todos los MODELOS, ENUMS, @@unique, @@index y relaciones deben quedar
+  EXACTOS al documento: ni un nombre de tabla, campo, tipo ni relación
+  distinto.
+- Cliente: centraliza en src/lib/db.ts un singleton PrismaClient con el
+  adapter @prisma/adapter-pg (patrón global-cached para dev de Next.js).
+- Ejecuta la migración inicial contra el branch production de Neon y verifica
+  (query SQL o dashboard) que las tablas existen. Reporta el nombre de la
+  migración creada.
+
+══════════ 3. OLA 0 · INFRAESTRUCTURA ══════════
+- src/server/ratelimit.ts: token bucket en memoria por (ruta, userId|IP),
+  con cabeceras X-RateLimit-Remaining; patrón y tasas del documento 04.
+- Amplía /api/v1/health: chequeo real de DB (SELECT 1) → { ok, db: true }.
+- Logs JSON mínimos por request: { route, userId, ms, status }.
+
+══════════ 4. OLA 1 · CUENTAS Y SYNC (exactamente los docs) ══════════
+4.1 Auth (documento 02):
+  - scrypt de node:crypto (N=2^17, r=8, p=1, keylen 32, formato
+    "scrypt$N$r$p$salt$key"), checker de 10k contraseñas comunes embebido.
+  - Sesiones opacas: token 32 bytes base64url, sha256 en DB, cookie
+    "verbalia_session" (httpOnly, Secure, SameSite=Lax, 30 días rolling,
+    extensión si quedan <7), lastSeenAt para presencia futura.
+  - Tokens de un solo uso: EMAIL_VERIFY 48h, PASSWORD_RESET 1h,
+    EMAIL_CHANGE 48h; un solo uso real (se borran al consumir).
+  - Endpoints auth #1–13 de 04-api.md, con anti-enumeración EXACTA:
+    registro con email existente responde genérico OK y avisa al dueño;
+    login con mensaje/tiempo idénticos si el email no existe (hash dummy).
+  - Borrado de cuenta con anonimización transaccional (02 §5.5) y
+    "cerrar sesión en otros dispositivos" (GET/DELETE /auth/sessions).
+  - Roles USER/MODERATOR/ADMIN y guard requireUser()/requireRole().
+4.2 Mailer: src/server/mailer.ts vía fetch a la API de Resend, 4 plantillas
+  es-ES (verificar email, bienvenida, reset, cambio email), MAIL_FROM de env.
+4.3 Seguridad transversal: en middleware o helper, exigir en TODA mutación
+  /api/v1 Content-Type: application/json + header x-verbalia-csrf.
+4.4 Sync (documento 06):
+  - src/server/services/merge.ts como FUNCIÓN PURA exportada mergePayload()
+    con las políticas de la tabla: XP y contadores suma de deltas / max,
+    bestComboEver y streak.best max, logros unión con timestamp mínimo,
+    SRS LWW por tarjeta (añade updatedAt a SrsCard en types), wallet tinta
+    server-authoritative (TintaLedger), misiones LWW por clave, errores y
+    seenExercises unión acotada, profile/settings LWW por updatedAt.
+  - Endpoints progreso #14–18 de 04-api.md, incluido /progress/import
+    idempotente (una vez, RL 3/día, sin otorgar XP de ranking) y
+    /progress/events con validación de transcripción (suelos de tiempo,
+    techos diarios de freeplay; el replay completo llega en la Ola 2).
+  - TintaLedger: toda recompensa con refId idempotente @@unique([userId, refId]).
+4.5 Cola offline (storage.ts): SyncQueueItem { id, kind, body, attempts,
+  createdAt }, enqueue/drain con backoff exponencial 30s→2h máx 12 intentos;
+  hook en onSessionComplete del game-store que encola events + marca dirty;
+  drain al recuperar red (integración con pwa.tsx existente).
+4.6 UI: pantalla "Cuenta" accesible desde Ajustes: registro, login,
+  verificar email, cambiar contraseña, dispositivos activos, borrar cuenta;
+  y el flujo post-primer-login "Tu bitácora ya existe: ¿subimos tu
+  progreso?" con merge y adopción del resultado. NUNCA en el onboarding.
+  Sin sesión y sin red, la app se comporta IDÉNTICA a hoy, sin errores.
+
+══════════ 5. REGLAS INQUEBRANTABLES ══════════
+1. PROHIBIDO implementar: rankings, duelos, fantasmas, flotas, UGC, reto
+   diario, SSE/tiempo real (son olas siguientes).
+2. PROHIBIDO romper el juego offline existente: es el criterio de aceptación
+   más importante junto a los tests.
+3. Todo lo que decida merge de estados, XP validado o tinta = función pura
+   con tests en tests/merge.test.ts (mín. 10 escenarios: dos dispositivos,
+   offline largo, logro duplicado, tarjeta SRS conflictiva, import sobre
+   cuenta existente, wallet en conflicto, misiones de dos días...).
+4. Dependencias nuevas: solo si es imposible evitarlo (scrypt es
+   node:crypto; mail es fetch). Prisma 7 ya está.
+5. Códigos de error EXACTOS de 04-api.md §4 y formato { error: { code, message } }.
+6. Rate limits EXACTOS de la tabla de 04-api.md para las rutas de esta ola.
+
+══════════ 6. ANTES DE RESPONDERME ══════════
+- lint, tests y `next build` EN VERDE. Si algo falla, arréglalo tú.
+DEVUÉLVEME:
+a) Archivos creados/modificados (1 línea cada uno).
+b) Comandos exactos que debo correr (npm/prisma) en orden.
+c) Variables de entorno que debo pegar en Vercel (nombres, valores de dónde
+   salen) y cómo redesplegar.
+d) Guía de prueba en navegador paso a paso para no-programador: registrar 2
+   cuentas, verificar email (modo sandbox de Resend), jugar, comprobar sync
+   entre dos navegadores, recuperar contraseña, borrar cuenta de prueba.
+e) Qué fallará de forma ESPERADA (p. ej. emails solo a mi correo por sandbox
+   de Resend) para que no me asuste.
+f) Mensaje de commit sugerido.
