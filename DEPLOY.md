@@ -24,12 +24,14 @@ Tiempo total: ~15 minutos · Costo: $0 (plan gratuito).
 | Cuenta de **Vercel** | vercel.com → *Sign up* → «Continue with GitHub» | gratis |
 
 > 🔐 **Antes de subir el código (Paso 1):** en el pasado este proyecto guardó
-> una clave de IA en un archivo `.env` que quedó grabada en el historial de
-> git (ya no se usa ni se necesita). Lo seguro es **revocar o rotar esa clave**
-> en el panel de tu proveedor de IA antes de subir el repo, sobre todo si lo
-> vas a hacer público. Los archivos de código están limpios: la auditoría
-> solo la encontró en ese `.env` histórico. Este paso es aún más importante
-> ahora que el repo será la base de un proyecto con funciones online.
+> una clave de IA en un archivo `.env` que llegó a quedar grabado en el
+> historial de git. **El historial ya fue purgado**: ningún commit contiene
+> hoy ese archivo ni rastro de sus valores (verificado escaneando los objetos
+> del repositorio), y las herramientas que llamaban a APIs de IA se retiraron
+> junto con su dependencia. Aun así, **rota o revoca esa clave** en el panel
+> de tu proveedor: mientras vivió en commits y copias locales, su exposición
+> pasada no puede garantizarse limpia. Este paso es aún más importante ahora
+> que el repo será la base de un proyecto con funciones online.
 
 ---
 
