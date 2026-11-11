@@ -28,7 +28,7 @@ import { levelFromXp, cumulativeXpForLevel, MAX_LEVEL } from "@/engine/xp";
 import { isAdminName, ADMIN_TINTA } from "@/engine/admin";
 import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { applyArcadeUnlock, applyArcadeScore, applyTypingTest, type TypingResult } from "@/engine/arcade";
-import { storage, CURRENT_SCHEMA_VERSION, type PersistedState } from "@/services/storage";
+import { storage, CURRENT_SCHEMA_VERSION, enqueueSessionEvent, markSyncDirty, type PersistedState } from "@/services/storage";
 import { useMusicStore } from "@/services/music-station";
 import { setSoundEnabled, setMusicVolume, setSfxVolume, setTtsRate, setHaptics } from "@/services/audio";
 
@@ -93,6 +93,8 @@ export interface GameStore {
   resetSrs: () => Promise<void>;
   exportJson: () => string | null;
   importJson: (text: string) => Promise<boolean>;
+  /** Adopta el estado canónico del servidor tras un sync (06-sync §3). */
+  adoptSyncedState: (payload: PersistedState) => Promise<void>;
   clearLastResult: () => void;
 }
 
@@ -127,6 +129,8 @@ export const useGameStore = create<GameStore>((set, get) => {
       savedAt: Date.now(),
     };
     pendingSave = true;
+    // Todo cambio local marca la cola de sincronización como sucia (06 §2).
+    markSyncDirty();
     const doSave = () => {
       pendingSave = false;
       void storage.save(state);
@@ -240,6 +244,9 @@ export const useGameStore = create<GameStore>((set, get) => {
       });
       set({ core: nextCore, lastResult: result });
       persist(true); // Fin de sesión: guardado inmediato.
+      // Capa online: encola progress/events (transcripción + resultado) para
+      // la cola offline. Fire-and-forget: el juego nunca espera por la red.
+      void enqueueSessionEvent(spec, answers, durationMs, result).catch(() => null);
       return result;
     },
 
@@ -430,6 +437,23 @@ export const useGameStore = create<GameStore>((set, get) => {
 
     clearLastResult() {
       set({ lastResult: null });
+    },
+
+    async adoptSyncedState(payload) {
+      // El servidor devolvió el estado canónico unido (PUT/import/409):
+      // se adopta tal cual, migrando por si venía de una versión vieja.
+      const profile = migrateProfile(payload.profile);
+      const settings = { ...DEFAULT_SETTINGS, ...payload.settings };
+      const core = migrateCore(payload.core);
+      set({
+        profile,
+        settings,
+        core,
+        srs: payload.srs ?? {},
+        hasProfile: profile.onboarded,
+      });
+      applySettingsSideEffects(settings);
+      persist(true);
     },
   };
 });

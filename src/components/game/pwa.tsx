@@ -1,21 +1,33 @@
 "use client";
 
 /**
- * Registro del Service Worker (PWA).
- * Estrategia conservadora: la red manda; la caché solo sirve de
- * respaldo sin conexión. Nunca intercepta /api ni métodos no GET.
- * Avisa con un aviso discreto cuando hay una nueva versión lista.
+ * Registro del Service Worker (PWA) + capa de sincronización online.
+ *
+ * - Estrategia conservadora: la red manda; la caché solo sirve de
+ *   respaldo sin conexión. Nunca intercepta /api ni métodos no GET.
+ * - Avisa con un aviso discreto cuando hay una nueva versión lista.
+ * - Ola 1: al montar, arranca el motor de sincronización (initSync);
+ *   al recuperar la red, la cola offline se descarga (drain) y un
+ *   indicador discreto muestra "Sincronizando…" mientras sube.
  */
 
 import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/game-store";
+import { useOnlineStore } from "@/store/online-store";
 import { useToast } from "@/hooks/use-toast";
-import { WifiOff } from "lucide-react";
+import { initSync } from "@/services/sync";
+import { WifiOff, RefreshCw } from "lucide-react";
 
 export function PwaRegistration() {
   const offlineMode = useGameStore((s) => s.settings.offlineMode);
+  const syncing = useOnlineStore((s) => s.syncing);
   const { toast } = useToast();
   const [offline, setOffline] = useState(false);
+
+  // Capa online: sesión, listeners de red/foco, timer de sync y cola.
+  useEffect(() => {
+    initSync();
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -77,16 +89,31 @@ export function PwaRegistration() {
     };
   }, [offlineMode]);
 
-  if (!offline) return null;
+  if (offline) {
+    return (
+      <div
+        role="status"
+        aria-label="Sin conexión: modo sin conexión activo"
+        className="fixed bottom-20 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background shadow-lg lg:bottom-4"
+      >
+        <WifiOff className="h-3.5 w-3.5" aria-hidden />
+        Sin conexión · modo sin conexión activo
+      </div>
+    );
+  }
 
-  return (
-    <div
-      role="status"
-      aria-label="Sin conexión: modo sin conexión activo"
-      className="fixed bottom-20 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full bg-foreground px-4 py-2 text-xs font-bold text-background shadow-lg lg:bottom-4"
-    >
-      <WifiOff className="h-3.5 w-3.5" aria-hidden />
-      Sin conexión · modo sin conexión activo
-    </div>
-  );
+  if (syncing) {
+    return (
+      <div
+        role="status"
+        aria-label="Sincronizando tu progreso con tu cuenta"
+        className="fixed bottom-20 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-2 rounded-full bg-foreground/90 px-4 py-2 text-xs font-bold text-background shadow-lg lg:bottom-4"
+      >
+        <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden />
+        Sincronizando tu bitácora…
+      </div>
+    );
+  }
+
+  return null;
 }

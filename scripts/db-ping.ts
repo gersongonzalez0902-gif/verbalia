@@ -1,11 +1,11 @@
-// Prueba mínima de conexión a Neon Postgres con Prisma 7 (driver adapter pg).
+// Prueba de conexión a Neon Postgres con Prisma 7 (driver adapter pg).
 // Uso: bun run scripts/db-ping.ts
 // Requiere DATABASE_URL en el entorno (bun la carga de .env.local).
-// SCOPE: verificación de conectividad (SELECT 1). Nada más.
+// SCOPE: verificación de conectividad (SELECT 1) + tablas creadas. Nada más.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 // Robustez: el runtime del sandbox puede inyectar un DATABASE_URL no-postgres
@@ -49,10 +49,53 @@ try {
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
+// Tablas esperadas tras la migración init (orden alfabético).
+const EXPECTED_TABLES = [
+  "_prisma_migrations",
+  "AuditLog",
+  "DailyChallenge",
+  "DailyChallengeEntry",
+  "Duel",
+  "DuelParticipant",
+  "Fleet",
+  "FleetMember",
+  "FleetMission",
+  "FleetPost",
+  "Friendship",
+  "GhostRun",
+  "Notification",
+  "ProgressState",
+  "Report",
+  "Session",
+  "StatDaily",
+  "TintaLedger",
+  "Tournament",
+  "TournamentEntry",
+  "UgcPack",
+  "UgcRating",
+  "User",
+  "UserBlock",
+  "VerificationToken",
+];
+
 try {
   const result = await prisma.$queryRaw<Array<{ ok: number }>>`SELECT 1 AS ok`;
   console.log(`SELECT 1 → ${JSON.stringify(result)}`);
   console.log(`✅ Conexión verificada contra ${host}`);
+
+  const tables = await prisma.$queryRaw<Array<{ table_name: string }>>`
+    SELECT table_name FROM information_schema.tables
+    WHERE table_schema = 'public' ORDER BY table_name
+  `;
+  const names = tables.map((t) => t.table_name);
+  const missing = EXPECTED_TABLES.filter((t) => !names.includes(t));
+  console.log(`Tablas en public: ${names.length} (esperadas: ${EXPECTED_TABLES.length})`);
+  if (missing.length > 0) {
+    console.log(`❌ Faltan tablas: ${missing.join(", ")}`);
+    process.exitCode = 1;
+  } else {
+    console.log("✅ Las 24 tablas del esquema + _prisma_migrations existen");
+  }
 } catch (error) {
   const raw = error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
   // Seguridad: nunca imprimir la cadena de conexión

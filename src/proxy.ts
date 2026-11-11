@@ -11,7 +11,9 @@ import { NextResponse } from "next/server";
  * - Cap de tamaño de cuerpo para las rutas de la bóveda.
  */
 
-const ALLOWED_METHODS = new Set(["GET", "POST", "HEAD", "OPTIONS"]);
+// PUT/DELETE entraron con la capa online (/api/v1: PUT /progress,
+// DELETE /auth/sessions/:id, DELETE /auth/account).
+const ALLOWED_METHODS = new Set(["GET", "POST", "HEAD", "OPTIONS", "PUT", "DELETE", "PATCH"]);
 const MAX_BODY_BYTES = 3 * 1024 * 1024; // 3 MB: sobres de la bóveda incluidos
 
 const CSP = [
@@ -44,7 +46,7 @@ export function proxy(request: NextRequest) {
 
   // Cuerpo demasiado grande para /api/*: el sobre cifrado pasa de largo.
   const isApi = request.nextUrl.pathname.startsWith("/api");
-  if (isApi && request.method === "POST") {
+  if (isApi && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
     const declared = Number(request.headers.get("content-length") ?? "0");
     if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
       return NextResponse.json(

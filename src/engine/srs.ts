@@ -25,6 +25,7 @@ export function newCard(wordId: string, now: number): SrsCard {
     introducedAt: now,
     lastReviewedAt: null,
     state: "learning",
+    updatedAt: now,
   };
 }
 
@@ -85,6 +86,7 @@ export function reviewCard(card: SrsCard, grade: SrsGrade, now: number): SrsCard
     dueAt: nextDue,
     lastReviewedAt: now,
     state: intervalDays >= 3 ? "review" : "learning",
+    updatedAt: now,
   };
 }
 

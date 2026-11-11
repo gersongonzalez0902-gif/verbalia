@@ -1,13 +1,548 @@
-// VerbalIA — esquema mínimo para verificar la conexión a Neon Postgres.
-// SCOPE: solo el driver y la conexión. El esquema completo y las migraciones
-// llegan en una tarea posterior siguiendo docs/online/.
-// No añadir modelos aquí todavía.
-// Prisma 7: la URL de conexión vive en prisma.config.ts, no aquí.
+// VERBALIA ONLINE · Esquema de datos completo (docs/online/schema.prisma)
+// Cabecera adaptada a Prisma 7: generador "prisma-client" con salida TS
+// en src/generated/prisma. Modelos, enums, índices y relaciones EXACTOS
+// al plano (ni un nombre, campo, tipo ni relación distinto).
+//
+// Convenciones:
+// - IDs cuid() generados por Prisma.
+// - Json para payloads (usar @db.JsonB en Postgres).
+// - Soft-delete: User.status = DELETED + anonimización de campos (ver 02-cuentas-auth.md §7).
+// - Toda recompensa pasa por TintaLedger (server-authoritative, idempotente).
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  // Prisma 7: la URL NO vive aquí — vive en prisma.config.ts
+  // (datasource.url = env("DATABASE_URL")), que es de donde migrate
+  // y el cliente la leen. Ver https://pris.ly/d/config-datasource
+}
+
+/* ============================== Identidad ============================== */
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED /// no puede iniciar sesión; mantiene contenido
+  DELETED   /// anonimizado (ver flujo de borrado)
+}
+
+model User {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  emailVerifiedAt DateTime?
+  passwordHash    String?    /// null ⇒ cuenta solo-OAuth (futuro)
+  displayName     String
+  handle          String     @unique /// "marina-3721" — lo que ven otros jugadores
+  farocode        String     @unique /// "ALBO-3721" — código de faro para amistades
+  bio             String     @default("")
+  avatar          String     @default("") /// id preset o data-URL validada (64 KB máx.)
+  banner          String     @default("preset:aurora")
+  featuredBadge   String     @default("")
+  photo           String     @default("") /// opcional, data-URL validada; nunca pública por defecto
+  role            Role       @default(USER)
+  status          UserStatus @default(ACTIVE)
+  riskFlags       Int        @default(0) /// señales anti-trampa acumuladas (outlier job)
+  locale          String     @default("es")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions          Session[]
+  tokens            VerificationToken[]
+  progress          ProgressState?
+  statDaily         StatDaily[]
+  tintaLedger       TintaLedger[]
+  dailyEntries      DailyChallengeEntry[]
+  friendshipsInit   Friendship[]          @relation("requester")
+  friendshipsRecv   Friendship[]          @relation("addressee")
+  duelsCreated      Duel[]                @relation("duelCreator")
+  duelEntries       DuelParticipant[]
+  ghostRuns         GhostRun[]
+  fleetsOwned       Fleet[]               @relation("fleetOwner")
+  fleetMemberships  FleetMember[]
+  fleetPosts        FleetPost[]
+  ugcPacks          UgcPack[]
+  ugcRatings        UgcRating[]
+  reportsFiled      Report[]              @relation("reporter")
+  notifications     Notification[]
+  blocksGiven       UserBlock[]           @relation("blocker")
+  blocksReceived    UserBlock[]           @relation("blocked")
+  auditActions      AuditLog[]            @relation("auditActor")
+  tournamentEntries TournamentEntry[]
+
+  @@index([status, createdAt])
+}
+
+model Session {
+  id         String   @id @default(cuid()) /// id interno; el token real va hasheado
+  tokenHash  String   @unique /// sha256(token)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  expiresAt  DateTime
+  /// Metadatos mínimos para la pantalla "tus dispositivos" (sin IP completa)
+  userAgent  String   @default("")
+  deviceHint String   @default("") /// "Chrome · Windows"
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TokenType
+  tokenHash String    @unique
+  /// Dato asociado (p. ej. el nuevo email en EMAIL_CHANGE)
+  payload   String    @default("")
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+}
+
+enum TokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  EMAIL_CHANGE
+}
+
+/// Bloqueo entre jugadores (duelos, presencia, flotas compartidas)
+model UserBlock {
+  id        String   @id @default(cuid())
+  blockerId String
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+
+/* ============================== Progreso ============================== */
+
+/// Estado completo del juego (el mismo JSON de IndexedDB PersistedState.core,
+/// profile y settings relevantes). Una fila por usuario.
+model ProgressState {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version   Int      @default(1)
+  payload   Json     @db.JsonB /// ver 06-sync-progreso.md para las políticas de mezcla
+  updatedAt DateTime @updatedAt
+}
+
+/// Métricas diarias server-side, alimentadas SOLO por sesiones validadas.
+/// Base de rankings, misiones de flota, rachas oficiales y anti-trampa.
+model StatDaily {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day         String   /// "2026-11-10" (UTC)
+  xp          Int      @default(0)
+  sessions    Int      @default(0)
+  answers     Int      @default(0)
+  correct     Int      @default(0)
+  bestCombo   Int      @default(0)
+  minutes     Int      @default(0) /// tiempo de juego redondeado
+  byGame      Json     @default("{}") @db.JsonB /// { gameId: { plays, correct } }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, day])
+  @@index([day, xp])          /// ranking diario
+  @@index([day, correct])
+}
+
+/// Libro mayor de tinta (server-authoritative). Balance = SUM(delta).
+model TintaLedger {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int          /// + ganada, − gastada
+  reason    LedgerReason
+  refId     String?      /// idempotencia: "daily:2026-11-10", "duel:abc:win", "shop:frame:xyz"
+  day       String
+  meta      Json         @default("{}") @db.JsonB
+  createdAt DateTime     @default(now())
+
+  @@unique([userId, refId]) /// refId null ⇒ fila libre (múltiples NULL permitidos en PG)
+  @@index([userId])
+}
+
+enum LedgerReason {
+  MIGRATION       /// importación del wallet local
+  SESSION         /// sesiones validadas (tope diario)
+  DAILY_CHALLENGE
+  DUEL_WIN
+  DUEL_TIE
+  FLEET_MISSION
+  TOURNAMENT
+  UGC_ADOPTION    /// tu pack alcanzó N aciertos de otros
+  SPEND_SHOP
+  REFUND
+  ADMIN_GRANT
+}
+
+/* ============================ Reto diario ============================ */
+
+/// Materializado por el cron a las 00:00 UTC. La semilla es determinista:
+/// createRng(`${day}:${formatId}`) — reproducible y auditable.
+model DailyChallenge {
+  day        String  @id /// "2026-11-10"
+  formatId   String  /// GameId rota por día (tabla de rotación en engine/online.ts)
+  difficulty Int     /// 2–4 según rotación
+  seed       String
+}
+
+model DailyChallengeEntry {
+  id         String   @id @default(cuid())
+  day        String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score      Int
+  accuracy   Float
+  bestCombo  Int
+  durationMs Int
+  transcript Json?    @db.JsonB /// se conserva 30 días para auditoría, luego se limpia
+  createdAt  DateTime @default(now())
+
+  @@unique([day, userId])
+  @@index([day, score])
+}
+
+/* ============================== Social ============================== */
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED /// el addressee bloqueó al requester
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  requester   User             @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addresseeId String
+  addressee   User             @relation("addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+}
+
+/* ============================== Duelos ============================== */
+
+enum DuelMode {
+  ASYNC /// cada uno juega la misma semilla en 48 h
+  LIVE  /// tiempo real vía SSE (05-tiempo-real.md)
+}
+
+enum DuelStatus {
+  WAITING  /// esperando oponente (matchmaking) o aceptación de reto
+  ACTIVE
+  FINISHED
+  EXPIRED
+  CANCELLED
+}
+
+model Duel {
+  id          String     @id @default(cuid())
+  mode        DuelMode
+  status      DuelStatus @default(WAITING)
+  formatId    String     /// GameId
+  difficulty  Int
+  seed        String     /// servidor → ambos clientes
+  createdBy   String
+  creator     User       @relation("duelCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  winnerId    String?
+  isRanked    Boolean    @default(true)
+  expiresAt   DateTime   /// WAITING: aceptar en 48 h · ASYNC: terminar en 48 h
+  stakeTinta  Int        @default(0) /// apuesta amistosa opcional (v2)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  participants DuelParticipant[]
+
+  @@index([status, expiresAt])
+  @@index([formatId, status])
+}
+
+model DuelParticipant {
+  id         String    @id @default(cuid())
+  duelId     String
+  duel       Duel      @relation(fields: [duelId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score      Int?
+  accuracy   Float?
+  bestCombo  Int?
+  durationMs Int?
+  transcript Json?     @db.JsonB /// auditoría 30 días
+  finishedAt DateTime?
+
+  @@unique([duelId, userId])
+  @@index([userId])
+}
+
+/// Carrera fantasma: transcripción de una sesión granjera rejugable.
+/// La transcripción NO contiene texto del usuario: { answers:[{i,choice,ms}] }.
+model GhostRun {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  formatId   String
+  difficulty Int
+  seed       String
+  transcript Json     @db.JsonB
+  summary    Json     @db.JsonB /// { score, accuracy, bestCombo, durationMs }
+  isPublic   Boolean  @default(false) /// false = solo amigos
+  createdAt  DateTime @default(now())
+
+  @@index([formatId, difficulty])
+  @@index([userId])
+}
+
+/* ============================== Flotas ============================== */
+
+model Fleet {
+  id         String   @id @default(cuid())
+  name       String
+  tag        String   /// 3–5 chars, único
+  code       String   @unique /// código de invitación, regenerable
+  ownerId    String
+  owner      User     @relation("fleetOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  isClassroom Boolean @default(false) /// modo aula: panel docente
+  maxMembers Int      @default(30)
+  createdAt  DateTime @default(now())
+
+  members  FleetMember[]
+  missions FleetMission[]
+  posts    FleetPost[]
+
+  @@index([code])
+}
+
+model FleetMember {
+  id       String    @id @default(cuid())
+  fleetId  String
+  fleet    Fleet     @relation(fields: [fleetId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     FleetRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  @@unique([fleetId, userId])
+  @@index([userId])
+}
+
+enum FleetRole {
+  OWNER
+  OFFICER
+  MEMBER
+}
+
+model FleetMission {
+  id         String   @id @default(cuid())
+  fleetId    String
+  fleet      Fleet    @relation(fields: [fleetId], references: [id], onDelete: Cascade)
+  weekKey    String   /// "2026-W46"
+  metric     String   /// "correct" | "xp" | "sessions" | "answers"
+  target     Int
+  status     String   @default("ACTIVE") /// ACTIVE | DONE | EXPIRED
+  rewardTinta Int     @default(0)
+  claimedBy  Json     @default("[]") @db.JsonB /// userIds que ya cobraron
+  createdAt  DateTime @default(now())
+
+  @@unique([fleetId, weekKey])
+}
+
+model FleetPost {
+  id        String        @id @default(cuid())
+  fleetId   String
+  fleet     Fleet         @relation(fields: [fleetId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  kind      FleetPostKind
+  body      String        @default("") /// ≤ 280 chars, filtros básicos
+  payload   Json          @default("{}") @db.JsonB /// reto adjunto, récord compartido
+  createdAt DateTime      @default(now())
+
+  @@index([fleetId, createdAt])
+}
+
+enum FleetPostKind {
+  RECORD
+  CHALLENGE
+  QUICKMSG /// frase rápida predefinida (sin chat libre)
+  SYSTEM
+}
+
+/* ============================ Torneos ============================ */
+
+/// Bracket asíncrono 8/16 sobre duelos ASYNC (07-social.md §8).
+model Tournament {
+  id        String   @id @default(cuid())
+  title     String
+  formatId  String
+  difficulty Int
+  size      Int      /// 8 | 16
+  status    String   @default("REGOPEN") /// REGOPEN | RUNNING | FINISHED
+  startsAt  DateTime
+  data      Json     @default("{}") @db.JsonB /// bracket { rounds: [[matchId,...]] }
+  createdAt DateTime @default(now())
+
+  entries TournamentEntry[]
+}
+
+model TournamentEntry {
+  id           String @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seed         Int    /// cabeza de serie
+  eliminated   Boolean @default(false)
+
+  @@unique([tournamentId, userId])
+}
+
+/* ========================= UGC · La Forja ========================= */
+
+enum UgcType {
+  CLOZE
+  TRIVIA
+  HISTORIA
+  REFRAN
+}
+
+enum UgcStatus {
+  DRAFT
+  REVIEW    /// cola de moderación obligatoria
+  PUBLISHED
+  REJECTED
+  HIDDEN    /// publicado pero oculto por reportes
+}
+
+model UgcPack {
+  id         String    @id @default(cuid())
+  authorId   String
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type       UgcType
+  title      String
+  payload    Json      @db.JsonB /// ejercicios validados con los esquemas zod del contenido
+  status     UgcStatus @default(DRAFT)
+  difficulty Int       @default(2)
+  tags       String[]  @default([])
+  plays      Int       @default(0)
+  correctSum Int       @default(0) /// para rating implícito: aciertos/intentos
+  intentSum  Int       @default(0)
+  ratingSum  Int       @default(0)
+  ratingCount Int      @default(0)
+  reviewedBy String?
+  reviewNote String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  ratings UgcRating[]
+
+  @@index([status, type])
+  @@index([authorId])
+}
+
+model UgcRating {
+  id        String   @id @default(cuid())
+  packId    String
+  pack      UgcPack  @relation(fields: [packId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stars     Int      /// 1–5
+  createdAt DateTime @default(now())
+
+  @@unique([packId, userId])
+}
+
+/* ============================ Moderación ============================ */
+
+enum ReportTarget {
+  UGC_PACK
+  PROFILE
+  FLEET_POST
+  DUEL
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  ACTIONED
+  DISMISSED
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  reporter   User         @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType ReportTarget
+  targetId   String
+  reason     String       /// enum corto: spam | ofensivo | datos-personales | trampa | otro
+  details    String       @default("")
+  status     ReportStatus @default(OPEN)
+  handledBy  String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation("auditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String   /// "ugc.approve", "user.suspend", "duel.refund"...
+  target    String   /// "ugc:xyz", "user:abc"
+  meta      Json     @default("{}") @db.JsonB
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/* ========================== Notificaciones ========================== */
+
+enum NotifKind {
+  FRIEND_REQUEST
+  FRIEND_ACCEPT
+  DUEL_INVITE
+  DUEL_RESULT
+  DUEL_EXPIRED
+  FLEET_INVITE
+  FLEET_MISSION_DONE
+  GHOST_BEATEN /// alguien superó tu fantasma
+  UGC_PUBLISHED
+  UGC_MODERATED
+  DAILY_REMIND
+  SYSTEM
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      NotifKind
+  payload   Json      @db.JsonB /// { duelId, byUserId, ... }
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt, createdAt])
 }

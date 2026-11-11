@@ -46,6 +46,7 @@ const CollectionScreen = Lazy(() => import("@/screens/collection").then((m) => (
 const ErrorReviewScreen = Lazy(() => import("@/screens/error-review").then((m) => ({ default: m.ErrorReviewScreen })));
 const MissionsScreen = Lazy(() => import("@/screens/missions").then((m) => ({ default: m.MissionsScreen })));
 const SettingsScreen = Lazy(() => import("@/screens/settings").then((m) => ({ default: m.SettingsScreen })));
+const AccountScreen = Lazy(() => import("@/screens/account").then((m) => ({ default: m.AccountScreen })));
 const LibraryScreen = Lazy(() => import("@/screens/library").then((m) => ({ default: m.LibraryScreen })));
 const MusicStationScreen = Lazy(() => import("@/screens/music-station").then((m) => ({ default: m.MusicStationScreen })));
 const ShopScreen = Lazy(() => import("@/screens/shop").then((m) => ({ default: m.ShopScreen })));
@@ -130,6 +131,8 @@ export default function Page() {
         return <MissionsScreen />;
       case "settings":
         return <SettingsScreen />;
+      case "account":
+        return <AccountScreen />;
       case "music":
         return <MusicStationScreen />;
       case "shop":

@@ -756,6 +756,10 @@ export interface SrsCard {
   introducedAt: number;
   lastReviewedAt: number | null;
   state: "learning" | "review";
+  /** Última modificación (epoch ms) — LWW por tarjeta en el sync (06-sync §3).
+   * Opcional: las tarjetas viejas no lo traen; el merge degrada a
+   * lastReviewedAt ?? introducedAt. */
+  updatedAt?: number;
 }
 
 /** Calificaciones posibles de una tarjeta. */
@@ -780,6 +784,9 @@ export interface SessionSpec {
   regionId?: RegionId;
   gameId?: GameId;
   items: SessionItem[];
+  /** Semilla del servidor (sesiones online: reto diario, duelos, fantasmas).
+   * Ola 1: solo se guarda en el historial; el replay llega con la Ola 2. */
+  seed?: string;
 }
 
 /** Respuesta registrada a un ítem de sesión. */
@@ -808,6 +815,8 @@ export interface SessionRecord {
   label: string;
   regionId?: RegionId;
   gameId?: GameId;
+  /** Semilla de la sesión si vino del servidor (sync/duelos/fantasmas). */
+  seed?: string;
   total: number;
   correct: number;
   accuracy: number | null;
@@ -1083,6 +1092,7 @@ export type Screen =
   | { name: "errors" }
   | { name: "missions" }
   | { name: "settings" }
+  | { name: "account" }
   | { name: "music" }
   | { name: "shop" }
   | { name: "arcade" }

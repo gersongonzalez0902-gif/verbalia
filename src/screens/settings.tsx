@@ -33,7 +33,7 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { ThemeColorId } from "@/types";
-import { Check, Database, Download, HardDrive, Lock, Moon, Palette, Sun, Trash2, Upload } from "lucide-react";
+import { Check, Cloud, Database, Download, HardDrive, Lock, Moon, Palette, Sun, Trash2, Upload } from "lucide-react";
 
 const TEXT_SIZES = [
   { id: "md", label: "Normal" },
@@ -107,6 +107,21 @@ export function SettingsScreen() {
       <ScreenHeader title="Ajustes" backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-28 pt-4">
+        {/* ===== Cuenta online ===== */}
+        <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="cuenta-online">
+          <h2 id="cuenta-online" className="font-display flex items-center gap-2 text-lg font-bold">
+            <Cloud className="h-5 w-5 text-primary" aria-hidden /> Cuenta
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Crea una cuenta para amarrar tu bitácora al barco: tu progreso viaja
+            contigo entre dispositivos. El juego sigue funcionando sin cuenta,
+            exactamente igual que hoy.
+          </p>
+          <Button className="mt-3" onClick={() => navigate({ name: "account" })}>
+            Abrir mi cuenta
+          </Button>
+        </section>
+
         {/* ===== Apariencia ===== */}
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="apariencia">
           <h2 id="apariencia" className="font-display flex items-center gap-2 text-lg font-bold">

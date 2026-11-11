@@ -31,6 +31,7 @@ function hashToScreen(hash: string): Screen {
     errores: "errors",
     misiones: "missions",
     ajustes: "settings",
+    cuenta: "account",
     musica: "music",
     estacion: "music",
     biblioteca: "library",
@@ -70,7 +71,7 @@ function hashToScreen(hash: string): Screen {
   }
   const known = [
     "welcome", "onboarding", "placement", "home", "map", "results",
-    "profile", "stats", "collection", "errors", "missions", "settings", "music", "shop", "library", "arcade", "frases", "training", "writing", "legal",
+    "profile", "stats", "collection", "errors", "missions", "settings", "account", "music", "shop", "library", "arcade", "frases", "training", "writing", "legal",
   ];
   if (head && (known as string[]).includes(head)) {
     return { name: head } as Screen;

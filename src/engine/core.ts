@@ -31,9 +31,11 @@ export const SKILL_IDS: SkillId[] = [
   "cultura",
 ];
 
-const MAX_ERRORS = 120;
-const MAX_SESSIONS = 200;
-const MAX_ACTIVE_DAYS = 400;
+export const MAX_ERRORS = 120;
+export const MAX_SESSIONS = 200;
+export const MAX_ACTIVE_DAYS = 400;
+/** Ventana de vida de seenExercises (decaimiento anti-farmeo). */
+export const SEEN_WINDOW_MS = 30 * 86_400_000;
 
 /** Recorta los mapas «por día» (claves YYYY-MM-DD, comparables como texto):
  *  el historial detallado se conserva 400 días y no crece sin límite. */
@@ -354,6 +356,7 @@ export function reduceSessionComplete(
     label: spec.label,
     regionId: spec.regionId,
     gameId: spec.gameId,
+    seed: spec.seed,
     total: gradable.length || answers.length,
     correct: correctCount,
     accuracy,
@@ -433,7 +436,7 @@ export function reduceSessionComplete(
   }
 
   // ---------- Limpieza de vistos hace mucho (> 30 días) ----------
-  const monthAgo = now.getTime() - 30 * 86_400_000;
+  const monthAgo = now.getTime() - SEEN_WINDOW_MS;
   for (const [id, ts] of Object.entries(next.seenExercises)) {
     if (ts < monthAgo) delete next.seenExercises[id];
   }

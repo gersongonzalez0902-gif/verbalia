@@ -63,3 +63,4 @@ server.log
 
 # clave de la CLI de Neon (sesión de configuración; revocar después)
 .neon-key
+src/generated/
