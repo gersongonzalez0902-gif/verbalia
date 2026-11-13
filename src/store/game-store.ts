@@ -91,8 +91,6 @@ export interface GameStore {
   resetProgress: () => Promise<void>;
   /** Borra solo el jardín de tarjetas (SRS). */
   resetSrs: () => Promise<void>;
-  exportJson: () => string | null;
-  importJson: (text: string) => Promise<boolean>;
   /** Adopta el estado canónico del servidor tras un sync (06-sync §3). */
   adoptSyncedState: (payload: PersistedState) => Promise<void>;
   clearLastResult: () => void;
@@ -404,35 +402,6 @@ export const useGameStore = create<GameStore>((set, get) => {
     async resetSrs() {
       set({ srs: {} });
       persist(true);
-    },
-
-    exportJson() {
-      const { profile, settings, core, srs } = get();
-      return storage.export({ version: CURRENT_SCHEMA_VERSION, profile, settings, core, srs, savedAt: Date.now() });
-    },
-
-    async importJson(text) {
-      const parsed = storage.parseImport(text);
-      if (!parsed) return false;
-      const profile = migrateProfile(parsed.profile);
-      set({
-        profile,
-        settings: { ...DEFAULT_SETTINGS, ...parsed.settings },
-        core: migrateCore(parsed.core),
-        srs: parsed.srs ?? {},
-        hasProfile: profile.onboarded,
-      });
-      applySettingsSideEffects({ ...DEFAULT_SETTINGS, ...parsed.settings });
-      const migrated = {
-        version: CURRENT_SCHEMA_VERSION,
-        profile,
-        settings: { ...DEFAULT_SETTINGS, ...parsed.settings },
-        core: migrateCore(parsed.core),
-        srs: parsed.srs ?? {},
-        savedAt: Date.now(),
-      };
-      await storage.save(migrated);
-      return true;
     },
 
     clearLastResult() {

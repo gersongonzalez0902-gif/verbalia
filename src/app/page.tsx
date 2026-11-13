@@ -86,7 +86,10 @@ export default function Page() {
   // La partida corre a pantalla completa (sin navegación que distraiga).
   const isGameplay = screen.name === "game";
 
-  // Primer uso: bienvenida → onboarding → evaluación.
+  // Primer uso: portada → (sin cuenta) onboarding → evaluación.
+  // "Entrar con cuenta" abre la pantalla Cuenta también sin perfil local;
+  // si la cuenta ya traía progreso, syncOnLogin lo adopta y aterriza en
+  // el mapa sin pasar por la portada otra vez.
   if (!hasProfile) {
     return (
       <>
@@ -98,6 +101,8 @@ export default function Page() {
           <PlacementScreen />
         ) : screen.name === "game" ? (
           <GameScreen />
+        ) : screen.name === "account" ? (
+          <AccountScreen />
         ) : (
           <WelcomeScreen />
         )}

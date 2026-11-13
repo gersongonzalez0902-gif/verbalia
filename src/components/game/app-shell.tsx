@@ -204,7 +204,7 @@ export function AppShell({
 
           <p className="mt-3 flex items-center gap-1.5 px-3 text-[11px] leading-snug text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            Tus datos se guardan solo en este dispositivo.
+            Tus datos se guardan en este dispositivo; con cuenta, también en tu barco.
           </p>
         </aside>
       )}

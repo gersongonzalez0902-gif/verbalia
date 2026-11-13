@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * Pantalla de Cuenta · Ola 1 (02-cuentas-auth.md).
+ * Pantalla de Cuenta · 02-cuentas-auth.md.
  *
- * Accesible SOLO desde Ajustes (nunca en el onboarding):
- * - Sin sesión: registro e inicio de sesión.
+ * Accesible desde Ajustes y desde la portada (sin cuenta):
+ * - Sin sesión: registro e inicio de sesión. La unión bitácora↔barco es
+ *   AUTOMÁTICA y silenciosa al iniciar sesión (syncOnLogin): sin botones
+ *   de migración, sin modales.
  * - Con sesión: estado del correo + reenvío de verificación, cambio de
  *   contraseña, dispositivos activos (cerrar sesión en otros), cambio de
- *   email, sincronización manual y borrado de cuenta con anonimización.
- * - Flujo post-primer-login: "Tu bitácora ya existe: ¿subimos tu
- *   progreso al barco?" ([Subir y unir] [Empezar de cero]) con merge y
- *   adopción del resultado.
+ *   email, sincronización manual (tranquilidad) y borrado de cuenta con
+ *   anonimización.
  * - Enlaces de correo: ?verify=… (verificar/cambiar email) y ?reset=…
  *   (contraseña nueva) se procesan automáticamente al abrir la pantalla.
  *
@@ -24,7 +24,7 @@ import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiError, type SessionItemDto } from "@/lib/api-client";
-import { afterLogin, importLocalProgress, skipImport, syncNow } from "@/services/sync";
+import { afterLogin, syncNow } from "@/services/sync";
 import { loadSyncMeta } from "@/services/storage";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   BadgeCheck,
-  CloudUpload,
   KeyRound,
   Laptop,
   LogOut,
@@ -305,7 +304,7 @@ export function AccountScreen() {
     }
   };
 
-  /* ---------- Sync / import / borrado ---------- */
+  /* ---------- Sync / borrado ---------- */
 
   const doSyncNow = async () => {
     setBusy(true);
@@ -318,27 +317,6 @@ export function AccountScreen() {
     } finally {
       setBusy(false);
     }
-  };
-
-  const doImport = async () => {
-    setBusy(true);
-    try {
-      await importLocalProgress();
-      setLastSynced(loadSyncMeta().lastSyncedAt);
-      toast({
-        title: "¡Bitácora a bordo!",
-        description: "Tu progreso local se unió con el barco. Nada se perdió.",
-      });
-    } catch (err) {
-      toast({ title: "No se pudo subir", description: errorText(err), variant: "destructive" });
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const doSkipImport = async () => {
-    await skipImport();
-    toast({ title: "De acuerdo", description: "Tu bitácora local sigue siendo la de siempre." });
   };
 
   const doDeleteAccount = async () => {
@@ -483,24 +461,6 @@ export function AccountScreen() {
               <Button className="w-full" disabled={busy || !resetPw} onClick={() => void doResetFromEmail()}>
                 Guardar contraseña nueva
               </Button>
-            </div>
-          </section>
-        )}
-
-        {/* ===== Flujo post-primer-login: subir la bitácora ===== */}
-        {online.authChecked && user && online.importPrompt === "ask" && hasProfile && (
-          <section className="card-aurora relative overflow-hidden rounded-3xl border border-primary/40 bg-card p-5" aria-labelledby="subir-bitacora">
-            <h2 id="subir-bitacora" className="font-display flex items-center gap-2 text-lg font-bold">
-              <CloudUpload className="h-5 w-5 text-primary" aria-hidden /> Tu bitácora ya existe
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Tienes progreso jugado en este dispositivo. ¿Subimos tu progreso
-              al barco? Se une con lo que ya haya (nunca se pierde nada ni baja
-              el XP).
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button disabled={busy} onClick={() => void doImport()}>Subir y unir</Button>
-              <Button variant="ghost" disabled={busy} onClick={() => void doSkipImport()}>Empezar de cero</Button>
             </div>
           </section>
         )}

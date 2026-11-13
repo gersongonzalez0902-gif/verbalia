@@ -3,9 +3,10 @@
 /**
  * Store de la capa online · sesión del usuario y estado de sincronización.
  *
- * Ola 1: usuario actual, indicador de sincronización y el aviso post-login
- * "Tu bitácora ya existe: ¿subimos tu progreso al barco?" (02 §7).
- * Sin sesión y sin red ⇒ todo queda en idle y el juego es 100 % local.
+ * Ola 1.1: la unión bitácora↔barco es AUTOMÁTICA y silenciosa (syncOnLogin
+ * en services/sync.ts); ya no hay aviso post-login ni flujo manual de
+ * migración. Sin sesión y sin red ⇒ todo queda en idle y el juego es
+ * 100 % local.
  */
 
 import { create } from "zustand";
@@ -19,15 +20,11 @@ export interface OnlineStore {
   syncing: boolean;
   /** Error humano del último intento de login/registro (para el formulario). */
   lastAuthError: string | null;
-  /** Flujo post-primer-login: ¿preguntamos por subir la bitácora local? */
-  importPrompt: "idle" | "ask";
 
   refreshUser: () => Promise<void>;
   setUser: (user: PublicUser | null) => void;
   setSyncing: (syncing: boolean) => void;
   setAuthError: (message: string | null) => void;
-  askImport: () => void;
-  dismissImport: () => void;
   logoutLocal: () => Promise<void>;
 }
 
@@ -36,7 +33,6 @@ export const useOnlineStore = create<OnlineStore>((set) => ({
   authChecked: false,
   syncing: false,
   lastAuthError: null,
-  importPrompt: "idle",
 
   async refreshUser() {
     try {
@@ -60,16 +56,8 @@ export const useOnlineStore = create<OnlineStore>((set) => ({
     set({ lastAuthError: message });
   },
 
-  askImport() {
-    set({ importPrompt: "ask" });
-  },
-
-  dismissImport() {
-    set({ importPrompt: "idle" });
-  },
-
   async logoutLocal() {
     await api.auth.logout();
-    set({ user: null, importPrompt: "idle", lastAuthError: null });
+    set({ user: null, lastAuthError: null });
   },
 }));

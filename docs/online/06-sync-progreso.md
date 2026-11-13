@@ -15,9 +15,11 @@ respaldo y la autoridad** para rankings, recompensas online y multi-dispositivo.
 
 | Momento | Acción |
 |---|---|
+| **Arranque de sesión** (login/registro y apertura con cookie válida) | `syncOnLogin()`: barco y bitácora se unen SOLOS y en silencio (Ola 1.1) |
+| Edición de perfil/ajustes | debounce ~4 s (coalescido) → `PUT /progress` |
 | Fin de cada sesión (`onSessionComplete` en `game-store`) | encola `progress/events` (transcripción) + marca `dirty` |
 | App vuelve al foco / recupera red | descarga `GET /progress` → si `updatedAt` remoto > base local, merge |
-| Timer 5 min si hay `dirty` | `PUT /progress` |
+| Timer 5 min si hay `dirty` (o un ciclo de arranque pendiente) | `PUT /progress` / reintenta el ciclo |
 | Logro desbloqueado / compra de tienda | encola (van dentro del payload; no hay eventos separados) |
 | `beforeunload` | `navigator.sendBeacon` best-effort |
 
@@ -88,7 +90,31 @@ escenarios (ver 09-integracion.md §Testing).
   la tienda descuenta primero lo pendiente de subir. Doble gasto imposible:
   la compra crea la entrada con `refId` único.
 
-## 5. Importación inicial (jugadores actuales)
+## 5. Ciclo de arranque de sesión (Ola 1.1: la unión es automática)
+
+`syncOnLogin()` corre UNA vez por usuario y pestaña, en silencio y sin
+ningún botón o modal (sustituye al antiguo «Subir y unir»):
+
+1. Espera la hidratación del estado local (sin ella no se sabe si hay bitácora).
+2. `GET /progress` → `remote`.
+3. Plan (`planLoginSync` en `src/services/sync-plan.ts`, función pura):
+   - `baseUpdatedAt !== null` (este dispositivo ya sincronizó con la
+     cuenta) → `fullSync()` de siempre.
+   - Barco vacío + bitácora local → `POST /progress/import` en silencio
+     (si responde 403 por correo sin verificar → fallback `PUT`
+     normal, que no exige verificación y produce la misma mezcla
+     server-side, incluida la entrada `MIGRATION` de tinta).
+   - Barco con datos + bitácora local → `POST /progress/import`
+     (une barco + dispositivo) y se adopta el resultado.
+   - Barco con datos + sin bitácora → se adopta el remoto tal cual
+     (arreglo del agujero histórico: `baseUpdatedAt === null` + remoto
+     + `dirty=false` ya NUNCA cae en «no hacer nada»).
+   - Barco vacío + sin bitácora → nada (una cuenta nueva no ensucia
+     el barco con un estado vacío).
+4. Tras el primer ciclo, `baseUpdatedAt` queda reconocido: los siguientes
+   pasos de la pestaña usan `fullSync` normal. Si no hay red, el ciclo
+   queda pendiente y el timer de 5 min lo reintenta; ningún error se
+   enseña al usuario.
 
 `POST /progress/import` (una vez, idempotente):
 
@@ -99,10 +125,11 @@ escenarios (ver 09-integracion.md §Testing).
    con políticas de §3 → devuelve canónico.
 4. El cliente guarda el canónico y limpia su cola.
 
-Anti-abuso: import requiere sesión con email verificado, RL 3/día, y
-los importes no otorgan XP de ranking (StatDaily empieza en 0: el ranking
-se gana jugando conectado, no importando años de juego offline — decisión
-de diseño deliberada para evitar "puntos heredados").
+Anti-abuso: import requiere sesión con email verificado (si no, el cliente
+hace fallback a `PUT`, que no lo exige), RL 3/día, y los importes no
+otorgan XP de ranking (StatDaily empieza en 0: el ranking se gana jugando
+conectado, no importando años de juego offline — decisión de diseño
+deliberada para evitar "puntos heredados").
 
 ## 6. Multi-dispositivo simultáneo
 

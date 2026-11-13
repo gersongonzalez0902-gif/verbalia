@@ -3,7 +3,8 @@
 /**
  * Perfil del jugador 2.0 · Estilo ficha de navegante (Discord-like):
  * banner personalizable, foto con predeterminada, bio, rango con género,
- * habilidades (las 7 ciudades), insignias con tiers y gestión de datos.
+ * habilidades (las 7 ciudades) e insignias con tiers. La gestión de datos
+ * vive en Ajustes; la copia de seguridad la hace la cuenta (sync automático).
  */
 
 import { createElement, useRef, useState } from "react";
@@ -22,17 +23,6 @@ import { resizeImageFile } from "@/lib/image-tools";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
@@ -48,7 +38,6 @@ import {
   Medal,
   PenLine,
   Star,
-  Trash2,
   X,
 } from "lucide-react";
 
@@ -74,7 +63,7 @@ function badgeTier(xpReward: number): { label: string; from: string; to: string 
 }
 
 export function ProfileScreen() {
-  const { profile, core, srs, updateProfile, resetAll, resetProgress, resetSrs, exportJson, importJson } = useGameStore();
+  const { profile, core, srs, updateProfile } = useGameStore();
   const navigate = useUiStore((s) => s.navigate);
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
@@ -82,7 +71,6 @@ export function ProfileScreen() {
   const [bioDraft, setBioDraft] = useState(profile.bio);
   const photoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
-  const importRef = useRef<HTMLInputElement>(null);
   const [bannerPicker, setBannerPicker] = useState(false);
 
   const { level, into, needed } = levelProgress(core.xp);
@@ -97,31 +85,6 @@ export function ProfileScreen() {
     setEditing(false);
     sfx.stamp();
     toast({ title: "Perfil actualizado", description: "La bitácora ya luce tus cambios." });
-  };
-
-  const doExport = () => {
-    const json = exportJson();
-    if (!json) return;
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `verbalia-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Copia exportada", description: "Tu copia de seguridad se ha descargado con todo el progreso." });
-  };
-
-  const doImport = async (file: File) => {
-    const text = await file.text();
-    const ok = await importJson(text);
-    toast({
-      title: ok ? "Copia restaurada" : "Archivo no válido",
-      description: ok
-        ? "Tu progreso importado se ha cargado."
-        : "No hemos podido leer esa copia. Comprueba que es una exportación de VerbalIA.",
-      variant: ok ? undefined : "destructive",
-    });
   };
 
   const onPhotoPicked = async (file: File) => {
@@ -610,68 +573,6 @@ export function ProfileScreen() {
           <Button variant="link" className="mt-1.5 h-auto p-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "missions" }); }}>
             Ver misiones y logros →
           </Button>
-        </section>
-
-        {/* ===== Tus datos (gestión completa) ===== */}
-        <section className="mt-6" aria-labelledby="data-title">
-          <h3 id="data-title" className="font-display text-lg font-bold">Tus datos</h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Todo vive solo en este dispositivo. Sin cuentas, sin rastreadores.
-            Para migrar a otro aparato: exporta aquí, importa allí.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2.5">
-            <Button variant="outline" onClick={() => { sfx.page(); doExport(); }}>
-              Exportar copia
-            </Button>
-            <Button variant="outline" onClick={() => importRef.current?.click()}>
-              Importar copia
-            </Button>
-            <input
-              ref={importRef}
-              type="file"
-              accept="application/json"
-              className="hidden"
-              aria-hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void doImport(f);
-                e.target.value = "";
-              }}
-            />
-            <Button variant="outline" onClick={() => { sfx.click(); navigate({ name: "settings" }); }}>
-              Más opciones de datos →
-            </Button>
-          </div>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="mt-2.5 w-full font-bold sm:w-auto">
-                <Trash2 className="mr-2 h-4 w-4" aria-hidden /> Borrar todo
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Borrar todos tus datos?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Se eliminarán perfil, XP, niveles, palabras, logros e historial de este dispositivo.
-                  Esta acción no se puede deshacer (a menos que tengas una copia exportada).
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Conservar mis datos</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => {
-                    sfx.error();
-                    void resetAll();
-                    navigate({ name: "welcome" });
-                  }}
-                >
-                  Borrar todo
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </section>
 
         <div className="mt-4 grid gap-2.5 sm:grid-cols-2">

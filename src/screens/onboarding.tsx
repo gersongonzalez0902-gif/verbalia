@@ -1,9 +1,11 @@
 "use client";
 
 /**
- * Onboarding · Seis pasos rápidos: nombre, género de tratamiento,
- * avatar, objetivo, experiencia previa y paleta de color (Etapa 4).
+ * Onboarding · Cinco pasos rápidos: nombre, género de tratamiento,
+ * rumbo, experiencia previa y paleta de color (Etapa 4).
  * La paleta se aplica en vivo para probarla antes de decidir.
+ * (Ola 1.1: fuera la elección de compañía/mascota; Léxico, el búho guía
+ * del juego, sigue siendo el personaje del Archipiélago.)
  */
 
 import { useState } from "react";
@@ -17,15 +19,6 @@ import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Briefcase, GraduationCap, Map as MapIcon, PenLine, Plane, BookOpen, Palette } from "lucide-react";
 import type { PlayerProfile, ThemeColorId } from "@/types";
-
-const AVATARS = [
-  { id: "buho", emoji: "🦉", label: "Búho" },
-  { id: "zorro", emoji: "🦊", label: "Zorro" },
-  { id: "ballena", emoji: "🐳", label: "Ballena" },
-  { id: "tortuga", emoji: "🐢", label: "Tortuga" },
-  { id: "loro", emoji: "🦜", label: "Loro" },
-  { id: "mariposa", emoji: "🦋", label: "Mariposa" },
-];
 
 const GOALS = [
   { id: "viajar", label: "Viajar", icon: Plane, desc: "Soltarme en cualquier conversación" },
@@ -41,7 +34,7 @@ const EXPERIENCES: { id: PlayerProfile["experience"]; label: string; desc: strin
   { id: "avanzado", label: "Avanzado", desc: "Busco afinar el rumbo" },
 ];
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5;
 
 /** Paletas seleccionables desde el onboarding (Etapa 4): vista previa en vivo. */
 const PALETTES: { id: ThemeColorId; label: string; desc: string; css: string }[] = [
@@ -65,7 +58,6 @@ export function OnboardingScreen() {
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState("buho");
   const [goal, setGoal] = useState("leer");
   const [experience, setExperience] = useState<PlayerProfile["experience"]>("principiante");
   const [gender, setGender] = useState<PlayerProfile["gender"]>("x");
@@ -79,7 +71,9 @@ export function OnboardingScreen() {
     updateSettings({ themeColor: theme });
     finishOnboarding({
       name: name.trim() || "Explorador·a",
-      avatar,
+      // El campo sigue existiendo por compatibilidad con datos ya
+      // sincronizados, pero ya no se elige: la compañía fija es el búho Léxico.
+      avatar: "buho",
       goal,
       experience,
       gender,
@@ -117,7 +111,6 @@ export function OnboardingScreen() {
           [
             LEXICO_ONBOARDING.name,
             LEXICO_ONBOARDING.gender,
-            LEXICO_ONBOARDING.avatar,
             LEXICO_ONBOARDING.goal,
             LEXICO_ONBOARDING.experience,
             "Elige la paleta con la que más a gusto navegues: la verás aplicarse al instante. Podrás cambiarla en Ajustes.",
@@ -186,31 +179,6 @@ export function OnboardingScreen() {
 
         {step === 2 && (
           <section className="anim-slide-up space-y-4">
-            <h1 className="font-display text-2xl font-bold">Elige tu compañía</h1>
-            <p className="text-sm text-muted-foreground">Tu avatar te acompañará en el mapa.</p>
-            <div className="grid grid-cols-3 gap-3">
-              {AVATARS.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => { sfx.pop(); setAvatar(a.id); }}
-                  aria-pressed={avatar === a.id}
-                  aria-label={`Avatar ${a.label}`}
-                  className={cn(
-                    "tap-3d tap-target flex flex-col items-center gap-1 rounded-2xl border-2 bg-card p-3",
-                    avatar === a.id ? "border-primary" : "border-border",
-                  )}
-                >
-                  <span className={cn("text-3xl", avatar === a.id && "anim-bob")} aria-hidden>{a.emoji}</span>
-                  <span className="text-xs font-bold">{a.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {step === 3 && (
-          <section className="anim-slide-up space-y-4">
             <h1 className="font-display text-2xl font-bold">¿Cuál es tu rumbo?</h1>
             <p className="text-sm text-muted-foreground">Nos ayuda a recomendarte sesiones y contenidos.</p>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -241,7 +209,7 @@ export function OnboardingScreen() {
           </section>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <section className="anim-slide-up space-y-4">
             <h1 className="font-display text-2xl font-bold">¿Cuánta experiencia tienes?</h1>
             <p className="text-sm text-muted-foreground">
@@ -276,7 +244,7 @@ export function OnboardingScreen() {
           </section>
         )}
 
-        {step === 5 && (
+        {step === 4 && (
           <section className="anim-slide-up space-y-4">
             <h1 className="font-display text-2xl font-bold">Tu paleta de navegación</h1>
             <p className="text-sm text-muted-foreground">

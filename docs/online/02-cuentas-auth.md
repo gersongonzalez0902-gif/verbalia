@@ -133,25 +133,35 @@ Google únicamente, con `@auth/core` a modo de librería o flow manual
 "solo Google"; se puede añadir contraseña después con `POST /auth/password`
 (validando que no haya ya una).
 
-## 7. Migración de jugadores locales existentes (crítico)
+## 7. Migración de jugadores locales existentes (automática · Ola 1.1)
 
-Ya hay jugadores con progreso en IndexedDB. El flujo:
+Ya hay jugadores con progreso en IndexedDB. Desde la Ola 1.1 la unión es
+**automática y silenciosa** (`syncOnLogin`, 06-sync §5): al iniciar sesión
+(registro, login o apertura con cookie válida), bitácora local y barco se
+unen solos, sin preguntar nada y sin botones («Subir y unir» y «Empezar de
+cero» ya no existen):
 
 ```
-Login/registro desde la app ──► ¿hay estado local? ──► pantalla "Tu bitácora ya existe"
-   "¿Subimos tu progreso al barco?"  [Subir y unir]  [Empezar de cero]
+Login/registro/apertura ──► syncOnLogin(): GET /progress
+   barco vacío   + bitácora  → POST /progress/import (sube en silencio)
+   barco vacío   + sin bitácora → nada (la cuenta nueva no se ensucia)
+   barco con datos + bitácora  → POST /progress/import (une y adopta)
+   barco con datos + sin bitácora → adopta el remoto tal cual
+   base ya reconocida → fullSync normal
         │
-        └─► POST /progress/import { payload: PersistedState }   (merge por secciones, 06-sync)
-            servidor devuelve el estado unido → cliente lo adopta y guarda
+        └─► El servidor devuelve el estado unido (merge por secciones, 06)
+            → el cliente lo adopta y reconoce su updatedAt como base.
 ```
 
-- La importación es **aditiva** (nunca baja XP, ni pierde logros, ni tinta:
-  la tinta local entra como entrada `MIGRATION` del ledger).
-- La **bóveda cifrada actual** se mantiene como backup opcional "en sobre"
-  durante 2 versiones y luego se retira (el sync de cuenta la sustituye).
-- `PlayerProfile` local se conserva como su perfil visible (nombre, avatar,
-  banner, logro destacado) — el usuario no pierde su identidad en el juego,
-  solo ahora además puede iniciar sesión.
+- La unión es **aditiva** (nunca baja XP, ni pierde logros, ni tinta: la
+  tinta local entra como entrada `MIGRATION` del ledger; con el fallback
+  `PUT` para correos sin verificar también).
+- Si la cuenta traía progreso y el dispositivo estaba limpio, la app
+  aterriza directo en el mapa (sin onboarding); si la cuenta es nueva,
+  el usuario va al onboarding con normalidad. **Nunca se exige cuenta
+  para jugar**: «Entrar sin cuenta» sigue siendo el camino principal.
+- `PlayerProfile` local se conserva como perfil visible — el usuario no
+  pierde su identidad en el juego, solo ahora además puede iniciar sesión.
 
 ## 8. Superficie de endpoints (resumen; contratos completos en 04-api.md)
 

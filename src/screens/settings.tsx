@@ -4,11 +4,12 @@
  * Ajustes 2.0 · Tema (claro/oscuro/sistema), paleta de color,
  * tamaño de texto, lectura nocturna, movimiento reducido, sonido
  * (incluida la música dentro de partidas y la estación del jugador),
- * ritmo de juego y gestión completa de datos: exportar, importar,
- * borrados parciales, migración de dispositivo y bóveda cifrada.
+ * ritmo de juego y gestión de datos: borrados finos y espacio usado.
+ * La migración de dispositivo la hace la cuenta (sync automático), sin
+ * copias manuales.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
@@ -33,7 +34,7 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { ThemeColorId } from "@/types";
-import { Check, Cloud, Database, Download, HardDrive, Lock, Moon, Palette, Sun, Trash2, Upload } from "lucide-react";
+import { Check, Cloud, Database, HardDrive, Lock, Moon, Palette, Sun, Trash2 } from "lucide-react";
 
 const TEXT_SIZES = [
   { id: "md", label: "Normal" },
@@ -59,11 +60,10 @@ const PALETAS: { id: ThemeColorId; label: string; swatch: string[]; premium?: bo
 ];
 
 export function SettingsScreen() {
-  const { settings, updateSettings, profile, core, srs, resetAll, resetProgress, resetSrs, exportJson, importJson } = useGameStore();
+  const { settings, updateSettings, profile, core, srs, resetAll, resetProgress, resetSrs } = useGameStore();
   const navigate = useUiStore((s) => s.navigate);
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
-  const importRef = useRef<HTMLInputElement>(null);
   const [storageInfo, setStorageInfo] = useState<{ usage: number; quota: number } | null>(null);
 
   useEffect(() => {
@@ -76,31 +76,6 @@ export function SettingsScreen() {
   }, [core, srs]);
 
   const fmtMB = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} MB`;
-
-  const doExport = () => {
-    const json = exportJson();
-    if (!json) return;
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `verbalia-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({ title: "Copia exportada", description: "Guárdala bien: contiene todo tu progreso." });
-  };
-
-  const doImport = async (file: File) => {
-    const text = await file.text();
-    const ok = await importJson(text);
-    toast({
-      title: ok ? "Copia restaurada" : "Archivo no válido",
-      description: ok
-        ? "Tu progreso importado se ha cargado."
-        : "No hemos podido leer esa copia. Comprueba que es una exportación de VerbalIA.",
-      variant: ok ? undefined : "destructive",
-    });
-  };
 
   return (
     <div>
@@ -467,8 +442,9 @@ export function SettingsScreen() {
             <Database className="h-5 w-5 text-primary" aria-hidden /> Tus datos
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Todo vive en este dispositivo: perfil, {core.stats.totalSessions} sesiones,{" "}
-            {Object.keys(srs).length} tarjetas. Sin cuentas ni rastreadores.
+            Tu partida vive en este dispositivo: perfil, {core.stats.totalSessions} sesiones,{" "}
+            {Object.keys(srs).length} tarjetas. Con una cuenta, además, viaja al barco
+            y te espera en cualquier aparato.
           </p>
 
           {storageInfo && (
@@ -479,35 +455,7 @@ export function SettingsScreen() {
             </p>
           )}
 
-          {/* Migrar a otro dispositivo */}
-          <div className="mt-4 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-3.5">
-            <p className="text-sm font-bold">Migrar a otro dispositivo</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-              1) <strong>Exporta</strong> la copia aquí y guarda el archivo descargado en lugar seguro.
-              2) En el otro dispositivo, abre VerbalIA → Ajustes → <strong>Importar copia</strong>.
-              La copia incluye perfil, ajustes, XP, logros, tarjetas y racha.
-            </p>
-          </div>
-
           <div className="mt-4 flex flex-wrap gap-2.5">
-            <Button variant="outline" onClick={() => { sfx.page(); doExport(); }}>
-              <Download className="mr-2 h-4 w-4" aria-hidden /> Exportar copia
-            </Button>
-            <Button variant="outline" onClick={() => importRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" aria-hidden /> Importar copia
-            </Button>
-            <input
-              ref={importRef}
-              type="file"
-              accept="application/json"
-              className="hidden"
-              aria-hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void doImport(f);
-                e.target.value = "";
-              }}
-            />
             <Button variant="outline" onClick={() => { sfx.click(); navigate({ name: "music" }); }}>
               Estación de música →
             </Button>
@@ -590,8 +538,8 @@ export function SettingsScreen() {
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="privacidad">
           <h2 id="privacidad" className="font-display text-lg font-bold">Privacidad</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin cuentas, sin correo, sin datos personales pedidos.</li>
-            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Todo el progreso se guarda en tu dispositivo.</li>
+            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Puedes jugar sin cuenta: nada se te pide para empezar.</li>
+            <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin cuenta, todo se guarda solo en tu dispositivo; con cuenta, solo tu correo viaja al barco.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin rastreadores ni analítica de terceros.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> La síntesis de voz (opcional) la pone tu navegador; no enviamos audio a ningún sitio.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Las canciones de tu estación jamás salen del dispositivo.</li>

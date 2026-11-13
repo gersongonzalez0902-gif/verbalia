@@ -1,11 +1,18 @@
 "use client";
 
-/** Pantalla de bienvenida · Primera impresión del juego. */
+/**
+ * Portada de entrada · Primera impresión y puerta al juego.
+ *
+ * Ola 1.1: dos caminos claros y honestos:
+ * - "Entrar sin cuenta" (principal): el juego de siempre, 100 % local.
+ * - "Entrar con cuenta" (secundario): la bitácora viaja entre dispositivos;
+ *   la sincronización es automática al iniciar sesión, sin botones.
+ */
 
 import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
 import { sfx } from "@/services/audio";
-import { ShieldCheck, Sparkles, WifiOff } from "lucide-react";
+import { Anchor, CloudCheck, WifiOff } from "lucide-react";
 import { LexicoMascot } from "@/components/game/lexico";
 
 export function WelcomeScreen() {
@@ -59,19 +66,29 @@ export function WelcomeScreen() {
           <LexicoMascot size={110} mood="happy" className="mx-auto" />
         </div>
 
-        <Button
-          size="xl"
-          className="w-full max-w-xs text-lg"
-          onClick={() => { sfx.chime(); navigate({ name: "onboarding" }); }}
-        >
-          <Sparkles className="mr-2 h-5 w-5" aria-hidden />
-          Comenzar la aventura
-        </Button>
+        <div className="flex w-full max-w-xs flex-col gap-2.5">
+          <Button
+            size="xl"
+            className="text-lg"
+            onClick={() => { sfx.chime(); navigate({ name: "onboarding" }); }}
+          >
+            <Anchor className="mr-2 h-5 w-5" aria-hidden />
+            Entrar sin cuenta
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => { sfx.tap(); navigate({ name: "account" }); }}
+          >
+            <CloudCheck className="mr-2 h-4 w-4" aria-hidden />
+            Entrar con cuenta
+          </Button>
+        </div>
 
         <div className="flex flex-col items-center gap-1.5 text-xs text-muted-foreground">
           <p className="flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" aria-hidden />
-            Sin cuentas ni rastreadores: todo se guarda en tu dispositivo
+            <CloudCheck className="h-3.5 w-3.5 text-primary" aria-hidden />
+            Puedes jugar sin cuenta. Si creas una, tu bitácora te acompaña en todos tus dispositivos.
           </p>
           <p className="flex items-center gap-1.5">
             <WifiOff className="h-3.5 w-3.5 text-primary" aria-hidden />

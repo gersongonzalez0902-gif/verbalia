@@ -13,13 +13,13 @@ export interface LexicoLine {
   text: string;
 }
 
-/** Bienvenida en el onboarding (paso a paso). */
+/** Bienvenida en el onboarding (paso a paso). Ola 1.1: fuera la elección
+ *  de compañía/mascota; Léxico, el búho del juego, sigue a bordo. */
 export const LEXICO_ONBOARDING: Record<string, string> = {
   welcome:
     "¡Bienvenido al Archipiélago de las Palabras! Yo soy Léxico, guardián de este mapa. Aterrizar aquí ya te hace explorador.",
   name: "Los mapas antiguos dicen que cada explorador merece un nombre. ¿Cómo te llamamos en la bitácora?",
   gender: "Los rangos del viaje se escriben de mil maneras: dime cómo prefieres el tuyo y afino la bitácora.",
-  avatar: "Elige la compañía de tu viaje. Yo ya tengo plumas de sobra.",
   goal: "Todo viaje tiene rumbo. El tuyo nos ayudará a recomendarte sesiones.",
   experience: "Sin trampas: no pasa nada por empezar desde la orilla. Adaptaremos la dificultad a tu ritmo.",
   theme: "Las lechuzas preferimos la noche, pero tú eliges. Podrás cambiarlo siempre en Ajustes.",

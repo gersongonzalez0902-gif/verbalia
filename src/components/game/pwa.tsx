@@ -6,9 +6,10 @@
  * - Estrategia conservadora: la red manda; la caché solo sirve de
  *   respaldo sin conexión. Nunca intercepta /api ni métodos no GET.
  * - Avisa con un aviso discreto cuando hay una nueva versión lista.
- * - Ola 1: al montar, arranca el motor de sincronización (initSync);
- *   al recuperar la red, la cola offline se descarga (drain) y un
- *   indicador discreto muestra "Sincronizando…" mientras sube.
+ * - Ola 1: al montar, arranca el motor de sincronización (initSync), que
+ *   desde la Ola 1.1 une bitácora y barco en silencio al abrir sesión
+ *   (syncOnLogin); al recuperar la red, la cola offline se descarga
+ *   (drain) y un indicador discreto muestra "Sincronizando…" mientras sube.
  */
 
 import { useEffect, useState } from "react";

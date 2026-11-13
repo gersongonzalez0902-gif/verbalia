@@ -4,7 +4,7 @@
  *
  * Modelo de datos: un único registro con el estado completo del juego
  * (perfil, ajustes, núcleo de progreso y tarjetas SRS), lo que hace
- * trivial la exportación/importación y la sincronización por cuenta.
+ * trivial la sincronización por cuenta (todo el estado viaja junto).
  *
  * Cola offline (06-sync-progreso.md §2): SyncQueueItem {id, kind, body,
  * attempts, createdAt} en un almacén propio de IndexedDB; backoff
@@ -468,23 +468,5 @@ export const storage = {
   async clear(): Promise<void> {
     await idbClear();
     lsClear();
-  },
-
-  /** Exportación legible para el usuario (privacidad: tus datos son tuyos). */
-  export(state: PersistedState): string {
-    return JSON.stringify(state, null, 2);
-  },
-
-  /** Importa un estado exportado, validando la versión. */
-  parseImport(text: string): PersistedState | null {
-    try {
-      const parsed = JSON.parse(text) as PersistedState;
-      if (typeof parsed !== "object" || parsed === null) return null;
-      if (!parsed.core || !parsed.profile) return null;
-      if (parsed.version > CURRENT_SCHEMA_VERSION) return null;
-      return parsed;
-    } catch {
-      return null;
-    }
   },
 };
