@@ -1,9 +1,8 @@
-import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { parseBody, publicUser, withRoute } from "@/server/http";
 import { getDummyHash, verifyPassword } from "@/server/auth/password";
-import { normalizeEmail } from "@/server/auth/ids";
 import { createSession } from "@/server/auth/session";
+import { LoginSchema } from "@/server/schemas";
 
 /**
  * POST /api/v1/auth/login · #2 · 02-cuentas-auth.md §5.2
@@ -12,11 +11,6 @@ import { createSession } from "@/server/auth/session";
  * (se compara contra un hash dummy con el mismo coste de scrypt).
  * RL: 10/15 min por IP y por cuenta.
  */
-
-const LoginSchema = z.object({
-  email: z.email().max(254).transform(normalizeEmail),
-  password: z.string().min(1).max(200),
-});
 
 const CREDENCIALES_INVALIDAS = "Email o contraseña incorrectos.";
 const WINDOW_15M = 15 * 60 * 1000;

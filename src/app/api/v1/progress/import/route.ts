@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { HttpError, parseBody, withRoute } from "@/server/http";
 import { importProgress } from "@/server/services/progress";
+import { ProgressPayloadSchema } from "@/server/schemas";
 import type { PersistedState } from "@/services/storage";
 
 /**
@@ -16,17 +17,6 @@ import type { PersistedState } from "@/services/storage";
 
 export const dynamic = "force-dynamic";
 
-const PayloadSchema = z
-  .object({
-    version: z.number().int().min(1).max(100).optional(),
-    profile: z.object({ name: z.string() }).passthrough(),
-    settings: z.record(z.string(), z.unknown()).optional(),
-    core: z.object({ xp: z.number() }).passthrough(),
-    srs: z.record(z.string(), z.unknown()).optional(),
-    savedAt: z.number().optional(),
-  })
-  .passthrough();
-
 export const POST = withRoute({ route: "POST /api/v1/progress/import" }, async (ctx) => {
   const { user } = await ctx.auth();
   ctx.rl(3, 24 * 60 * 60 * 1000, "user");
@@ -39,7 +29,7 @@ export const POST = withRoute({ route: "POST /api/v1/progress/import" }, async (
     );
   }
 
-  const body = await parseBody(ctx, z.object({ payload: PayloadSchema }));
+  const body = await parseBody(ctx, z.object({ payload: ProgressPayloadSchema }));
 
   const { merged, updatedAt } = await importProgress(
     user.id,

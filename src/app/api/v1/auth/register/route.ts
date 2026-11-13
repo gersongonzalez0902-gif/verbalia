@@ -1,8 +1,8 @@
-import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { HttpError, parseBody, publicUser, withRoute } from "@/server/http";
 import { hashPassword, checkPasswordPolicy, passwordPolicyMessage } from "@/server/auth/password";
-import { generateUniqueFarocode, generateUniqueHandle, normalizeEmail, slugify } from "@/server/auth/ids";
+import { generateUniqueFarocode, generateUniqueHandle, slugify } from "@/server/auth/ids";
+import { RegisterSchema } from "@/server/schemas";
 import { sendTemplate, templateRegistrationAttempt, templateVerifyEmail } from "@/server/mailer";
 import { issueToken } from "@/server/auth/tokens";
 import { createSession } from "@/server/auth/session";
@@ -15,12 +15,6 @@ import { createSession } from "@/server/auth/session";
  * dueño real le llega el aviso "alguien intentó registrarse".
  * RL: 5/h por IP.
  */
-
-const RegisterSchema = z.object({
-  email: z.email().max(254).transform(normalizeEmail),
-  password: z.string().min(1).max(200),
-  displayName: z.string().trim().min(1).max(40),
-});
 
 export const dynamic = "force-dynamic";
 

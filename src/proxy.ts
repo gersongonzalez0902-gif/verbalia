@@ -71,11 +71,10 @@ export function proxy(request: NextRequest) {
     "max-age=31536000; includeSubDomains",
   );
 
-  // CORS: solo mismo origen para la API.
-  if (isApi) {
-    response.headers.set("Access-Control-Allow-Origin", "same-origin");
-    response.headers.set("Vary", "Origin");
-  }
+  // CORS cerrado: no se emite Access-Control-Allow-Origin (sin esa
+  // cabecera ningún navegador deja leer respuestas desde otro origen;
+  // "same-origin" no es un valor válido de ACAO — se retiró en la
+  // Ola D · Área 2.2). La API solo vive en su propio barco.
 
   return response;
 }

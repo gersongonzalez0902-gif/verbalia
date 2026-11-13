@@ -130,8 +130,12 @@ export interface RouteOptions {
 
 const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-/** CSRF + Content-Type en toda mutación de /api/v1 (01 §6). */
-function enforceMutationHeaders(req: NextRequest): void {
+/** Lo mínimo que la guarda necesita del request (testeable sin Next). */
+export type MutationGuardRequest = Pick<NextRequest, "method" | "headers">;
+
+/** CSRF + Content-Type en toda mutación de /api/v1 (01 §6).
+ *  Exportada para los tests de seguridad (Ola D · Área 2.5). */
+export function enforceMutationHeaders(req: MutationGuardRequest): void {
   if (!MUTATION_METHODS.has(req.method)) return;
   const csrf = req.headers.get("x-verbalia-csrf");
   if (!csrf) {
@@ -295,7 +299,12 @@ function logRequest(route: string, userId: string | null, status: number, starte
 
 /* ============================== Cuerpos ============================== */
 
-/** Lee y valida el cuerpo JSON con zod; 400 validation_error con detalles. */
+/** Tope honesto para un cuerpo JSON de /api/v1 (fotos viajan dentro del
+ *  payload de progreso, pero acotadas por el esquema; el resto sobra). */
+const MAX_JSON_BODY_BYTES = 1.6 * 1024 * 1024;
+
+/** Lee y valida el cuerpo JSON con zod; 400 validation_error con detalles.
+ *  Ola D · Área 2.1: antes de parsear, el sobre debe caber en el barco. */
 export async function parseBody<T extends z.ZodType>(
   ctx: RouteCtx,
   schema: T,
@@ -303,8 +312,16 @@ export async function parseBody<T extends z.ZodType>(
   let raw: unknown;
   try {
     const text = await ctx.req.text();
+    if (text.length > MAX_JSON_BODY_BYTES) {
+      throw new HttpError(
+        413,
+        "payload_too_large",
+        "El paquete enviado es demasiado grande. Exporta una copia más ligera (sin fotos) e inténtalo de nuevo.",
+      );
+    }
     raw = text ? JSON.parse(text) : {};
-  } catch {
+  } catch (err) {
+    if (err instanceof HttpError) throw err;
     throw new HttpError(400, "validation_error", "El cuerpo de la petición no es JSON válido.");
   }
   const parsed = schema.safeParse(raw);

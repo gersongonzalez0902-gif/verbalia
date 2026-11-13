@@ -11,7 +11,8 @@ import { prisma } from "@/lib/db";
 
 export type OneTimeTokenType = "EMAIL_VERIFY" | "PASSWORD_RESET" | "EMAIL_CHANGE";
 
-const TTL_MS: Record<OneTimeTokenType, number> = {
+/** Vid de cada token (exportada para los tests de seguridad · Ola D · Área 2.5). */
+export const TTL_MS: Record<OneTimeTokenType, number> = {
   EMAIL_VERIFY: 48 * 60 * 60 * 1000,
   PASSWORD_RESET: 60 * 60 * 1000,
   EMAIL_CHANGE: 48 * 60 * 60 * 1000,
