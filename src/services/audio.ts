@@ -1,27 +1,28 @@
 /**
- * Motor de audio de VERBALIA · v2
+ * Motor de audio de VERBALIA · v3 (Ola D · archivos reales).
  * ---------------------------------------------------------------
- * Todo el sonido del juego se sintetiza aquí con WebAudio:
- * sin ficheros, sin descargas, sin red.
+ * Todo el sonido del juego son ARCHIVOS de audio reales con licencia
+ * libre (CC0 / CC-BY), servidos desde public/sfx/ y public/music/.
+ * Fuentes, autores y licencias: public/sfx/CREDITS.md. Nada se
+ * sintetiza en vivo salvo como respaldo de emergencia.
  *
- * 1) SFX: ~30 efectos de interacción (acierto, fallo, niveles,
- *    monedas de XP, naipes, etc.) con variantes para que nunca
- *    suenen igual dos veces seguidas.
- * 2) MÚSICA AMBIENTE GENERATIVA: cada escena/ región tiene su
- *    propia paleta musical (escala, tempo, timbres, textura de
- *    ruido) compuesta en tiempo real con un secuenciador por
- *    adelantado (lookahead). Al cambiar de región la música
- *    hace fundido cruzado.
- * 3) EL GRAN RELOJ EN CONTRATIEMPO: una capa de tic-tac que
- *    suena DESFASADA respecto al pulso musical (en los
- *    contratiempos, como pidió el jugador). En reposo es una
- *    presencia mínima y sugerente; en los juegos cronometrados
- *    `setTension()` la enciende, la acelera y le sube el tono
- *    hasta el clímax de los últimos segundos.
+ * 1) SFX: ~45 efectos con 2-3 variantes por efecto que se alternan
+ *    al azar (nunca suena igual dos veces seguidas). Cada efecto
+ *    vive en .ogg (preferido) + .mp3 de respaldo (Safari/iOS).
+ * 2) MÚSICA AMBIENTE: un loop real por escena/región con fundido
+ *    cruzado al cambiar de región (el mismo fundido de siempre).
+ * 3) EL GRAN RELOJ EN CONTRATIEMPO: capa de tic-tac con archivos
+ *    reales (tic-tac CC0). En reposo es una presencia mínima; en
+ *    los juegos cronometrados `setTension()` la acelera, le sube
+ *    el tono y el volumen hasta el clímax de los últimos segundos.
  *
  * El AudioContext se desbloquea con el primer gesto del usuario
- * (política de navegadores). Si el jugador silencia el juego,
- * el contexto se suspende y todo queda en silencio absoluto.
+ * (política de navegadores) y, justo entonces, se precargan en
+ * segundo plano los efectos más frecuentes. Si un archivo no
+ * llega (primera visita sin red, navegador caprichoso), el
+ * sintetizador de emergencia toma el turno: el juego nunca se
+ * queda mudo. Si el jugador silencia el juego, el contexto se
+ * suspende y todo queda en silencio absoluto.
  */
 
 /* ============================== ajustes ============================== */
@@ -122,13 +123,11 @@ export function registerVisibilityGuard(): void {
   const pauseAll = () => {
     if (pausedByVisibility) return;
     pausedByVisibility = true;
-    // 1) Banda sonora generativa: se detiene el secuenciador y la textura
-    //    (la escena se recuerda para reanudarla al volver).
-    if (schedulerId) {
-      clearInterval(schedulerId);
-      schedulerId = null;
+    // 1) El reloj deja de programar tics (la escena se recuerda).
+    if (clockTimer) {
+      clearInterval(clockTimer);
+      clockTimer = null;
     }
-    stopTexture();
     // 2) El contexto entero se suspende: cero audio y cero batería mientras
     //    la página no está visible (móvil bloqueado, app en segundo plano…).
     if (ctx && ctx.state === "running") void ctx.suspend();
@@ -140,7 +139,10 @@ export function registerVisibilityGuard(): void {
     if (!enabled) return; // el jugador silenció el juego mientras no miraba
     if (ctx && ctx.state === "suspended") void ctx.resume();
     // La escena que sonaba antes del ocultado vuelve con fundido.
-    if (currentScene && unlocked) startScene(currentScene);
+    if (currentScene && unlocked) {
+      void startScene(currentScene);
+      if (clockOn) ensureClockScheduler();
+    }
   };
 
   document.addEventListener("visibilitychange", () => {
@@ -246,421 +248,143 @@ function noiseBurst(
   src.stop(t + duration + 0.08);
 }
 
-/* ============================== escenas musicales ============================== */
+/* ===================== escenas musicales (loops reales) =====================
+ * Cada escena tiene su loop de archivo real (public/music/, licencias en
+ * public/sfx/CREDITS.md). Al cambiar de región el loop anterior se funde
+ * hacia el silencio mientras el nuevo entra: el mismo fundido cruzado de
+ * siempre, ahora con música grabada. */
 
-interface SceneMusic {
-  /** Nota raíz en Hz. */
-  root: number;
-  /** Escala en semitonos (siempre consonante). */
-  scale: number[];
-  /** Pulsos por minuto del pulso ambiental. */
-  bpm: number;
-  /** Progresión de acordes (índices sobre la escala, 3 notas cada uno). */
-  chords: number[][];
-  /** Probabilidad de nota de arpegio por contratiempo. */
-  pluck: number;
-  /** Textura de ruido de fondo. */
-  texture: "wind" | "waves" | "hum" | "paper" | "crackle" | "air";
-  /** Volumen de la textura (0-1). */
-  textureLevel: number;
-  /** Timbre del arpegio. */
-  pluckType: OscillatorType;
-  /** Nota más grave de apoyo cada compás. */
-  bass: boolean;
-}
-
-const A = 55;
-const SCENES: Record<string, SceneMusic> = {
-  /* Puerto de salida: calidez pentatónica en Do, viento suave */
-  home: {
-    root: 261.63,
-    scale: [0, 2, 4, 7, 9, 12, 14, 16],
-    bpm: 52,
-    chords: [
-      [0, 2, 4],
-      [1, 3, 5],
-      [0, 2, 4],
-      [2, 4, 6],
-    ],
-    pluck: 0.5,
-    texture: "wind",
-    textureLevel: 0.05,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Bosque: pentatónica menor de La, gotas de agua y hojas */
-  bosque: {
-    root: A * 4,
-    scale: [0, 3, 5, 7, 10, 12, 15],
-    bpm: 48,
-    chords: [
-      [0, 2, 4],
-      [0, 2, 3],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.65,
-    texture: "wind",
-    textureLevel: 0.07,
-    pluckType: "triangle",
-    bass: true,
-  },
-  /* Ciudad: lidio brillante de Fa, murmullo urbano */
-  ciudad: {
-    root: 349.23,
-    scale: [0, 2, 4, 6, 7, 9, 11, 12],
-    bpm: 58,
-    chords: [
-      [0, 2, 4],
-      [3, 5, 7],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.55,
-    texture: "hum",
-    textureLevel: 0.04,
-    pluckType: "square",
-    bass: true,
-  },
-  /* Fortaleza: dórico de Re, yunque apagado y brasas */
-  fortaleza: {
-    root: 146.83,
-    scale: [0, 2, 3, 5, 7, 9, 10, 12],
-    bpm: 60,
-    chords: [
-      [0, 2, 4],
-      [3, 5, 7],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.4,
-    texture: "crackle",
-    textureLevel: 0.05,
-    pluckType: "triangle",
-    bass: true,
-  },
-  /* Biblioteca: pentatónica de Mi bemol, páginas y arpas */
-  biblioteca: {
-    root: 311.13,
-    scale: [0, 2, 4, 7, 9, 12, 14],
-    bpm: 44,
-    chords: [
-      [0, 2, 4],
-      [1, 3, 5],
-      [0, 2, 4],
-      [2, 4, 6],
-    ],
-    pluck: 0.6,
-    texture: "paper",
-    textureLevel: 0.03,
-    pluckType: "sine",
-    bass: false,
-  },
-  /* Puerto: pentatónica mayor de Sol, olas y campana de boya */
-  puerto: {
-    root: 392.0,
-    scale: [0, 2, 4, 7, 9, 12],
-    bpm: 50,
-    chords: [
-      [0, 2, 4],
-      [2, 4, 5],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.5,
-    texture: "waves",
-    textureLevel: 0.08,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Torre: pentatónica menor de Si, reloj protagonista */
-  torre: {
-    root: 246.94,
-    scale: [0, 3, 5, 7, 10, 12, 14],
-    bpm: 54,
-    chords: [
-      [0, 2, 4],
-      [0, 2, 3],
-      [2, 4, 6],
-      [0, 2, 4],
-    ],
-    pluck: 0.45,
-    texture: "air",
-    textureLevel: 0.045,
-    pluckType: "triangle",
-    bass: true,
-  },
-  /* Resultados: fanfarria cálida, mayor y luminosa */
-  results: {
-    root: 293.66,
-    scale: [0, 2, 4, 5, 7, 9, 11, 12, 14, 16],
-    bpm: 62,
-    chords: [
-      [0, 2, 4],
-      [4, 6, 8],
-      [3, 5, 7],
-      [0, 2, 4],
-    ],
-    pluck: 0.7,
-    texture: "air",
-    textureLevel: 0.03,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Mapa: pentatónica aventurera de Sol, papel de pergamino */
-  map: {
-    root: 196,
-    scale: [0, 2, 4, 7, 9, 12, 14, 16],
-    bpm: 58,
-    chords: [
-      [0, 2, 4],
-      [2, 4, 6],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.55,
-    texture: "paper",
-    textureLevel: 0.035,
-    pluckType: "triangle",
-    bass: true,
-  },
-  /* Misiones: fanfarria dorada en La, chispa de confeti */
-  missions: {
-    root: 220,
-    scale: [0, 2, 4, 7, 9, 11, 12, 14, 16],
-    bpm: 66,
-    chords: [
-      [0, 2, 4],
-      [4, 6, 8],
-      [5, 7, 9],
-      [0, 2, 4],
-    ],
-    pluck: 0.62,
-    texture: "crackle",
-    textureLevel: 0.03,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Colección: jardín pentatónico en Mi, brisa entre flores */
-  collection: {
-    root: 164.81,
-    scale: [0, 2, 4, 7, 9, 12, 14],
-    bpm: 56,
-    chords: [
-      [0, 2, 4],
-      [1, 3, 5],
-      [2, 4, 6],
-      [0, 2, 4],
-    ],
-    pluck: 0.5,
-    texture: "waves",
-    textureLevel: 0.04,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Cuaderno de errores: introspección en Re menor, zumbido de estudio */
-  errors: {
-    root: 146.83,
-    scale: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15],
-    bpm: 50,
-    chords: [
-      [0, 2, 4],
-      [5, 7, 9],
-      [3, 5, 7],
-      [0, 2, 4],
-    ],
-    pluck: 0.4,
-    texture: "hum",
-    textureLevel: 0.05,
-    pluckType: "triangle",
-    bass: true,
-  },
-  /* Estadísticas: dorian analítico en Si, aire limpio */
-  stats: {
-    root: 123.47,
-    scale: [0, 2, 3, 5, 7, 9, 10, 12],
-    bpm: 54,
-    chords: [
-      [0, 2, 4],
-      [3, 5, 7],
-      [0, 2, 4],
-      [2, 4, 6],
-    ],
-    pluck: 0.45,
-    texture: "air",
-    textureLevel: 0.03,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Perfil: mixolidio brillante en Do#, viento cálido */
-  profile: {
-    root: 138.59,
-    scale: [0, 2, 4, 5, 7, 9, 10, 12, 14, 16],
-    bpm: 62,
-    chords: [
-      [0, 2, 4],
-      [4, 6, 8],
-      [0, 2, 4],
-      [2, 4, 6],
-    ],
-    pluck: 0.5,
-    texture: "wind",
-    textureLevel: 0.04,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Biblioteca: eólico de páginas en La, susurro de papel */
-  library: {
-    root: 110,
-    scale: [0, 2, 3, 5, 7, 8, 10, 12],
-    bpm: 52,
-    chords: [
-      [0, 2, 4],
-      [2, 4, 6],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.42,
-    texture: "paper",
-    textureLevel: 0.05,
-    pluckType: "triangle",
-    bass: false,
-  },
-  /* Ajustes: calma diatónica en Re, marea lejana */
-  settings: {
-    root: 293.66,
-    scale: [0, 2, 4, 7, 9, 12, 14],
-    bpm: 54,
-    chords: [
-      [0, 2, 4],
-      [1, 3, 5],
-      [0, 2, 4],
-      [2, 4, 6],
-    ],
-    pluck: 0.4,
-    texture: "waves",
-    textureLevel: 0.045,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Bienvenida: amanecer pentatónico en Mi, marea suave */
-  welcome: {
-    root: 164.81,
-    scale: [0, 2, 4, 7, 9, 12, 16],
-    bpm: 52,
-    chords: [
-      [0, 2, 4],
-      [0, 2, 4],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.5,
-    texture: "waves",
-    textureLevel: 0.05,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Evaluación: concentración en Sol lidio, aire de faro */
-  placement: {
-    root: 196,
-    scale: [0, 2, 4, 6, 7, 9, 11, 12],
-    bpm: 56,
-    chords: [
-      [0, 2, 4],
-      [1, 3, 5],
-      [2, 4, 6],
-      [0, 2, 4],
-    ],
-    pluck: 0.45,
-    texture: "air",
-    textureLevel: 0.035,
-    pluckType: "triangle",
-    bass: true,
-  },
-  /* Estación del jugador: lo-fi cálido de Rece (la radio de la isla) */
-  station: {
-    root: 174.61,
-    scale: [0, 3, 5, 7, 10, 12, 14, 17],
-    bpm: 66,
-    chords: [
-      [0, 2, 4],
-      [3, 4, 6],
-      [1, 3, 5],
-      [0, 2, 4],
-    ],
-    pluck: 0.7,
-    texture: "crackle",
-    textureLevel: 0.02,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Observatorio: lidio celeste de Mi, noche estrellada y silencio de cúpula */
-  observatorio: {
-    root: 329.63,
-    scale: [0, 2, 4, 6, 7, 9, 11, 12, 16],
-    bpm: 40,
-    chords: [
-      [0, 2, 4],
-      [2, 4, 6],
-      [1, 3, 5],
-      [0, 3, 5],
-    ],
-    pluck: 0.55,
-    texture: "air",
-    textureLevel: 0.04,
-    pluckType: "sine",
-    bass: true,
-  },
-  /* Salón de Juegos: chispa arcade, mayor brillante de Sol, juguetón */
-  arcade: {
-    root: 392,
-    scale: [0, 2, 4, 7, 9, 12, 14, 16, 19],
-    bpm: 92,
-    chords: [
-      [0, 2, 4],
-      [1, 3, 5],
-      [0, 2, 4],
-      [3, 4, 6],
-    ],
-    pluck: 0.8,
-    texture: "air",
-    textureLevel: 0,
-    pluckType: "square",
-    bass: true,
-  },
+/** Escena -> loop (nombre base del archivo en /music). Las pantallas
+ *  sin loop propio heredan el de una escena cercana. */
+const SCENE_LOOPS: Record<string, string> = {
+  // Regiones del Archipiélago: un loop propio cada una.
+  bosque: "bosque",
+  ciudad: "ciudad",
+  fortaleza: "fortaleza",
+  biblioteca: "biblioteca",
+  puerto: "puerto",
+  torre: "torre",
+  observatorio: "observatorio",
+  forja: "forja",
+  // Escenas globales.
+  welcome: "welcome",
+  map: "map",
+  missions: "missions",
+  results: "results",
+  arcade: "arcade",
+  errors: "errors",
+  stats: "stats",
+  // Escenas que heredan: sin archivo extra (mismo espíritu, menos peso).
+  home: "welcome",
+  placement: "welcome",
+  collection: "biblioteca",
+  library: "biblioteca",
+  profile: "map",
+  settings: "puerto",
+  station: "welcome",
 };
 
-/* ======================= secuenciador generativo ======================= */
-
 let currentScene: string | null = null;
-let schedulerId: ReturnType<typeof setInterval> | null = null;
-let nextBeatTime = 0;
-let beatIndex = 0;
-let barIndex = 0;
 let tension = 0; // 0 reposo · 1 clímax cronometrado
-let clockOn = false;
-let clockTickToggle = 0;
-let textureNodes: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
 
-const semitone = (root: number, s: number) => root * Math.pow(2, s / 12);
+/* ------------------------ carga de música (ogg -> mp3) ------------------------ */
 
-/** Funda de entrada a la escena: acorde inicial y textura. */
-function startScene(sceneId: string) {
+const musicBufferCache = new Map<string, AudioBuffer>();
+const musicFailed = new Set<string>();
+const musicLoading = new Set<string>();
+
+async function loadMusicLoop(name: string): Promise<AudioBuffer | null> {
+  const ac = ensureCtx();
+  if (!ac) return null;
+  const cached = musicBufferCache.get(name);
+  if (cached) return cached;
+  if (musicFailed.has(name) || musicLoading.has(name)) return null;
+  musicLoading.add(name);
+  // .ogg preferido; .mp3 de respaldo para navegadores sin Vorbis (Safari/iOS).
+  for (const src of [`/music/${name}.ogg`, `/music/${name}.mp3`]) {
+    try {
+      const res = await fetch(src);
+      if (!res.ok) continue;
+      const bytes = await res.arrayBuffer();
+      const buf = await ac.decodeAudioData(bytes);
+      musicBufferCache.set(name, buf);
+      return buf;
+    } catch {
+      /* probamos el siguiente formato */
+    }
+  }
+  musicFailed.add(name); // hoy no llega: esta escena quedará en silencio
+  return null;
+}
+
+/* ------------------------ voz de loop con fundidos ------------------------ */
+
+interface LoopVoice {
+  scene: string;
+  src: AudioBufferSourceNode;
+  gain: GainNode;
+  stopAt: number;
+}
+
+let currentLoop: LoopVoice | null = null;
+let loopSeq = 0; // desecha arranques de escenas ya abandonadas
+
+/** Funde y detiene una voz de loop (cambio de escena o silencio). */
+function fadeOutLoop(voice: LoopVoice, seconds = 1.2) {
+  const ac = ctx;
+  if (!ac) return;
+  try {
+    voice.gain.gain.cancelScheduledValues(ac.currentTime);
+    voice.gain.gain.setTargetAtTime(0.0001, ac.currentTime, seconds / 3);
+  } catch {
+    /* ya liberada */
+  }
+  const src = voice.src;
+  setTimeout(() => {
+    try {
+      src.stop();
+    } catch {
+      /* ya parada */
+    }
+  }, seconds * 1000 + 300);
+}
+
+/** Arranca el loop de una escena con fundido de entrada (si no suena ya). */
+async function startScene(sceneId: string) {
   const ac = ensureCtx();
   if (!ac || !enabled) return;
-  const scene = SCENES[sceneId] ?? SCENES.home;
+  const name = SCENE_LOOPS[sceneId] ?? SCENE_LOOPS.home;
   currentScene = sceneId;
+  const seq = ++loopSeq;
+
   // Si la escena anterior se silenció (stopSceneMusic), recupera el volumen.
   if (musicBus) musicBus.gain.setTargetAtTime(musicVolume, ac.currentTime, 0.5);
-  stopTexture();
-  startTexture(scene);
-  // Acorde de bienvenida
-  scene.chords[0].forEach((d) => padNote(semitone(scene.root, scene.scale[d]), 0.02, 6, 0.05));
-  if (!schedulerId) {
-    nextBeatTime = ac.currentTime + 0.1;
-    beatIndex = 0;
-    barIndex = 0;
-    schedulerId = setInterval(scheduleAhead, 240);
+
+  // ¿Ya suena este mismo loop? Nada que hacer (ni cortar ni reiniciar).
+  if (currentLoop && SCENE_LOOPS[currentLoop.scene] === name) return;
+
+  // Funde el loop anterior mientras carga el nuevo (crossfade real).
+  if (currentLoop) {
+    fadeOutLoop(currentLoop, 1.2);
+    currentLoop = null;
+  }
+
+  const buf = await loadMusicLoop(name);
+  // Mientras cargaba: otra escena mandó, o el jugador silenció. Fuera.
+  if (!buf || seq !== loopSeq || !enabled || !ctx) return;
+
+  try {
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.setTargetAtTime(1, ctx.currentTime, 0.5); // entrada suave ~1,5 s
+    src.connect(gain).connect(musicBus ?? ctx.destination);
+    src.start();
+    currentLoop = { scene: sceneId, src, gain, stopAt: 0 };
+  } catch {
+    /* navegador caprichoso: esta escena quedará en silencio */
   }
 }
 
@@ -671,166 +395,92 @@ export function setSceneMusic(sceneId: string | null) {
     currentScene = sceneId; // se aplicará al desbloquear
     return;
   }
-  startScene(sceneId);
+  void startScene(sceneId);
 }
 
 /** Silencia la escena actual con fundido (partidas sin música de menú). */
 export function stopSceneMusic() {
   currentScene = null;
-  stopTexture();
-  if (schedulerId) {
-    clearInterval(schedulerId);
-    schedulerId = null;
-  }
-  if (!ctx) return;
-  musicBus?.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.35);
-}
-
-function stopTexture() {
-  if (textureNodes && ctx) {
-    try {
-      textureNodes.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.4);
-      const src = textureNodes.src;
-      setTimeout(() => {
-        try {
-          src.stop();
-        } catch {
-          /* ya parado */
-        }
-      }, 1500);
-    } catch {
-      /* ignorar */
-    }
-    textureNodes = null;
+  if (currentLoop) {
+    fadeOutLoop(currentLoop, 0.9);
+    currentLoop = null;
   }
 }
 
-function startTexture(scene: SceneMusic) {
-  // 🎵 Retirado por petición del navegante: sin ruido de lluvia, viento ni
-  // ambiente de fondo. La banda sonora queda solo con la parte melódica
-  // (pads, arpegios y bajo), mucho más limpia y agradable.
-  void scene;
-  void noiseBus;
-  return;
+/* ============== EL GRAN RELOJ EN CONTRATIEMPO (archivos reales) ==============
+ * Tic-tac de archivo (public/sfx/clockTick*.ogg, CC0) que vive en los
+ * contratiempos: en reposo muy sutil; con tensión se vuelve insistente,
+ * acelera y sube de tono (playbackRate) hasta el clímax final. Como los
+ * loops de música ya vienen grabados, el reloj marca su propio pulso
+ * constante (2 tics/s en reposo) en lugar de anclarse al tempo de la
+ * escena: misma presencia, menos piezas. */
+
+let clockOn = false;
+let clockNextTime = 0;
+let clockHigh = false;
+let clockTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Reproduce un archivo corto en un momento exacto y bus concreto. */
+function playFileAt(
+  base: string,
+  when: number,
+  opts: { rate?: number; gain?: number; bus?: GainNode | null } = {},
+): void {
+  const ac = ctx;
+  if (!ac) return;
+  const buf = sfxBufferCache.get(`${base}.ogg`) ?? sfxBufferCache.get(`${base}.mp3`);
+  if (!buf) {
+    void loadSfxFile(base);
+    return;
+  }
+  try {
+    const node = ac.createBufferSource();
+    node.buffer = buf;
+    node.playbackRate.value = opts.rate ?? 1;
+    const g = ac.createGain();
+    g.gain.value = opts.gain ?? 1;
+    node.connect(g);
+    g.connect(opts.bus ?? sfxBus ?? ac.destination);
+    node.start(Math.max(when, ac.currentTime));
+  } catch {
+    /* ignorar */
+  }
 }
 
-/** Colchón armónico suave (pad) con ataque largo y filtro móvil. */
-function padNote(freq: number, start: number, duration: number, volume: number) {
+function scheduleClockAhead() {
   const ac = ctx;
   if (!ac || !enabled) return;
-  const t = ac.currentTime + start;
-  const gain = ac.createGain();
-  gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.linearRampToValueAtTime(volume, t + duration * 0.35);
-  gain.gain.setTargetAtTime(0.0001, t + duration * 0.6, 1.2);
-  const filter = ac.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.setValueAtTime(freq * 1.4, t);
-  filter.frequency.linearRampToValueAtTime(freq * 0.9, t + duration);
-  [0, 4, -5].forEach((detune) => {
-    const osc = ac.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.value = freq;
-    osc.detune.value = detune * 3;
-    osc.connect(filter);
-    osc.start(t);
-    osc.stop(t + duration + 1.8);
-  });
-  filter.connect(gain).connect(musicBus ?? ac.destination);
-}
-
-/** Nota melódica breve (arpegio/pltuck) con carácter de la escena. */
-function pluck(freq: number, start: number, volume: number, type: OscillatorType) {
-  const ac = ctx;
-  if (!ac || !enabled) return;
-  const t = ac.currentTime + start;
-  const osc = ac.createOscillator();
-  const gain = ac.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(volume, t + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
-  osc.connect(gain).connect(musicBus ?? ac.destination);
-  osc.start(t);
-  osc.stop(t + 0.65);
-}
-
-/** El tic del Gran Reloj: madera seca y corta. */
-function clockTick(high: boolean, start: number, volume: number) {
-  const ac = ctx;
-  if (!ac || !enabled) return;
-  const t = ac.currentTime + start;
-  const osc = ac.createOscillator();
-  const gain = ac.createGain();
-  osc.type = "square";
-  osc.frequency.setValueAtTime(high ? 1980 : 1560, t);
-  osc.frequency.exponentialRampToValueAtTime(high ? 1500 : 1180, t + 0.03);
-  gain.gain.setValueAtTime(0.0001, t);
-  gain.gain.exponentialRampToValueAtTime(volume, t + 0.004);
-  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
-  const filter = ac.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = 1900;
-  filter.Q.value = 4;
-  osc.connect(filter).connect(gain).connect(clockBus ?? ac.destination);
-  osc.start(t);
-  osc.stop(t + 0.07);
-  // chasquido de mecánica
-  noiseBurst(start, 0.018, 3400, volume * 0.4, "bandpass", 5, clockBus);
-}
-
-function scheduleAhead() {
-  const ac = ctx;
-  const scene = SCENES[currentScene ?? "home"] ?? SCENES.home;
-  if (!ac || !enabled) return;
-  const beatDur = 60 / scene.bpm;
-  while (nextBeatTime < ac.currentTime + 0.6) {
-    const start = Math.max(0, nextBeatTime - ac.currentTime);
-    const beatInBar = beatIndex % 4;
-
-    /* -- pulso: colchón en cada compás, bajo en el 1 -- */
-    if (beatInBar === 0) {
-      const chord = scene.chords[barIndex % scene.chords.length];
-      chord.forEach((d) =>
-        padNote(semitone(scene.root * 2, scene.scale[d % scene.scale.length]), start, beatDur * 4.2, 0.035),
-      );
-      if (scene.bass) padNote(scene.root / 2, start, beatDur * 4, 0.05);
-    }
-
-    /* -- arpegios en los contratiempos (nunca en el pulso fuerte) -- */
-    const offbeat = start + beatDur * 0.5;
-    if (Math.random() < scene.pluck) {
-      const deg = scene.scale[Math.floor(Math.random() * scene.scale.length)];
-      const octave = Math.random() < 0.3 ? 24 : 12;
-      pluck(semitone(scene.root, deg + octave), offbeat, 0.055, scene.pluckType);
-    }
-    if (beatInBar === 2 && Math.random() < scene.pluck * 0.7) {
-      const deg = scene.scale[Math.floor(Math.random() * scene.scale.length)];
-      pluck(semitone(scene.root, deg + 12), start + beatDur * 0.25, 0.04, "sine");
-    }
-
-    /* -- EL GRAN RELOJ EN CONTRATIEMPO --
-       tic-tac entre pulsos: en reposo muy sutil; con tensión se
-       vuelve insistente (cada contratiempo) y sube de tono. */
-    const clockBase = clockOn ? 0.055 : 0.018;
-    const clockVol = clockBase * (0.35 + tension * 1.65) * (beatInBar % 2 === 0 ? 1 : 0.8);
-    clockTick(clockTickToggle % 2 === 0, offbeat, clockVol);
-    clockTickToggle++;
+  // Intervalo base 0,5 s (contratiempo tranquilo); la tensión lo aprieta.
+  const interval = 0.5 / (1 + tension * 1.4);
+  if (clockNextTime < ac.currentTime) clockNextTime = ac.currentTime + 0.05;
+  while (clockNextTime < ac.currentTime + 0.6) {
+    const vol = (clockOn ? 0.05 : 0.016) * (0.4 + tension * 1.6);
+    const rate = 1 + tension * 0.35; // sube de tono con la tensión
+    const variant = clockHigh ? "clockTick" : "tock";
+    playFileAt(variant, clockNextTime, { rate, gain: vol, bus: clockBus });
+    clockHigh = !clockHigh; // tic ... tac ...
     if (tension > 0.55) {
-      // doble tic nervioso en el segundo contratiempo del pulso
-      clockTick(clockTickToggle % 2 === 0, offbeat + beatDur * 0.25, clockVol * 0.6);
+      // doble tic nervioso entre contratiempos
+      playFileAt("clockTick2", clockNextTime + interval * 0.3, {
+        rate: rate * 1.06,
+        gain: vol * 0.5,
+        bus: clockBus,
+      });
     }
-
-    beatIndex++;
-    if (beatInBar === 3) barIndex++;
-    nextBeatTime += beatDur;
+    clockNextTime += interval;
   }
+}
+
+function ensureClockScheduler() {
+  if (clockTimer || typeof window === "undefined") return;
+  clockNextTime = 0;
+  clockTimer = setInterval(scheduleClockAhead, 240);
 }
 
 /** Enciende la capa del reloj (juegos cronometrados y climas de tensión). */
 export function setClockActive(active: boolean) {
   clockOn = active;
+  if (active && unlocked) ensureClockScheduler();
 }
 
 /** Tensión 0-1: acelera el reloj y lo vuelve protagonista. */
@@ -843,7 +493,7 @@ export function setTension(level: number) {
 
 /** ¿Hay música sonando? (para el indicador de ajustes) */
 export function isMusicPlaying(): boolean {
-  return !!schedulerId && !!currentScene;
+  return !!currentLoop && !!currentScene;
 }
 
 export function getAudioState() {
@@ -1110,95 +760,100 @@ const synthSfx = {
 };
 
 /* ==================== capa de ARCHIVOS SFX reales ====================
- * La gran actualización de sonido: los efectos ya no se sintetizan en
- * vivo; son grabaciones reales servidas desde /sounds/*.mp3 (fuentes
- * libres: ver public/sounds/CREDITOS-SONIDOS.md). Cada archivo se
- * descarga, decodifica y queda en memoria; si algo falla (sin red en
- * la primera visita, navegador caprichoso), el sintetizador original
- * de arriba hace de respaldo instantáneo: el juego nunca se queda
- * mudo ni añade retardo. */
+ * La Ola D del sonido: los efectos ya no se sintetizan en vivo; son
+ * grabaciones reales servidas desde /sfx/*.ogg con gemelo .mp3 de
+ * respaldo (Safari/iOS no leen Vorbis). Fuentes y licencias de cada
+ * archivo: public/sfx/CREDITS.md. Cada archivo se descarga, decodifica
+ * y queda en memoria; si algo falla (sin red en la primera visita,
+ * navegador caprichoso), el sintetizador de emergencia de arriba
+ * toma el turno: el juego nunca se queda mudo ni añade retardo. */
 
-type SfxFileSpec = { src: string; rate?: number; gain?: number };
+type SfxFileSpec = { base: string; rate?: number; gain?: number };
 
-/** Efecto → variantes de archivo. Los métodos sin entrada propia
- *  reutilizan un archivo cercano con velocidad/volumen ajustados,
- *  como haría un diseñador sonoro con su librería. */
+/** Efecto -> variantes de archivo (se alternan al azar). Los métodos
+ *  sin grabación propia reutilizan un archivo cercano con
+ *  velocidad/volumen ajustados, como haría un diseñador sonoro. */
 const SFX_FILES: Record<string, SfxFileSpec[]> = {
-  tap: [{ src: "/sounds/tap.mp3", gain: 0.85 }, { src: "/sounds/tap-2.mp3", gain: 0.85 }],
-  click: [{ src: "/sounds/click.mp3" }, { src: "/sounds/click-2.mp3" }],
-  toggle: [{ src: "/sounds/toggle.mp3" }],
-  pop: [{ src: "/sounds/pop.mp3" }, { src: "/sounds/pop-2.mp3" }],
-  correct: [{ src: "/sounds/correct.mp3" }, { src: "/sounds/correct-2.mp3" }],
-  wrong: [{ src: "/sounds/wrong.mp3" }, { src: "/sounds/wrong-2.mp3" }],
-  error: [{ src: "/sounds/error.mp3" }],
-  whoosh: [{ src: "/sounds/whoosh.mp3" }, { src: "/sounds/whoosh-2.mp3" }],
-  slide: [{ src: "/sounds/slide.mp3" }],
-  page: [{ src: "/sounds/page.mp3" }, { src: "/sounds/page-2.mp3" }],
-  flip: [{ src: "/sounds/flip.mp3" }],
-  deal: [{ src: "/sounds/deal.mp3" }],
-  place: [{ src: "/sounds/place.mp3" }],
-  snap: [{ src: "/sounds/snap.mp3" }],
-  open: [{ src: "/sounds/open.mp3" }],
-  close: [{ src: "/sounds/close.mp3" }],
-  back: [{ src: "/sounds/back.mp3" }],
-  navigate: [{ src: "/sounds/navigate.mp3" }],
-  coin: [{ src: "/sounds/coin.mp3" }],
-  coins: [{ src: "/sounds/coins.mp3" }],
-  tinta: [{ src: "/sounds/tinta.mp3" }],
-  buy: [{ src: "/sounds/buy.mp3" }],
-  unlock: [{ src: "/sounds/unlock.mp3" }],
-  levelUp: [{ src: "/sounds/level-up.mp3" }],
-  achievement: [{ src: "/sounds/achievement.mp3" }],
-  gift: [{ src: "/sounds/gift.mp3" }],
-  claim: [{ src: "/sounds/claim.mp3" }],
-  streak: [{ src: "/sounds/streak.mp3" }],
-  combo: [{ src: "/sounds/combo.mp3" }],
-  stepUp: [{ src: "/sounds/step-up.mp3" }],
-  sparkle: [{ src: "/sounds/sparkle.mp3" }],
-  confetti: [{ src: "/sounds/confetti.mp3" }],
-  chime: [{ src: "/sounds/chime.mp3" }],
-  sessionWin: [{ src: "/sounds/session-win.mp3" }],
-  sessionEnd: [{ src: "/sounds/session-end.mp3" }],
-  sessionLose: [{ src: "/sounds/session-lose.mp3" }],
-  go: [{ src: "/sounds/go.mp3" }],
-  countdown: [{ src: "/sounds/countdown.mp3" }],
-  tick: [{ src: "/sounds/tick.mp3", gain: 0.8 }],
-  tock: [{ src: "/sounds/tick.mp3", rate: 0.82, gain: 0.8 }],
-  stamp: [{ src: "/sounds/stamp.mp3" }],
-  buoy: [{ src: "/sounds/buoy.mp3" }],
-  typeKey: [{ src: "/sounds/snap.mp3", rate: 1.7, gain: 0.45 }],
-  typeWord: [{ src: "/sounds/tap.mp3", rate: 1.3, gain: 0.8 }],
+  tap: [{ base: "tap", gain: 1 }, { base: "tap2", gain: 1 }, { base: "tap3", gain: 1 }],
+  click: [{ base: "click" }, { base: "click2" }, { base: "click3" }],
+  toggle: [{ base: "toggle" }, { base: "toggle2" }, { base: "toggle3" }],
+  pop: [{ base: "pop" }, { base: "pop2" }, { base: "pop3" }],
+  correct: [{ base: "correct", gain: 1 }, { base: "correct2", gain: 1 }, { base: "correct3", gain: 1 }],
+  wrong: [{ base: "wrong" }, { base: "wrong2" }, { base: "wrong3" }],
+  error: [{ base: "error" }, { base: "error2" }],
+  whoosh: [{ base: "whoosh" }, { base: "whoosh2" }, { base: "whoosh3" }],
+  slide: [{ base: "slide" }, { base: "slide2" }],
+  page: [{ base: "page" }, { base: "page2" }],
+  flip: [{ base: "flip" }, { base: "flip2" }],
+  deal: [{ base: "deal" }, { base: "deal2" }],
+  place: [{ base: "place" }, { base: "place2" }],
+  snap: [{ base: "snap" }, { base: "snap2" }],
+  open: [{ base: "open" }, { base: "open2" }],
+  close: [{ base: "close" }, { base: "close2" }],
+  back: [{ base: "back" }, { base: "back2" }],
+  navigate: [{ base: "navigate" }, { base: "navigate2" }],
+  coin: [{ base: "coin", gain: 1 }, { base: "coin2", gain: 1 }],
+  coins: [{ base: "coins" }, { base: "coins2" }, { base: "coins3" }],
+  tinta: [{ base: "tinta" }, { base: "tinta2" }],
+  buy: [{ base: "buy" }, { base: "buy2" }],
+  unlock: [{ base: "unlock" }],
+  levelUp: [{ base: "levelUp" }, { base: "levelUp2" }],
+  achievement: [{ base: "achievement" }, { base: "achievement2" }],
+  gift: [{ base: "gift" }],
+  claim: [{ base: "claim" }, { base: "claim2" }],
+  streak: [{ base: "streak" }],
+  stepUp: [{ base: "stepUp" }],
+  sparkle: [{ base: "sparkle" }, { base: "sparkle2" }],
+  confetti: [{ base: "confetti" }, { base: "confetti2" }],
+  chime: [{ base: "chime" }, { base: "chime2" }],
+  sessionWin: [{ base: "sessionWin" }],
+  sessionEnd: [{ base: "sessionEnd" }, { base: "sessionEnd2" }],
+  sessionLose: [{ base: "sessionLose" }],
+  go: [{ base: "go" }, { base: "go2" }],
+  combo: [{ base: "combo" }, { base: "combo2" }],
+  countdown: [{ base: "countdown" }, { base: "countdown2" }],
+  tick: [{ base: "tick", gain: 0.9 }, { base: "tick2", gain: 0.9 }],
+  tock: [{ base: "tock", gain: 0.9 }, { base: "tock2", gain: 0.9 }],
+  stamp: [{ base: "stamp" }],
+  buoy: [{ base: "buoy" }],
+  typeKey: [{ base: "typeKey", rate: 1.15, gain: 0.5 }],
+  typeWord: [{ base: "typeWord", gain: 0.9 }],
 };
 
 const sfxBufferCache = new Map<string, AudioBuffer>();
 const sfxFileFailed = new Set<string>();
 const sfxFileLoading = new Set<string>();
 
-async function loadSfxFile(src: string): Promise<void> {
+async function loadSfxFile(base: string): Promise<void> {
   const c = ensureCtx();
-  if (!c || sfxBufferCache.has(src) || sfxFileFailed.has(src) || sfxFileLoading.has(src)) return;
-  sfxFileLoading.add(src);
-  try {
-    const res = await fetch(src);
-    if (!res.ok) throw new Error(String(res.status));
-    const bytes = await res.arrayBuffer();
-    sfxBufferCache.set(src, await c.decodeAudioData(bytes));
-  } catch {
-    sfxFileFailed.add(src); // este archivo no llega: síntesis permanente para él
-  } finally {
-    sfxFileLoading.delete(src);
+  const key = `${base}.ogg`;
+  if (!c || sfxBufferCache.has(key) || sfxFileFailed.has(base) || sfxFileLoading.has(base)) return;
+  sfxFileLoading.add(base);
+  // .ogg preferido; .mp3 de respaldo (Safari/iOS).
+  for (const src of [`/sfx/${base}.ogg`, `/sfx/${base}.mp3`]) {
+    try {
+      const res = await fetch(src);
+      if (!res.ok) continue;
+      const bytes = await res.arrayBuffer();
+      sfxBufferCache.set(key, await c.decodeAudioData(bytes));
+      return;
+    } catch {
+      /* probamos el siguiente formato */
+    }
   }
+  sfxFileFailed.add(base); // este efecto no llega: síntesis permanente para él
+  sfxFileLoading.delete(base);
 }
 
 /** Precarga los sonidos más frecuentes justo tras el primer gesto. */
 export function warmupSfxFiles(): void {
-  for (const key of ["tap", "click", "correct", "wrong", "whoosh", "flip", "page"]) {
-    const spec = SFX_FILES[key]?.[0];
-    if (spec) void loadSfxFile(spec.src);
+  for (const key of ["tap", "click", "correct", "wrong", "whoosh", "flip", "page", "coin", "clockTick", "tock"]) {
+    const spec = SFX_FILES[key]?.[0] ?? (key === "clockTick" ? { base: "clockTick" } : key === "tock" ? { base: "tock" } : undefined);
+    if (spec) void loadSfxFile(spec.base);
   }
 }
 
-/** Intenta sonar con archivo. false → el sintetizador toma el turno. */
+/** Intenta sonar con archivo. false -> el sintetizador toma el turno. */
 function playSfxFile(name: string): boolean {
   if (!enabled) return true; // silencio pedido: no suena nada (ni archivo ni síntesis)
   const variants = SFX_FILES[name];
@@ -1206,10 +861,10 @@ function playSfxFile(name: string): boolean {
   const spec = variants[Math.floor(Math.random() * variants.length)];
   const c = ensureCtx();
   if (!c) return false;
-  const buf = sfxBufferCache.get(spec.src);
+  const key = `${spec.base}.ogg`;
+  const buf = sfxBufferCache.get(key);
   if (!buf) {
-    if (sfxFileFailed.has(spec.src)) return false;
-    void loadSfxFile(spec.src); // llegará para la próxima llamada
+    if (!sfxFileFailed.has(spec.base)) void loadSfxFile(spec.base); // llegará para la próxima
     return false;
   }
   try {
@@ -1227,6 +882,37 @@ function playSfxFile(name: string): boolean {
   return true;
 }
 
+/** Lista de efectos con archivo, con sus variantes, para «Probar sonidos». */
+export function sfxShowcase(): { key: string; label: string }[] {
+  return [
+    { key: "tap", label: "Toque (botones)" },
+    { key: "correct", label: "Acierto" },
+    { key: "wrong", label: "Fallo" },
+    { key: "coin", label: "Moneda de XP" },
+    { key: "tinta", label: "Tinta" },
+    { key: "levelUp", label: "Subida de nivel" },
+    { key: "achievement", label: "Logro" },
+    { key: "claim", label: "Reclamar recompensa" },
+    { key: "flip", label: "Girar tarjeta" },
+    { key: "whoosh", label: "Transición" },
+    { key: "chime", label: "Campanita" },
+    { key: "sessionWin", label: "¡Victoria!" },
+    { key: "sessionLose", label: "Derrota" },
+    { key: "clockTick", label: "Reloj (tic-tac)" },
+  ];
+}
+
+/** Reproduce un efecto concreto para probarlo desde Ajustes. */
+export function playSfxByName(key: string): boolean {
+  return playSfxFile(key) || ((): boolean => {
+    // respaldo de síntesis puntual para la prueba
+    const original = Reflect.get(synthSfx as Record<string, unknown>, key);
+    if (typeof original !== "function") return false;
+    (original as (...a: unknown[]) => void)();
+    return true;
+  })();
+}
+
 /** Hápticos que vivían dentro de los métodos sintetizados: los
  *  mantenemos aunque suene el archivo (la vibración es parte del golpe). */
 const HAPTIC_BY_SFX: Record<string, number | number[]> = {
@@ -1236,7 +922,6 @@ const HAPTIC_BY_SFX: Record<string, number | number[]> = {
   levelUp: [28, 40, 28, 40, 60],
 };
 
-/** El sfx público: archivo real primero, síntesis de respaldo. */
 export const sfx = new Proxy(synthSfx, {
   get(target, prop, receiver) {
     const original = Reflect.get(target, prop, receiver);

@@ -3,13 +3,14 @@
 /**
  * Sistema de escena · el corazón sensorial de VERBALIA.
  * ----------------------------------------------------------------
- * Cada pantalla declara su personalidad: paleta (matiz), música
- * generativa y ornamentos. El Inicio hereda la región donde el
+ * Cada pantalla declara su personalidad: paleta (matiz), música de
+ * archivo por escena (loops reales con fundido cruzado) y
+ * ornamentos. El Inicio hereda la región donde el
  * jugador está avanzando, así que el juego cambia de cara — y de
  * banda sonora — conforme se avanza por el Archipiélago.
  *
  * - applySceneTheme: rota el matiz de la paleta (claro/oscuro/lectura).
- * - setSceneMusic: banda sonora generativa por escena con fundido.
+ * - setSceneMusic: loop real por escena (public/music) con fundido.
  * - initAudioUnlock: el navegador exige un gesto para el audio.
  */
 

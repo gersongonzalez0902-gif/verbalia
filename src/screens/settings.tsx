@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
-import { sfx } from "@/services/audio";
+import { sfx, sfxShowcase, playSfxByName } from "@/services/audio";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -254,7 +254,7 @@ export function SettingsScreen() {
                     <span className="numeric text-sm font-bold text-primary">{Math.round(settings.musicVolume * 100)}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Banda sonora generativa: cada región compone su propia música en vivo.
+                    Banda sonora real: cada región tiene su propio loop grabado, con fundido al cambiar de aguas.
                   </p>
                   <Slider
                     className="mt-3"
@@ -334,6 +334,27 @@ export function SettingsScreen() {
                     onValueCommit={() => sfx.tap()}
                     aria-label="Volumen de efectos"
                   />
+                </div>
+
+                <div>
+                  <Label className="text-sm font-bold">Probar sonidos</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Escucha los efectos principales sin jugar, para comprobar que todo suena en tu aparato.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {sfxShowcase().map(({ key, label }) => (
+                      <Button
+                        key={key}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 rounded-full px-3 text-xs"
+                        onClick={() => playSfxByName(key)}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Teclado del Taller de Escritura */}
