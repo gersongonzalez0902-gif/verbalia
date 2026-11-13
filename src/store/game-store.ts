@@ -93,6 +93,10 @@ export interface GameStore {
   resetSrs: () => Promise<void>;
   /** Adopta el estado canónico del servidor tras un sync (06-sync §3). */
   adoptSyncedState: (payload: PersistedState) => Promise<void>;
+  /** Copia local en JSON legible (visible solo sin sesión: Ola 1.2). */
+  exportJson: () => string;
+  /** Restaura una copia exportada (valida el esqueleto y la versión). */
+  importJson: (text: string) => Promise<boolean>;
   clearLastResult: () => void;
 }
 
@@ -423,6 +427,25 @@ export const useGameStore = create<GameStore>((set, get) => {
       });
       applySettingsSideEffects(settings);
       persist(true);
+    },
+
+    exportJson() {
+      const { profile, settings, core, srs } = get();
+      return storage.export({
+        version: CURRENT_SCHEMA_VERSION,
+        profile,
+        settings,
+        core,
+        srs,
+        savedAt: Date.now(),
+      });
+    },
+
+    async importJson(text) {
+      const parsed = storage.parseImport(text);
+      if (!parsed) return false;
+      await get().adoptSyncedState(parsed);
+      return true;
     },
   };
 });

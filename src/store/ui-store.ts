@@ -81,7 +81,10 @@ function hashToScreen(hash: string): Screen {
 
 interface UiStore {
   screen: Screen;
-  /** ¿Está sonando la estación de música del jugador? (silencia la música generativa) */
+  /** Pantalla de la que se llegó a la actual (para que «Volver» aterrice
+   *  donde toca: Ola D 12.1 — la flecha nunca cae en un sitio raro). */
+  lastScreen: Screen | null;
+  /** ¿Está sonando la estación de música del jugador? (silencia la música de escena) */
   stationPlaying: boolean;
   /** Contador de navegaciones: rota la frase del día en cada salto. */
   navCount: number;
@@ -105,6 +108,7 @@ interface UiStore {
 
 export const useUiStore = create<UiStore>((set, get) => ({
   screen: { name: "home" },
+  lastScreen: null,
   stationPlaying: false,
   navCount: 0,
   fraseSpin: 0,
@@ -113,6 +117,8 @@ export const useUiStore = create<UiStore>((set, get) => ({
 
   navigate(screen) {
     const hash = screenToHash(screen);
+    // Se recuerda de dónde se sale: la actual pasa a ser el origen.
+    set((s) => (s.screen === screen ? s : { lastScreen: s.screen }));
     if (typeof window !== "undefined" && window.location.hash !== hash) {
       window.location.hash = hash; // dispara hashchange → syncFromHash
     } else {
@@ -132,7 +138,12 @@ export const useUiStore = create<UiStore>((set, get) => ({
   },
 
   syncFromHash() {
-    set((s) => ({ screen: hashToScreen(window.location.hash), navCount: s.navCount + 1 }));
+    const next = hashToScreen(window.location.hash);
+    set((s) => ({
+      lastScreen: s.screen === next ? s.lastScreen : s.screen,
+      screen: next,
+      navCount: s.navCount + 1,
+    }));
   },
 
   setMapSheetRegion(id) {

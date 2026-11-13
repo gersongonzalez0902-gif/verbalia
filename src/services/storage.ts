@@ -469,4 +469,23 @@ export const storage = {
     await idbClear();
     lsClear();
   },
+
+  /** Copia legible del estado completo (Ola 1.2: exportar/importar
+   *  sin cuenta — la única forma de mudar progreso sin servidor). */
+  export(state: PersistedState): string {
+    return JSON.stringify(state, null, 2);
+  },
+
+  /** Valida una copia exportada: mismo esqueleto, versión conocida. */
+  parseImport(text: string): PersistedState | null {
+    try {
+      const parsed = JSON.parse(text) as PersistedState;
+      if (typeof parsed !== "object" || parsed === null) return null;
+      if (!parsed.core || !parsed.profile) return null;
+      if (parsed.version > CURRENT_SCHEMA_VERSION) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  },
 };
