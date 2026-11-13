@@ -30,7 +30,7 @@ export function LegalScreen() {
               <ShieldCheck className="h-6 w-6" />
             </span>
             <div>
-              <h2 className="font-display text-lg font-bold leading-tight">Lo importante, en tres líneas</h2>
+              <h2 className="type-h2 leading-tight">Lo importante, en tres líneas</h2>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 VerbalIA funciona por completo en tu dispositivo. No pedimos cuentas ni correo, no enviamos datos a
                 ningún servidor y no usamos publicidad ni rastreadores. Tu progreso se guarda solo en este aparato.

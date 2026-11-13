@@ -218,7 +218,7 @@ export function ArcadeScreen() {
               <Gamepad2 className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-lg font-bold leading-tight">Entrena la mente, no solo la lengua</h2>
+              <h2 className="type-h2 leading-tight">Entrena la mente, no solo la lengua</h2>
               <p className="text-xs leading-snug text-muted-foreground">
                 Se desbloquea con <strong>tinta</strong>: nunca te baja el nivel ni gasta XP.
               </p>

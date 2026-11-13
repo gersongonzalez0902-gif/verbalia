@@ -134,7 +134,7 @@ export function TrainingScreen() {
               <Sparkles className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-lg font-bold leading-tight">{GAME_IDS.length} formas de entrenar la lengua</h2>
+              <h2 className="type-h2 leading-tight">{GAME_IDS.length} formas de entrenar la lengua</h2>
               <p className="text-xs leading-snug text-muted-foreground">
                 Todos los formatos del Archipiélago en una sola sala: elige el tuyo y salta directo al ejercicio.
                 Los formatos se abren al subir de nivel, igual que las islas del mapa.
@@ -341,7 +341,7 @@ function GameDetail({
             <Icon className="h-6 w-6" />
           </span>
           <div className="min-w-0">
-            <DialogTitle className="font-display text-lg font-bold leading-tight">{game.name}</DialogTitle>
+            <DialogTitle className="type-h2 leading-tight">{game.name}</DialogTitle>
             <DialogDescription className="text-xs">{game.tagline}</DialogDescription>
           </div>
         </div>

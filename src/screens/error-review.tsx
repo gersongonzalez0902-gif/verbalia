@@ -63,7 +63,7 @@ export function ErrorReviewScreen() {
             <div className="card-aurora relative mt-4 flex flex-col items-start gap-3 overflow-hidden rounded-3xl border border-primary/30 bg-card p-4 sm:flex-row sm:items-center">
               <span aria-hidden className="anim-float-diag absolute -right-3 -top-4 text-5xl opacity-20 select-none">📝</span>
               <div className="relative min-w-0 flex-1">
-                <p className="font-display text-lg font-bold">Repaso dirigido</p>
+                <p className="type-h2">Repaso dirigido</p>
                 <p className="text-sm text-muted-foreground">
                   Reintenta tus errores más recientes. XP casi completo: aprender de ellos vale más que repetir lo fácil.
                 </p>

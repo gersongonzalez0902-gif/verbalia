@@ -141,7 +141,7 @@ export function LibraryScreen() {
               return (
                 <section key={stage} aria-labelledby={`stage-${stage}`} className={cn("card-aurora rounded-3xl border p-5", isCurrent ? "border-primary/50 bg-primary/5" : "bg-card")}>
                   <div className="flex items-center justify-between gap-3">
-                    <h2 id={`stage-${stage}`} className="font-display text-lg font-bold">
+                    <h2 id={`stage-${stage}`} className="type-h2">
                       {STAGE_LABELS[stage]}
                     </h2>
                     <span

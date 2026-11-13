@@ -84,7 +84,7 @@ export function SettingsScreen() {
       <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-28 pt-4">
         {/* ===== Cuenta online ===== */}
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="cuenta-online">
-          <h2 id="cuenta-online" className="font-display flex items-center gap-2 text-lg font-bold">
+          <h2 id="cuenta-online" className="type-h2 flex items-center gap-2">
             <Cloud className="h-5 w-5 text-primary" aria-hidden /> Cuenta
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -99,7 +99,7 @@ export function SettingsScreen() {
 
         {/* ===== Apariencia ===== */}
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="apariencia">
-          <h2 id="apariencia" className="font-display flex items-center gap-2 text-lg font-bold">
+          <h2 id="apariencia" className="type-h2 flex items-center gap-2">
             <Palette className="h-5 w-5 text-primary" aria-hidden /> Apariencia
           </h2>
 
@@ -225,7 +225,7 @@ export function SettingsScreen() {
 
         {/* ===== Sonido ===== */}
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="sonido">
-          <h2 id="sonido" className="font-display text-lg font-bold">Sonido y música</h2>
+          <h2 id="sonido" className="type-h2">Sonido y música</h2>
 
           <div className="mt-4 space-y-5">
             <div className="flex items-center justify-between gap-4">
@@ -395,7 +395,7 @@ export function SettingsScreen() {
 
         {/* ===== Ritmo de juego ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="ritmo">
-          <h2 id="ritmo" className="font-display text-lg font-bold">Ritmo de juego</h2>
+          <h2 id="ritmo" className="type-h2">Ritmo de juego</h2>
 
           <div className="mt-4 space-y-5">
             <div>
@@ -438,7 +438,7 @@ export function SettingsScreen() {
 
         {/* ===== Tus datos (gestión completa) ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="datos">
-          <h2 id="datos" className="font-display flex items-center gap-2 text-lg font-bold">
+          <h2 id="datos" className="type-h2 flex items-center gap-2">
             <Database className="h-5 w-5 text-primary" aria-hidden /> Tus datos
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
@@ -521,7 +521,7 @@ export function SettingsScreen() {
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="offline">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 id="offline" className="font-display text-lg font-bold">Modo sin conexión</h2>
+              <h2 id="offline" className="type-h2">Modo sin conexión</h2>
               <p className="text-xs text-muted-foreground">
                 {"serviceWorker" in navigator
                   ? "La aplicación puede instalarse y funcionar sin conexión (PWA). Las funciones de voz dependen del navegador."
@@ -536,7 +536,7 @@ export function SettingsScreen() {
 
         {/* ===== Privacidad ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="privacidad">
-          <h2 id="privacidad" className="font-display text-lg font-bold">Privacidad</h2>
+          <h2 id="privacidad" className="type-h2">Privacidad</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Puedes jugar sin cuenta: nada se te pide para empezar.</li>
             <li className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden /> Sin cuenta, todo se guarda solo en tu dispositivo; con cuenta, solo tu correo viaja al barco.</li>
@@ -555,7 +555,7 @@ export function SettingsScreen() {
 
         {/* ===== Acerca de ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="acerca">
-          <h2 id="acerca" className="font-display text-lg font-bold">Acerca de VerbalIA</h2>
+          <h2 id="acerca" className="type-h2">Acerca de VerbalIA</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Etapa 2 completa · 110 minijuegos, 8 regiones y miles de ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
             Los niveles MCER que se muestran son estimaciones orientativas: VerbalIA no certifica el

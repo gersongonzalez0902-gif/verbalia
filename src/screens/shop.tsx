@@ -271,7 +271,7 @@ export function ShopScreen() {
     return (
       <section key={kind} className="mt-6" aria-labelledby={`shop-${kind}`}>
         <div className="flex items-baseline justify-between gap-2">
-          <h2 id={`shop-${kind}`} className="flex items-center gap-2 font-display text-lg font-bold">
+          <h2 id={`shop-${kind}`} className="type-h2 flex items-center gap-2">
             <MetaIcon className="h-4.5 w-4.5 text-primary" aria-hidden />
             {meta.label}
           </h2>

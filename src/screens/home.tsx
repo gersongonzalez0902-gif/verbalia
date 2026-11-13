@@ -217,7 +217,7 @@ export function HomeScreen() {
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
             {horaGreeting} · {rankName(rank, profile.gender)}
           </p>
-          <h1 className="font-display truncate text-2xl font-bold leading-tight title-sheen">
+          <h1 className="type-h1 truncate title-sheen">
             ¡Hola, {profile.name}!
           </h1>
         </div>
@@ -311,14 +311,14 @@ export function HomeScreen() {
         <section className="card-aurora grid gap-4 rounded-3xl border bg-card p-4 sm:grid-cols-[auto_1fr]" aria-labelledby="goal-title">
           <div className="flex items-center justify-center">
             <ProgressRing value={goalPct} size={124} stroke={11} label="Objetivo diario de XP">
-              <span className="numeric font-display text-2xl font-bold">{xpToday}</span>
+              <span className="numeric type-metric text-2xl">{xpToday}</span>
               <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                 de {settings.dailyGoalXp} XP
               </span>
             </ProgressRing>
           </div>
           <div className="flex flex-col justify-center gap-2.5">
-            <h2 id="goal-title" className="font-display text-lg font-bold">
+            <h2 id="goal-title" className="type-h2">
               {goalPct >= 1 ? "¡Objetivo del día cumplido! 🎉" : "Tu aventura de hoy"}
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -334,7 +334,7 @@ export function HomeScreen() {
         {/* Misiones diarias */}
         <section className="mt-6 lg:mt-0" aria-labelledby="missions-title">
           <div className="mb-2.5 flex items-center justify-between">
-            <h2 id="missions-title" className="font-display flex items-center gap-2 text-lg font-bold">
+            <h2 id="missions-title" className="type-h2 flex items-center gap-2">
               Misiones de hoy
               {claimableMissions > 0 && (
                 <span className="gloss numeric rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-primary-foreground">
@@ -567,7 +567,7 @@ function RailSection({
   return (
     <section className={className} aria-labelledby={`rail-${title}`}>
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <h2 id={`rail-${title}`} className="font-display flex items-baseline gap-2 text-lg font-bold">
+        <h2 id={`rail-${title}`} className="type-h2 flex items-baseline gap-2">
           {title}
           {count && <span className="text-xs font-semibold text-muted-foreground">{count}</span>}
         </h2>

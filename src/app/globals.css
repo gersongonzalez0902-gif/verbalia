@@ -845,6 +845,54 @@ html[data-text-size="xl"] {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Escala tipográfica unificada (Ola D · Área 1.1) ----------
+   Seis pasos para todo el Archipiélago. Antes había tamaños sueltos por
+   pantalla; ahora cada título, cuerpo y etiqueta vive en esta escala.
+   El ajuste "Tamaño del texto" (md/lg/xl) escala el html completo,
+   así que la escala siempre lo respeta. */
+.type-display {
+  font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+  font-size: 2.75rem;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.type-h1 {
+  font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+}
+.type-h2 {
+  font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+}
+.type-h3 {
+  font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+}
+.type-body {
+  font-size: 0.875rem;
+  line-height: 1.5715;
+}
+.type-label {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+}
+.type-metric {
+  font-family: var(--font-display), var(--font-body), ui-rounded, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
 /* ============================ Animaciones ============================ */
 @keyframes float-soft {
   0%, 100% { transform: translateY(0); }
@@ -1317,11 +1365,50 @@ html.reduce-motion *::after {
     radial-gradient(color-mix(in oklch, var(--foreground) 5%, transparent) 1px, transparent 1px);
   background-size: 22px 22px;
 }
+/* En modo oscuro el papel se vuelve pizarra fina (Ola D · Área 1.5) */
+html.dark .paper-texture {
+  background-image:
+    radial-gradient(color-mix(in oklch, var(--foreground) 8%, transparent) 1px, transparent 1px);
+}
+
+/* ---------- Esqueletos de carga (Ola D · Área 1.3) ----------
+   Siluetas con la forma real del contenido y un brillo que barre,
+   en lugar de huecos en blanco. */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--foreground) 8%, transparent);
+  border-radius: 0.75rem;
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--foreground) 7%, transparent),
+    transparent
+  );
+  animation: skeleton-sweep 1.7s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
 
 /* Botones táctiles cómodos (mínimo 44px) */
 .tap-target {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* ---------- Estados claros de foco (Ola D · Área 1.2) ----------
+   El anillo visible ya existía en escritorio con ratón; ahora también
+   con teclado en cualquier dispositivo (portátiles táctiles, tablets). */
+:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--primary) 72%, transparent);
+  outline-offset: 2px;
 }
 
 /* Anillo de progreso animado */

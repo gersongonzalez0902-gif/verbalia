@@ -28,17 +28,34 @@ import { Vitality } from "@/components/game/vitality";
 import { useSceneSystem } from "@/hooks/use-scene";
 import { Loader2 } from "lucide-react";
 import { LexicoMascot } from "@/components/game/lexico";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /* ---------- Pantallas bajo demanda (code-splitting) ---------- */
+/* Esqueleto con la forma real del contenido (Ola D · Área 1.3):
+   banda de cabecera + tarjetas de la pantalla que llega. */
+function ScreenSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-5" role="status" aria-live="polite">
+      <span className="sr-only">Preparando el rincón…</span>
+      <Skeleton className="mb-4 h-11 w-full rounded-2xl" />
+      <div className="mb-4 flex items-center gap-3">
+        <Skeleton className="size-14 shrink-0 rounded-2xl" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-3 w-1/4" />
+        </div>
+      </div>
+      <Skeleton className="mb-3 h-32 w-full rounded-3xl" />
+      <Skeleton className="mb-3 h-24 w-full rounded-3xl" />
+      <Skeleton className="h-24 w-full rounded-3xl" />
+    </div>
+  );
+}
+
 const Lazy = (load: () => Promise<{ default: React.ComponentType }>) =>
   dynamic(load, {
     ssr: false,
-    loading: () => (
-      <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-3" role="status" aria-live="polite">
-        <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden />
-        <p className="text-sm font-semibold text-muted-foreground">Preparando el rincón…</p>
-      </div>
-    ),
+    loading: () => <ScreenSkeleton />,
   });
 
 const StatsScreen = Lazy(() => import("@/screens/stats").then((m) => ({ default: m.StatsScreen })));

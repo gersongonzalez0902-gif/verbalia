@@ -284,7 +284,7 @@ export function AppShell({
             className="safe-bottom max-h-[78dvh] overflow-y-auto rounded-t-3xl px-4 pb-8 pt-4 sm:mx-auto sm:max-w-md"
           >
             <SheetHeader className="p-0 text-left">
-              <SheetTitle className="font-display text-lg font-bold">Más rincones del Archipiélago</SheetTitle>
+              <SheetTitle className="type-h2">Más rincones del Archipiélago</SheetTitle>
               <SheetDescription>Toda la aventura cabe en tu bolsillo.</SheetDescription>
             </SheetHeader>
             <div className="mt-3 grid grid-cols-2 gap-2.5">
@@ -350,7 +350,7 @@ export function ScreenHeader({
           <span className="hidden sm:inline">Volver</span>
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-lg font-bold leading-tight">{title}</h1>
+          <h1 className="truncate type-h1">{title}</h1>
           {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {right}

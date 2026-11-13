@@ -106,7 +106,7 @@ export function MusicStationScreen() {
               <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 {station.playing ? "Sonando ahora" : station.currentId ? "En pausa" : "Radio apagada"}
               </p>
-              <p className="font-display text-lg font-bold leading-tight">
+              <p className="type-h2 leading-tight">
                 {current ? current.name : "Carga canciones para zarpar"}
               </p>
               <p className="numeric mt-0.5 text-xs text-muted-foreground">
@@ -253,7 +253,7 @@ export function MusicStationScreen() {
 
         {/* ===== Lista de reproducción ===== */}
         <section aria-labelledby="playlist-title">
-          <h2 id="playlist-title" className="font-display mb-2.5 flex items-center gap-2 text-lg font-bold">
+          <h2 id="playlist-title" className="type-h2 mb-2.5 flex items-center gap-2">
             <ListMusic className="h-5 w-5 text-primary" aria-hidden />
             Playlist del navegante
           </h2>

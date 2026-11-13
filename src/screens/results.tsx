@@ -68,7 +68,7 @@ export function ResultsScreen() {
         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           {isNewPlayer ? "Evaluación completada" : "Sesión completada"}
         </p>
-        <h1 className="font-display mt-1 text-3xl font-bold">
+        <h1 className="type-display mt-1">
           {result.accuracy === null
             ? "Jardín regado"
             : accuracyPct !== null && accuracyPct >= 80
@@ -97,7 +97,7 @@ export function ResultsScreen() {
 
         <div className="anim-pop gloss flex items-center gap-2 rounded-2xl px-5 py-2.5" style={{ background: "color-mix(in oklch, var(--xp) 16%, transparent)" }}>
           <Sparkles className="h-5 w-5 text-[var(--xp)]" aria-hidden />
-          <span className="numeric font-display text-2xl font-bold text-[var(--xp)]">+{result.xpTotal} XP</span>
+          <span className="numeric type-metric text-2xl text-[var(--xp)]">+{result.xpTotal} XP</span>
         </div>
 
         {result.tintaEarned > 0 && (
@@ -124,7 +124,7 @@ export function ResultsScreen() {
         <div className="card-aurora anim-slide-up mt-6 flex items-center gap-4 rounded-3xl border-2 border-[var(--xp)]/60 bg-card p-4">
           <LevelBadge level={level} size="lg" />
           <div className="min-w-0 flex-1">
-            <p className="font-display text-lg font-bold">¡Subiste al nivel {level}!</p>
+            <p className="type-h2">¡Subiste al nivel {level}!</p>
             <p className="text-sm text-muted-foreground">Rango: {rank.name}</p>
           </div>
           <Award className="anim-twinkle h-8 w-8 shrink-0 text-[var(--xp)]" aria-hidden />

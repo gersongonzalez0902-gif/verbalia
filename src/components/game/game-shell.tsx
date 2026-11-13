@@ -161,7 +161,7 @@ export function FeedbackOverlay({
             className="shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <p className="font-display text-lg font-bold leading-tight">
+            <p className="type-h2 leading-tight">
               {isCorrect ? "¡Muy bien!" : feedback.title}
             </p>
             {!isCorrect && feedback.correctAnswer && (

@@ -101,7 +101,7 @@ export function WritingScreen() {
               <Keyboard className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-lg font-bold leading-tight">Escribe como los copistas</h2>
+              <h2 className="type-h2 leading-tight">Escribe como los copistas</h2>
               <p className="text-xs leading-snug text-muted-foreground">
                 La velocidad llega sola; la costumbre se construye a diario. Tu racha del taller: {typing.streak} día(s).
               </p>
@@ -148,7 +148,7 @@ export function WritingScreen() {
 
             {/* Enlaces a escritura del juego principal */}
             <section className="mt-6" aria-labelledby="write-links">
-              <h2 id="write-links" className="font-display mb-2.5 text-lg font-bold">También en el Archipiélago</h2>
+              <h2 id="write-links" className="type-h2 mb-2.5">También en el Archipiélago</h2>
               <div className="grid gap-2.5 sm:grid-cols-3">
                 <WriteLink
                   title="Dictado del Faro"
@@ -472,7 +472,7 @@ function TypingResult({
           ))}
         </div>
       )}
-      <p className="font-display flex items-center justify-center gap-2 text-lg font-bold">
+      <p className="type-h2 flex items-center justify-center gap-2">
         {isRecord ? (
           <>
             <Trophy className="h-5 w-5 text-[var(--xp)]" aria-hidden /> ¡Nuevo récord de pluma!

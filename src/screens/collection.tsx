@@ -83,7 +83,7 @@ export function CollectionScreen() {
           <span aria-hidden className="anim-float absolute -right-2 -top-3 text-5xl opacity-25 select-none">🌿</span>
           <span aria-hidden className="anim-float absolute -bottom-3 right-14 text-3xl opacity-20 select-none" style={{ animationDelay: "-2.5s" }}>🌱</span>
           <ProgressRing value={learned / SRS_WORDS_FULL.length} size={84} stroke={9}>
-            <span className="numeric font-display text-lg font-bold">{Math.round((learned / SRS_WORDS_FULL.length) * 100)}%</span>
+            <span className="numeric type-h2">{Math.round((learned / SRS_WORDS_FULL.length) * 100)}%</span>
           </ProgressRing>
           <div className="relative text-sm">
             <p className="font-bold">Tu jardín de vocabulario</p>
@@ -174,7 +174,7 @@ export function CollectionScreen() {
                 <li key={w.id} className="card-aurora rounded-2xl border bg-card p-4 transition hover:border-primary/40">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-display text-lg font-bold leading-tight">{w.word}</p>
+                      <p className="type-h2 leading-tight">{w.word}</p>
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                         {w.pos} · {w.cefr}
                       </p>

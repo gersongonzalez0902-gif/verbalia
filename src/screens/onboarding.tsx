@@ -122,7 +122,7 @@ export function OnboardingScreen() {
       <div className="flex-1">
         {step === 0 && (
           <section className="anim-slide-up space-y-4">
-            <h1 className="font-display text-2xl font-bold">¿Cómo te llamamos?</h1>
+            <h1 className="type-h1">¿Cómo te llamamos?</h1>
             <p className="text-sm text-muted-foreground">
               Aparecerá en tu bitácora. Puedes usar tu nombre o un alias de viaje.
             </p>
@@ -144,7 +144,7 @@ export function OnboardingScreen() {
 
         {step === 1 && (
           <section className="anim-slide-up space-y-4">
-            <h1 className="font-display text-2xl font-bold">¿Cómo prefieres que te llamemos?</h1>
+            <h1 className="type-h1">¿Cómo prefieres que te llamemos?</h1>
             <p className="text-sm text-muted-foreground">
               Solo afecta a los títulos del viaje (rangos y logros). Puedes cambiarlo cuando quieras.
             </p>
@@ -179,7 +179,7 @@ export function OnboardingScreen() {
 
         {step === 2 && (
           <section className="anim-slide-up space-y-4">
-            <h1 className="font-display text-2xl font-bold">¿Cuál es tu rumbo?</h1>
+            <h1 className="type-h1">¿Cuál es tu rumbo?</h1>
             <p className="text-sm text-muted-foreground">Nos ayuda a recomendarte sesiones y contenidos.</p>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {GOALS.map((g) => {
@@ -211,7 +211,7 @@ export function OnboardingScreen() {
 
         {step === 3 && (
           <section className="anim-slide-up space-y-4">
-            <h1 className="font-display text-2xl font-bold">¿Cuánta experiencia tienes?</h1>
+            <h1 className="type-h1">¿Cuánta experiencia tienes?</h1>
             <p className="text-sm text-muted-foreground">
               Sé sincero: la evaluación inicial ajustará tu nivel real en cada habilidad.
             </p>
@@ -246,7 +246,7 @@ export function OnboardingScreen() {
 
         {step === 4 && (
           <section className="anim-slide-up space-y-4">
-            <h1 className="font-display text-2xl font-bold">Tu paleta de navegación</h1>
+            <h1 className="type-h1">Tu paleta de navegación</h1>
             <p className="text-sm text-muted-foreground">
               Se aplica en vivo: pruébalas todas antes de decidir. Podrás cambiarla en Ajustes cuando quieras.
             </p>

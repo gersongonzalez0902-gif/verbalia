@@ -176,7 +176,7 @@ export function MissionsScreen() {
           <TabsContent value="misiones" className="mt-4 space-y-6">
             <section aria-labelledby="daily-title">
               <div className="mb-2.5 flex items-center justify-between">
-                <h2 id="daily-title" className="font-display text-lg font-bold">
+                <h2 id="daily-title" className="type-h2">
                   Diarias
                 </h2>
                 <p className="text-xs font-semibold text-muted-foreground">
@@ -197,7 +197,7 @@ export function MissionsScreen() {
 
             <section aria-labelledby="weekly-title">
               <div className="mb-2.5 flex items-center justify-between">
-                <h2 id="weekly-title" className="font-display text-lg font-bold">
+                <h2 id="weekly-title" className="type-h2">
                   Semanales
                 </h2>
                 <p className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">

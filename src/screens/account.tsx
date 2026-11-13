@@ -30,6 +30,7 @@ import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -346,17 +347,26 @@ export function AccountScreen() {
       <ScreenHeader title="Cuenta" backTo={{ name: "settings" }} />
 
       <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-28 pt-4">
-        {/* ===== Cargando sesión ===== */}
+        {/* ===== Cargando sesión: esqueleto con la forma del panel (Área 1.3) ===== */}
         {!online.authChecked && (
-          <div className="flex items-center justify-center gap-2 rounded-3xl border bg-card p-8 text-sm font-semibold text-muted-foreground" role="status">
-            <RefreshCw className="h-4 w-4 animate-spin" aria-hidden /> Mirando si hay sesión…
+          <div className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" role="status" aria-live="polite">
+            <span className="sr-only">Mirando si hay sesión…</span>
+            <div className="mb-4 flex items-center gap-3">
+              <Skeleton className="size-12 shrink-0 rounded-2xl" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+            </div>
+            <Skeleton className="mb-2.5 h-10 w-full rounded-2xl" />
+            <Skeleton className="h-10 w-full rounded-2xl" />
           </div>
         )}
 
         {/* ===== Sin sesión: login / registro ===== */}
         {online.authChecked && !user && (
           <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="entrar">
-            <h2 id="entrar" className="font-display flex items-center gap-2 text-lg font-bold">
+            <h2 id="entrar" className="type-h2 flex items-center gap-2">
               <UserRound className="h-5 w-5 text-primary" aria-hidden /> Entrar al barco
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -438,7 +448,7 @@ export function AccountScreen() {
         {/* ===== Restablecer contraseña desde enlace de correo ===== */}
         {online.authChecked && !user && resetPending && (
           <section id="reset-password-panel" className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="reset-pw">
-            <h2 id="reset-pw" className="font-display flex items-center gap-2 text-lg font-bold">
+            <h2 id="reset-pw" className="type-h2 flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-primary" aria-hidden /> Contraseña nueva
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -469,7 +479,7 @@ export function AccountScreen() {
         {online.authChecked && user && (
           <>
             <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="mi-cuenta">
-              <h2 id="mi-cuenta" className="font-display flex items-center gap-2 text-lg font-bold">
+              <h2 id="mi-cuenta" className="type-h2 flex items-center gap-2">
                 <UserRound className="h-5 w-5 text-primary" aria-hidden /> Tu cuenta
               </h2>
 
@@ -528,7 +538,7 @@ export function AccountScreen() {
 
             {/* ===== Contraseña ===== */}
             <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="seguridad">
-              <h2 id="seguridad" className="font-display flex items-center gap-2 text-lg font-bold">
+              <h2 id="seguridad" className="type-h2 flex items-center gap-2">
                 <KeyRound className="h-5 w-5 text-primary" aria-hidden /> Contraseña y correo
               </h2>
 
@@ -588,7 +598,7 @@ export function AccountScreen() {
 
             {/* ===== Dispositivos ===== */}
             <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="dispositivos">
-              <h2 id="dispositivos" className="font-display flex items-center gap-2 text-lg font-bold">
+              <h2 id="dispositivos" className="type-h2 flex items-center gap-2">
                 <Laptop className="h-5 w-5 text-primary" aria-hidden /> Dispositivos con sesión
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -624,7 +634,7 @@ export function AccountScreen() {
 
             {/* ===== Zona peligrosa ===== */}
             <section className="relative overflow-hidden rounded-3xl border border-destructive/40 bg-card p-5" aria-labelledby="peligrosa">
-              <h2 id="peligrosa" className="font-display flex items-center gap-2 text-lg font-bold">
+              <h2 id="peligrosa" className="type-h2 flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-destructive" aria-hidden /> Borrar cuenta
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">

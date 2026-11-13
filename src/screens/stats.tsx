@@ -686,7 +686,7 @@ function RecordRow({ icon, label, value, hint }: { icon: React.ReactNode; label:
 function SummaryCard({ value, label, hint }: { value: string; label: string; hint?: string }) {
   return (
     <div className="gloss card-aurora rounded-2xl border bg-card p-3 text-center">
-      <p className="numeric font-display title-sheen truncate text-lg font-bold">{value}</p>
+      <p className="numeric type-h2 title-sheen truncate">{value}</p>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       {hint && <p className="mt-0.5 text-[10px] leading-tight text-muted-foreground/80">{hint}</p>}
     </div>

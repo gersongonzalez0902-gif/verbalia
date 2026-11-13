@@ -330,7 +330,7 @@ export function ProfileScreen() {
                   className="h-10"
                 />
               ) : (
-                <h2 className="font-display title-sheen truncate text-2xl font-bold leading-tight drop-shadow-sm">{profile.name}</h2>
+                <h2 className="type-h1 title-sheen truncate drop-shadow-sm">{profile.name}</h2>
               )}
               <p className="mt-0.5 text-xs font-semibold leading-snug text-foreground/85 drop-shadow-sm">
                 {rankName(rank, profile.gender)} · desde {memberSince}
@@ -444,7 +444,7 @@ export function ProfileScreen() {
 
         {/* ===== Habilidades (las 7 islas) ===== */}
         <section className="mt-6" aria-labelledby="skills-title">
-          <h3 id="skills-title" className="font-display text-lg font-bold">Tus habilidades</h3>
+          <h3 id="skills-title" className="type-h2">Tus habilidades</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Estimación orientativa. VerbalIA no certifica niveles oficiales.
           </p>
@@ -495,7 +495,7 @@ export function ProfileScreen() {
 
         {/* ===== Insignias: vitrina compacta (sin saturar la ficha) ===== */}
         <section className="mt-6" aria-labelledby="badges-title">
-          <h3 id="badges-title" className="font-display flex items-center gap-2 text-lg font-bold">
+          <h3 id="badges-title" className="type-h2 flex items-center gap-2">
             <Medal className="h-5 w-5 text-primary" aria-hidden />
             Insignias: {unlockedCount} / {ACHIEVEMENTS.length}
           </h3>

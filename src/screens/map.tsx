@@ -155,7 +155,7 @@ export function MapScreen() {
 
         {/* ===== Lista accesible de regiones ===== */}
         <section className="mt-6" aria-label="Lista de regiones">
-          <h2 className="font-display mb-2.5 text-lg font-bold">Vista de lista</h2>
+          <h2 className="type-h2 mb-2.5">Vista de lista</h2>
           <ul className="grid gap-2.5 sm:grid-cols-2">
             {REGIONS.map((r) => {
               const shipped = r.games.length > 0;
@@ -289,7 +289,7 @@ function RegionSheet({
 
           <div className="flex items-center gap-4">
             <ProgressRing value={prog.pct} size={86} stroke={8} color={`var(${region.colorVar})`}>
-              <span className="numeric font-display text-lg font-bold">{Math.round(prog.pct * 100)}%</span>
+              <span className="numeric type-h2">{Math.round(prog.pct * 100)}%</span>
             </ProgressRing>
             <div className="text-sm">
               <p className="font-bold">{prog.played} sesiones jugadas</p>
