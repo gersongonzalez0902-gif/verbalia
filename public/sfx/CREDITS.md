@@ -11,6 +11,11 @@ Cada efecto existe en `.ogg` (preferido) y `.mp3` (respaldo para navegadores sin
 p. ej. Safari/iOS). Los nombres con número (p. ej. `correct2.ogg`) son variantes del mismo
 efecto: el juego las alterna al azar para que nunca suene igual dos veces seguidas.
 
+**Sobre el sintetizador:** el motor guarda un pequeño sintetizador de emergencia que solo
+suena si un archivo real no llega (primera visita sin red, navegador caprichoso). Es
+exclusivamente respaldo de emergencia: nunca reemplaza al banco y no forma parte del
+sonido previsto del juego.
+
 ## Efectos (`public/sfx/`)
 
 ### Kenney · «Interface Sounds» — CC0

@@ -17,12 +17,14 @@
  *    el tono y el volumen hasta el clímax de los últimos segundos.
  *
  * El AudioContext se desbloquea con el primer gesto del usuario
- * (política de navegadores) y, justo entonces, se precargan en
- * segundo plano los efectos más frecuentes. Si un archivo no
- * llega (primera visita sin red, navegador caprichoso), el
- * sintetizador de emergencia toma el turno: el juego nunca se
- * queda mudo. Si el jugador silencia el juego, el contexto se
- * suspende y todo queda en silencio absoluto.
+ * (política de navegadores) y, justo entonces, se calienta el banco:
+ * primero los efectos más frecuentes y, cuando el hilo respire, el
+ * resto (Ola E · 4). Los primeros golpes entran en una cola de gracia
+ * que espera a su archivo (tope 150 ms) para que el sintetizador casi
+ * nunca suene. Si un archivo no llega (primera visita sin red,
+ * navegador caprichoso), el sintetizador de emergencia toma el turno:
+ * el juego nunca se queda mudo. Si el jugador silencia el juego, el
+ * contexto se suspende y todo queda en silencio absoluto.
  */
 
 /* ============================== ajustes ============================== */
@@ -91,7 +93,7 @@ export function initAudioUnlock(): void {
   const unlock = () => {
     ensureCtx();
     unlocked = true;
-    warmupSfxFiles(); // los archivos reales llegan con el primer gesto
+    warmupSfxFiles(); // el banco se calienta ANTES de cualquier sfx probable (Ola E · 4)
     if (currentScene) startScene(currentScene); // la música arranca al desbloquear
     detach();
   };
@@ -822,64 +824,176 @@ const SFX_FILES: Record<string, SfxFileSpec[]> = {
 
 const sfxBufferCache = new Map<string, AudioBuffer>();
 const sfxFileFailed = new Set<string>();
-const sfxFileLoading = new Set<string>();
+/** Cargas en vuelo por base: dedupe y ancla de la cola de gracia. */
+const sfxPending = new Map<string, Promise<boolean>>();
 
-async function loadSfxFile(base: string): Promise<void> {
-  const c = ensureCtx();
+/* ================= Calibración fina tras el primer gesto (Ola E · 4) =================
+ * El banco se calienta en cuanto hay gesto, pero fetch + decode es asíncrono:
+ * el primer «tap» de ese mismo gesto llegaría ANTES que su archivo y el
+ * sintetizador de respaldo sonaría. Mientras se calienta, los primeros
+ * efectos entran en una cola de gracia: esperan, con tope de SFX_GRACE_MS,
+ * a que su archivo esté; si llega, suena el archivo; si falla en frío o
+ * vence el tope, suena el sintetizador como siempre. Pasada la ventana de
+ * calentamiento, el comportamiento es exactamente el de antes. */
+
+const SFX_GRACE_MS = 150; // tope de espera de un golpe a su archivo
+const SFX_GRACE_WINDOW_MS = 1_500; // ventana tras el primer gesto en la que se espera
+let graceWindowEnd = 0;
+
+interface GraceHit {
+  name: string;
+  base: string;
+  rate?: number;
+  gain?: number;
+  timer: ReturnType<typeof setTimeout> | null;
+}
+const graceQueue: GraceHit[] = [];
+
+/** Carga un archivo de efecto (dedupe por base). true -> ya está cacheado. */
+function loadSfxFile(base: string): Promise<boolean> {
   const key = `${base}.ogg`;
-  if (!c || sfxBufferCache.has(key) || sfxFileFailed.has(base) || sfxFileLoading.has(base)) return;
-  sfxFileLoading.add(base);
-  // .ogg preferido; .mp3 de respaldo (Safari/iOS).
-  for (const src of [`/sfx/${base}.ogg`, `/sfx/${base}.mp3`]) {
-    try {
-      const res = await fetch(src);
-      if (!res.ok) continue;
-      const bytes = await res.arrayBuffer();
-      sfxBufferCache.set(key, await c.decodeAudioData(bytes));
-      return;
-    } catch {
-      /* probamos el siguiente formato */
+  if (sfxBufferCache.has(key)) return Promise.resolve(true);
+  if (sfxFileFailed.has(base)) return Promise.resolve(false);
+  const pending = sfxPending.get(base);
+  if (pending) return pending;
+  const p = (async (): Promise<boolean> => {
+    const c = ensureCtx();
+    if (!c) return false;
+    // .ogg preferido; .mp3 de respaldo (Safari/iOS).
+    for (const src of [`/sfx/${base}.ogg`, `/sfx/${base}.mp3`]) {
+      try {
+        const res = await fetch(src);
+        if (!res.ok) continue;
+        const bytes = await res.arrayBuffer();
+        sfxBufferCache.set(key, await c.decodeAudioData(bytes));
+        return true;
+      } catch {
+        /* probamos el siguiente formato */
+      }
     }
-  }
-  sfxFileFailed.add(base); // este efecto no llega: síntesis permanente para él
-  sfxFileLoading.delete(base);
+    sfxFileFailed.add(base); // este efecto no llega: síntesis permanente para él
+    return false;
+  })();
+  sfxPending.set(base, p);
+  void p.then((ok) => {
+    sfxPending.delete(base);
+    drainGraceQueue(base, ok);
+  });
+  return p;
 }
 
-/** Precarga los sonidos más frecuentes justo tras el primer gesto. */
+/** Suena el buffer ya cacheado de una base. false -> no está o falló el nodo. */
+function playBuffer(base: string, rate?: number, gain?: number): boolean {
+  const c = ensureCtx();
+  const buf = c ? sfxBufferCache.get(`${base}.ogg`) : undefined;
+  if (!c || !buf) return false;
+  try {
+    const node = c.createBufferSource();
+    node.buffer = buf;
+    node.playbackRate.value = rate ?? 1;
+    const g = c.createGain();
+    g.gain.value = (gain ?? 1) * sfxVolume;
+    node.connect(g);
+    g.connect(sfxBus ?? c.destination);
+    node.start();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Respaldo sintético por nombre (solo emergencia: ver CREDITS.md). */
+function playSynthFallback(name: string): void {
+  const fn = Reflect.get(synthSfx as Record<string, unknown>, name);
+  if (typeof fn === "function") (fn as (...args: unknown[]) => void)();
+}
+
+/** Toca el archivo del golpe y, si no pudo, el sintetizador. */
+function playGraceHit(hit: GraceHit): void {
+  if (playBuffer(hit.base, hit.rate, hit.gain)) {
+    const hp = HAPTIC_BY_SFX[hit.name];
+    if (hp !== undefined) haptic(hp);
+  } else {
+    playSynthFallback(hit.name);
+  }
+}
+
+/** Golpe en espera: entra en la cola con su tope de paciencia. */
+function enqueueGraceHit(name: string, base: string, rate?: number, gain?: number): void {
+  const hit: GraceHit = { name, base, rate, gain, timer: null };
+  graceQueue.push(hit);
+  hit.timer = setTimeout(() => {
+    const i = graceQueue.indexOf(hit);
+    if (i === -1) return; // el drenaje ya lo resolvió
+    graceQueue.splice(i, 1);
+    playGraceHit(hit);
+  }, SFX_GRACE_MS + 10);
+}
+
+/** El archivo llegó (ok=true) o falló (ok=false): se resuelven sus golpes. */
+function drainGraceQueue(base: string, ok: boolean): void {
+  if (graceQueue.length === 0) return;
+  for (const hit of graceQueue.filter((h) => h.base === base)) {
+    const i = graceQueue.indexOf(hit);
+    if (i === -1) continue;
+    graceQueue.splice(i, 1);
+    if (hit.timer) clearTimeout(hit.timer);
+    if (ok) playGraceHit(hit);
+    else playSynthFallback(hit.name); // falló en frío: respaldo como hoy
+  }
+}
+
+/** Precarga el banco justo tras el primer gesto, ANTES de cualquier
+ *  efecto probable: primera ola con lo más frecuente (el tap de ese
+ *  mismo gesto entra en la cola de gracia y espera a su archivo en vez
+ *  de dejar sonar el sintetizador) y, cuando el hilo respire, una
+ *  segunda ola con el resto del banco (el service worker ya lo
+ *  precacheó: solo cuesta decodificar). */
 export function warmupSfxFiles(): void {
+  graceWindowEnd = Date.now() + SFX_GRACE_WINDOW_MS;
   for (const key of ["tap", "click", "correct", "wrong", "whoosh", "flip", "page", "coin", "clockTick", "tock"]) {
     const spec = SFX_FILES[key]?.[0] ?? (key === "clockTick" ? { base: "clockTick" } : key === "tock" ? { base: "tock" } : undefined);
     if (spec) void loadSfxFile(spec.base);
   }
+  const whenIdle = (cb: () => void): void => {
+    if (typeof requestIdleCallback === "function") requestIdleCallback(() => cb(), { timeout: 2_000 });
+    else setTimeout(cb, 400);
+  };
+  whenIdle(() => {
+    for (const key of Object.keys(SFX_FILES)) {
+      const spec = SFX_FILES[key]?.[0];
+      if (spec) void loadSfxFile(spec.base);
+    }
+    // El tic-tac del Gran Reloj no vive en SFX_FILES: se calienta aparte.
+    void loadSfxFile("clockTick");
+    void loadSfxFile("clockTick2");
+  });
 }
 
-/** Intenta sonar con archivo. false -> el sintetizador toma el turno. */
-function playSfxFile(name: string): boolean {
-  if (!enabled) return true; // silencio pedido: no suena nada (ni archivo ni síntesis)
+/** Decide el turno de un efecto: archivo ya sonado («file»), espera en
+ *  la cola de gracia («defer») o síntesis de respaldo («synth»). */
+function playSfxSmart(name: string): "file" | "defer" | "synth" {
+  if (!enabled) return "file"; // silencio pedido: no suena nada (ni archivo ni síntesis)
   const variants = SFX_FILES[name];
-  if (!variants || variants.length === 0) return false;
+  if (!variants || variants.length === 0) return "synth";
   const spec = variants[Math.floor(Math.random() * variants.length)];
-  const c = ensureCtx();
-  if (!c) return false;
-  const key = `${spec.base}.ogg`;
-  const buf = sfxBufferCache.get(key);
-  if (!buf) {
-    if (!sfxFileFailed.has(spec.base)) void loadSfxFile(spec.base); // llegará para la próxima
-    return false;
+  if (playBuffer(spec.base, spec.rate, spec.gain)) return "file";
+  if (sfxFileFailed.has(spec.base)) return "synth";
+  void loadSfxFile(spec.base); // llegará para la próxima
+  // Calibración fina: en la ventana tras el primer gesto, el golpe
+  // espera (tope 150 ms) a su archivo antes de resignarse a la síntesis.
+  // Si la carga muere al instante (sin AudioContext), el drenaje la
+  // resuelve en el mismo microtask: ni retardo ni doble sonido.
+  if (Date.now() < graceWindowEnd) {
+    enqueueGraceHit(name, spec.base, spec.rate, spec.gain);
+    return "defer";
   }
-  try {
-    const node = c.createBufferSource();
-    node.buffer = buf;
-    node.playbackRate.value = spec.rate ?? 1;
-    const g = c.createGain();
-    g.gain.value = (spec.gain ?? 1) * sfxVolume;
-    node.connect(g);
-    g.connect(sfxBus ?? c.destination);
-    node.start();
-  } catch {
-    return false;
-  }
-  return true;
+  return "synth";
+}
+
+/** Variante simple para «Probar sonidos»: archivo o respaldo, sin gracia. */
+function playSfxFile(name: string): boolean {
+  return playSfxSmart(name) === "file";
 }
 
 /** Lista de efectos con archivo, con sus variantes, para «Probar sonidos». */
@@ -928,7 +1042,9 @@ export const sfx = new Proxy(synthSfx, {
     if (typeof original !== "function") return original;
     return (...args: unknown[]) => {
       const name = String(prop);
-      if (playSfxFile(name)) {
+      const outcome = playSfxSmart(name);
+      if (outcome === "defer") return; // la cola de gracia decidirá (archivo o respaldo)
+      if (outcome === "file") {
         const hp = HAPTIC_BY_SFX[name];
         if (hp !== undefined) haptic(hp);
         return;
