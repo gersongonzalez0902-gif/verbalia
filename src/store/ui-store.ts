@@ -18,6 +18,19 @@ function screenToHash(screen: Screen): string {
   }
 }
 
+/** ¿Son la misma pantalla (con parámetros)? La comparación por identidad
+ *  de objeto fallaría con dos literales iguales: pinchar dos veces el
+ *  mismo destino NO debe machacar el origen recordado (P0-1). */
+function sameScreen(a: Screen, b: Screen): boolean {
+  if (a.name !== b.name) return false;
+  if (a.name === "game") {
+    const ga = a as { gameId: string; mode: string; regionId?: string };
+    const gb = b as { gameId: string; mode: string; regionId?: string };
+    return ga.gameId === gb.gameId && ga.mode === gb.mode && ga.regionId === gb.regionId;
+  }
+  return true;
+}
+
 function hashToScreen(hash: string): Screen {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   const [headRaw, a, b, c] = parts;
@@ -118,7 +131,8 @@ export const useUiStore = create<UiStore>((set, get) => ({
   navigate(screen) {
     const hash = screenToHash(screen);
     // Se recuerda de dónde se sale: la actual pasa a ser el origen.
-    set((s) => (s.screen === screen ? s : { lastScreen: s.screen }));
+    // sameScreen evita que re-pinchar el destino actual borre el origen.
+    set((s) => (sameScreen(s.screen, screen) ? s : { lastScreen: s.screen }));
     if (typeof window !== "undefined" && window.location.hash !== hash) {
       window.location.hash = hash; // dispara hashchange → syncFromHash
     } else {
@@ -140,7 +154,9 @@ export const useUiStore = create<UiStore>((set, get) => ({
   syncFromHash() {
     const next = hashToScreen(window.location.hash);
     set((s) => ({
-      lastScreen: s.screen === next ? s.lastScreen : s.screen,
+      // La flecha del navegador cuenta como origen, salvo que el hash
+      // apunte a la pantalla en la que ya se está (no machaca el origen).
+      lastScreen: sameScreen(s.screen, next) ? s.lastScreen : s.screen,
       screen: next,
       navCount: s.navCount + 1,
     }));

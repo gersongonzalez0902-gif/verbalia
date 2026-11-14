@@ -319,19 +319,32 @@ export function AppShell({
   );
 }
 
-/** Cabecera héroe común de pantallas secundarias (móvil y escritorio). */
+/** Cabecera héroe común de pantallas secundarias (móvil y escritorio).
+ *  P0-1 · Ola E · 2: el botón «Volver» aterriza de donde el jugador vino
+ *  (lastScreen en ui-store, Ola D 12.1) siempre que la pantalla actual lo
+ *  permita; sin origen recordado (carga directa por URL) o cuando reentrar
+ *  sería raro, manda al respaldo clásico de la pantalla (backTo).
+ *  Portada → «Entrar con cuenta» → Cuenta → atrás = PORTADA. */
 export function ScreenHeader({
   title,
   subtitle,
   backTo = { name: "home" } as Screen,
   right,
+  useLastScreen = true,
 }: {
   title: string;
   subtitle?: string;
   backTo?: Screen;
   right?: React.ReactNode;
+  /** false solo cuando «Volver» al origen sería raro (flujos fijos). */
+  useLastScreen?: boolean;
 }) {
   const navigate = useUiStore((s) => s.navigate);
+  const lastScreen = useUiStore((s) => s.lastScreen);
+  // Nunca reentra en una partida con la flecha: reiniciaría la sesión
+  // (el juego se entra por decisión del jugador, no por un «Volver»).
+  const destination =
+    useLastScreen && lastScreen && lastScreen.name !== "game" ? lastScreen : backTo;
   return (
     <header className="hero-band safe-top sticky top-0 z-30 overflow-hidden border-b bg-[var(--surface-glass)] backdrop-blur-lg">
       <span className="hero-sheen" aria-hidden />
@@ -339,9 +352,9 @@ export function ScreenHeader({
         <button
           onClick={() => {
             sfx.back();
-            navigate(backTo);
+            navigate(destination);
           }}
-          aria-label="Volver"
+          aria-label={`Volver a ${screenAriaLabel(destination)}`}
           className="tap-3d tap-target -ml-2 flex items-center gap-1 rounded-2xl border bg-card px-3 py-2 text-sm font-bold text-foreground"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -357,6 +370,32 @@ export function ScreenHeader({
       </div>
     </header>
   );
+}
+
+/** Nombre humano de un destino de «Volver» para el aria-label (a11y). */
+function screenAriaLabel(screen: Screen): string {
+  const names: Record<string, string> = {
+    home: "Inicio",
+    map: "el Mapa",
+    missions: "Misiones",
+    collection: "Colección",
+    profile: "Perfil",
+    stats: "Estadísticas",
+    errors: "Cuaderno de errores",
+    settings: "Ajustes",
+    account: "Cuenta",
+    music: "Estación de música",
+    shop: "el Bazar",
+    library: "Biblioteca",
+    arcade: "Salón de Juegos",
+    frases: "Bitácora de frases",
+    training: "Entrenamientos",
+    writing: "Taller de Escritura",
+    legal: "Privacidad",
+    results: "Resultados",
+    welcome: "la Portada",
+  };
+  return names[screen.name] ?? "la pantalla anterior";
 }
 
 /** Mini HUD de nivel y racha para la cabecera del dashboard móvil. */
