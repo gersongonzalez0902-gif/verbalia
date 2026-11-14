@@ -8,7 +8,7 @@
  * del juego, sigue siendo el personaje del Archipiélago.)
  */
 
-import { useState } from "react";
+import { useEffect,  useMemo,  useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUiStore } from "@/store/ui-store";
@@ -17,6 +17,7 @@ import { LexicoBubble } from "@/components/game/lexico";
 import { LEXICO_ONBOARDING } from "@/data/companion";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
+import { clearDraft, finalName, loadDraft, saveDraft } from "@/lib/onboarding-draft";
 import { Briefcase, GraduationCap, Map as MapIcon, PenLine, Plane, BookOpen, Palette } from "lucide-react";
 import type { PlayerProfile, ThemeColorId } from "@/types";
 
@@ -56,21 +57,52 @@ export function OnboardingScreen() {
   const navigate = useUiStore((s) => s.navigate);
   const finishOnboarding = useGameStore((s) => s.finishOnboarding);
 
-  const [step, setStep] = useState(0);
-  const [name, setName] = useState("");
-  const [goal, setGoal] = useState("leer");
-  const [experience, setExperience] = useState<PlayerProfile["experience"]>("principiante");
-  const [gender, setGender] = useState<PlayerProfile["gender"]>("x");
-  const [theme, setTheme] = useState<ThemeColorId>("aurora");
+  // Área 19.3 · si recarga a mitad de camino, el borrador se recuerda
+  // (sessionStorage; al terminar se limpia). Nada toca el esquema de datos.
+  const saved = useMemo(() => loadDraft(TOTAL_STEPS), []);
+  const [step, setStep] = useState(saved?.step ?? 0);
+  const [name, setName] = useState(saved?.name ?? "");
+  const [goal, setGoal] = useState(saved?.goal ?? "leer");
+  const [experience, setExperience] = useState<PlayerProfile["experience"]>(
+    (saved?.experience as PlayerProfile["experience"]) ?? "principiante",
+  );
+  const [gender, setGender] = useState<PlayerProfile["gender"]>(
+    (saved?.gender as PlayerProfile["gender"]) ?? "x",
+  );
+  const [theme, setTheme] = useState<ThemeColorId>((saved?.theme as ThemeColorId) ?? "aurora");
   const updateSettings = useGameStore((s) => s.updateSettings);
 
   const canContinue =
     step === 0 ? name.trim().length > 0 && name.trim().length <= 20 : true;
 
+  useEffect(() => {
+    saveDraft({ step, name, goal, experience, gender, theme });
+  }, [step, name, goal, experience, gender, theme]);
+
+  // Área 19.1 · Enter avanza cuando el paso está completo (teclado primero).
+  const goNext = () => {
+    if (!canContinue) return;
+    sfx.go();
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && step < TOTAL_STEPS - 1) {
+        const target = e.target as HTMLElement | null;
+        if (target && target.tagName === "BUTTON") return; // el botón ya responde
+        e.preventDefault();
+        goNext();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [step, canContinue]);
+
   const finish = () => {
     updateSettings({ themeColor: theme });
+    clearDraft();
     finishOnboarding({
-      name: name.trim() || "Explorador·a",
+      name: finalName(name),
       // El campo sigue existiendo por compatibilidad con datos ya
       // sincronizados, pero ya no se elige: la compañía fija es el búho Léxico.
       avatar: "buho",
@@ -136,6 +168,11 @@ export function OnboardingScreen() {
               aria-label="Tu nombre de explorador"
               className="h-12 rounded-2xl text-lg font-semibold"
             />
+            {name.trim().length === 0 && (
+              <p className="text-xs font-semibold text-muted-foreground">
+                Escribe un nombre para continuar: puede ser tu nombre o un alias de viaje.
+              </p>
+            )}
             {name.trim().length === 0 && (
               <p className="text-xs text-muted-foreground">Máximo 20 caracteres. Sin datos enviados a ningún servidor.</p>
             )}
@@ -250,6 +287,13 @@ export function OnboardingScreen() {
             <p className="text-sm text-muted-foreground">
               Se aplica en vivo: pruébalas todas antes de decidir. Podrás cambiarla en Ajustes cuando quieras.
             </p>
+            {/* Área 19.4 · resumen: así zarpa la bitácora */}
+            <p className="rounded-2xl border border-primary/30 bg-primary/5 px-3.5 py-2.5 text-xs leading-relaxed text-foreground">
+              Así zarpa tu bitácora: <strong>{name.trim() || "Explorador·a"}</strong>,
+              objetivo <strong>{goal}</strong>, nivel{" "}
+              <strong>{experience}</strong> y paleta <strong>{theme}</strong>.
+              Todo se puede cambiar después en Perfil y Ajustes.
+            </p>
             <div className="grid grid-cols-2 gap-2.5">
               {PALETTES.map((p) => (
                 <button
@@ -290,7 +334,7 @@ export function OnboardingScreen() {
         ) : (
           <Button size="lg" className="flex-1" onClick={finish}>
             <MapIcon className="mr-2 h-4 w-4" aria-hidden />
-            Ir a la evaluación
+            ¡Al agua! Ir a la evaluación
           </Button>
         )}
       </div>
