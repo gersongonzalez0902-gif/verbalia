@@ -17,7 +17,7 @@ import { isAdminName, ADMIN_TINTA_LABEL } from "@/engine/admin";
 import { SKILL_LABELS, SKILL_COLORS } from "@/data/regions";
 import { ACHIEVEMENTS } from "@/data/achievements";
 import { FRAMES, PREMIUM_BANNERS, premiumBannerCss, frameCss, titleText } from "@/engine/shop";
-import { LevelBadge, XpBar, ProgressRing } from "@/components/game/widgets";
+import { AnimatedNumber, LevelBadge, XpBar, ProgressRing } from "@/components/game/widgets";
 import { getIcon } from "@/components/game/icons";
 import { LexicoMascot } from "@/components/game/lexico";
 import { resizeImageFile } from "@/lib/image-tools";
@@ -417,7 +417,7 @@ export function ProfileScreen() {
 
         {/* ===== Progreso global ===== */}
         <section className="mt-4 grid grid-cols-4 gap-2.5">
-          <StatCard value={`${core.xp}`} label="XP total" />
+          <StatCard value={<AnimatedNumber value={core.xp} />} label="XP total" />
           <StatCard value={`${core.streak.best}`} label="Mejor racha" />
           <StatCard value={formatPlaytime(core.stats.totalTimeMs ?? 0)} label="Jugado" />
           <StatCard value={`${core.stats.totalSessions}`} label="Sesiones" />
@@ -654,7 +654,7 @@ export function ProfileScreen() {
   );
 }
 
-function StatCard({ value, label }: { value: string; label: string }) {
+function StatCard({ value, label }: { value: React.ReactNode; label: string }) {
   return (
     <div className="gloss card-aurora rounded-2xl border bg-card p-2.5 text-center">
       <p className="numeric font-display title-sheen truncate text-base font-bold sm:text-lg">{value}</p>

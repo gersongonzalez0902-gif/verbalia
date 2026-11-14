@@ -33,7 +33,7 @@ import { useMusicStore } from "@/services/music-station";
 import { useSoundEffects } from "@/components/game/game-shell";
 import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { sfx } from "@/services/audio";
+import { sfx, haptic } from "@/services/audio";
 import { FlashcardsSrs } from "@/games/flashcards-srs";
 import { TriviaSprint } from "@/games/trivia-sprint";
 import { SyntaxPuzzle } from "@/games/syntax-puzzle";
@@ -324,6 +324,8 @@ export function GameScreen() {
       if (isCombo) {
         sounds.correct();
         if (nextCombo >= 3) sounds.combo(nextCombo);
+        // Hito de combo (5, 10, 15…): la vibración también celebra (Área 14.2).
+        if (nextCombo > 0 && nextCombo % 5 === 0) haptic([10, 30, 10]);
       } else {
         sounds.wrong();
       }

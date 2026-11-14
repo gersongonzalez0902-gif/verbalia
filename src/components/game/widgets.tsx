@@ -6,9 +6,50 @@
  * racha con brasa viva, confeti y estados vacíos amigables.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { countAt, shouldAnimate } from "@/lib/animation";
 import { Flame, Shield, Star } from "lucide-react";
+
+/* ------------------------- Número animado (Área 14) -------------------------
+ * Los contadores suben en vez de saltar: el XP y la tinta cuentan su
+ * historia. Con movimiento reducido, el valor aparece de golpe (y listo). */
+export function AnimatedNumber({
+  value,
+  duration = 600,
+  className,
+}: {
+  value: number;
+  duration?: number;
+  className?: string;
+}) {
+  const [shown, setShown] = useState(value);
+  const fromRef = useRef(value);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!shouldAnimate(reduce, value - shown)) {
+      setShown(value);
+      fromRef.current = value;
+      return;
+    }
+    const from = fromRef.current;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const v = countAt(from, value, now - start, duration);
+      setShown(v);
+      if (v !== value) rafRef.current = requestAnimationFrame(tick);
+      else fromRef.current = value;
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value, duration]);
+
+  return <span className={cn("numeric", className)}>{shown}</span>;
+}
 
 /* ------------------------- Anillo de progreso ------------------------- */
 

@@ -21,6 +21,7 @@ import { CheckCircle2, Info, XCircle, Zap } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { useGameStore } from "@/store/game-store";
 import { LexicoMini, type LexicoMood } from "@/components/game/lexico";
+import { AnimatedNumber } from "@/components/game/widgets";
 
 export function GameHud({
   title,
@@ -114,7 +115,7 @@ export function GameHud({
             style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}
             aria-label={`${sessionXp} XP en esta sesión`}
           >
-            {sessionXp} XP
+            <AnimatedNumber value={sessionXp} duration={450} /> XP
           </span>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { useUiStore } from "@/store/ui-store";
 import { levelProgress, rankForLevel } from "@/engine/xp";
 import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { GAMES } from "@/data/games";
-import { Confetti, LevelBadge, ProgressRing, XpBar } from "@/components/game/widgets";
+import { AnimatedNumber, Confetti, LevelBadge, ProgressRing, XpBar } from "@/components/game/widgets";
 import { LexicoBubble } from "@/components/game/lexico";
 import { lexicoResultQuip } from "@/data/companion";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,9 @@ export function ResultsScreen() {
 
         <div className="anim-pop gloss flex items-center gap-2 rounded-2xl px-5 py-2.5" style={{ background: "color-mix(in oklch, var(--xp) 16%, transparent)" }}>
           <Sparkles className="h-5 w-5 text-[var(--xp)]" aria-hidden />
-          <span className="numeric type-metric text-2xl text-[var(--xp)]">+{result.xpTotal} XP</span>
+          <span className="type-metric text-2xl text-[var(--xp)]">
+            +<AnimatedNumber value={result.xpTotal} duration={900} /> XP
+          </span>
         </div>
 
         {result.tintaEarned > 0 && (
