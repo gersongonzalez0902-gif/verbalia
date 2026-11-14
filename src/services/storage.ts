@@ -443,6 +443,11 @@ function lsClear(): void {
   if (typeof localStorage === "undefined") return;
   try {
     localStorage.removeItem(LS_KEY);
+    // Área 16.4 · borrar todo borra TODO: la cola de sincronización y el
+    // meta del barco también, o un resto viejo podría re-subir eventos ya
+    // borrados (P0-3).
+    localStorage.removeItem(QUEUE_LS_KEY);
+    localStorage.removeItem(SYNC_META_KEY);
   } catch {
     /* noop */
   }

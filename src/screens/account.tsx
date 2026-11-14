@@ -203,10 +203,24 @@ export function AccountScreen() {
     }
   };
 
-  const doLogout = async () => {
+  /** P0-3 (Área 16.1): al cerrar sesión se pregunta qué hacer con la
+   *  bitácora de este aparato — conservarla o borrarla del todo. */
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const doLogout = async (wipeLocal: boolean) => {
     await online.logoutLocal();
     setSessions(null);
-    toast({ title: "Sesión cerrada", description: "Tu bitácora local sigue intacta en este dispositivo." });
+    setLogoutOpen(false);
+    if (wipeLocal) {
+      await useGameStore.getState().resetAll();
+      navigate({ name: "welcome" });
+      toast({
+        title: "Sesión cerrada y aparato limpio",
+        description: "Tu bitácora sigue en el barco: al entrar de nuevo, todo vuelve.",
+      });
+    } else {
+      toast({ title: "Sesión cerrada", description: "Tu bitácora local sigue intacta en este dispositivo." });
+    }
   };
 
   /* ---------- Verificación / contraseña / correo ---------- */
@@ -578,10 +592,45 @@ export function AccountScreen() {
                 <Button variant="outline" disabled={busy} onClick={() => void doSyncNow()}>
                   <RefreshCw className="mr-1.5 h-4 w-4" aria-hidden /> Sincronizar ahora
                 </Button>
-                <Button variant="ghost" disabled={busy} onClick={() => void doLogout()}>
+                <Button variant="ghost" disabled={busy} onClick={() => setLogoutOpen(true)}>
                   <LogOut className="mr-1.5 h-4 w-4" aria-hidden /> Cerrar sesión
                 </Button>
               </div>
+
+              {/* Área 16.1 · P0-3: cerrar sesión pregunta qué hacer con la
+               * copia local — conservarla o borrarla del todo. */}
+              <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Cerrar sesión?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tu bitácora queda a salvo en el barco. ¿Y la copia de este
+                      aparato? Conservarla te deja jugar igual sin cuenta; borrarla
+                      deja este aparato limpio (al entrar de nuevo, todo vuelve
+                      desde el barco).
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
+                    <AlertDialogCancel className="sm:flex-1">Cancelar</AlertDialogCancel>
+                    <Button
+                      variant="outline"
+                      className="sm:flex-1"
+                      disabled={busy}
+                      onClick={() => void doLogout(false)}
+                    >
+                      Cerrar sesión
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="sm:flex-1"
+                      disabled={busy}
+                      onClick={() => void doLogout(true)}
+                    >
+                      Cerrar y borrar este aparato
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <p className="mt-2 text-xs text-muted-foreground">
                 {lastSynced
                   ? `Última sincronización ${timeAgo(new Date(lastSynced).toISOString())}.`

@@ -16,6 +16,8 @@ import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx, sfxShowcase, playSfxByName, toggleAmbientPreview } from "@/services/audio";
 import { APP_VERSION } from "@/lib/version";
+import { localDataLines } from "@/lib/local-data";
+import { loadSyncMeta } from "@/services/storage";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -73,6 +75,8 @@ export function SettingsScreen() {
   const [ambientPreview, setAmbientPreview] = useState(false);
   /** ¿Este aparato vibra? Sin vibración, el switch sería mentir (Área 15.3). */
   const canVibrate = typeof navigator !== "undefined" && "vibrate" in navigator;
+  /** Última sincronización con el barco, para la ficha de datos (Área 16.2). */
+  const [lastSyncMeta] = useState(() => loadSyncMeta());
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -540,6 +544,34 @@ export function SettingsScreen() {
             {Object.keys(srs).length} tarjetas. Con una cuenta, además, viaja al barco
             y te espera en cualquier aparato.
           </p>
+
+          {/* Área 16.2 · Ficha «Tus datos en este aparato»: lo que hay, en claro */}
+          <div className="mt-3 rounded-2xl border bg-background/60 p-3.5" aria-label="Tus datos en este aparato">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Tus datos en este aparato
+            </p>
+            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              {localDataLines({
+                gardenWords: Object.keys(srs).length,
+                xp: core.xp,
+                historySessions: core.stats.totalSessions,
+                seenExercises: Object.keys(core.seenExercises ?? {}).length,
+                storageBytes: storageInfo?.usage ?? null,
+                lastSyncedAt: lastSyncMeta?.lastSyncedAt ?? null,
+                hasAccount: Boolean(user),
+              }).map((line) => (
+                <div key={line.label} className="flex items-baseline justify-between gap-2">
+                  <dt className="text-muted-foreground">{line.label}</dt>
+                  <dd className="numeric font-bold">{line.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
+              {user
+                ? "Con cuenta, la misma bitácora vive en el barco: puedes borrar este aparato al cerrar sesión y nada se pierde."
+                : "Sin cuenta, esta copia solo vive aquí: descárgala (abajo) si vas a cambiar de aparato."}
+            </p>
+          </div>
 
           {storageInfo && (
             <p className="numeric mt-2 flex items-center gap-1.5 rounded-2xl bg-muted/60 px-3 py-2 text-xs font-semibold text-muted-foreground">
