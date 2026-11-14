@@ -15,6 +15,7 @@ import { useGameStore } from "@/store/game-store";
 import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx, sfxShowcase, playSfxByName, toggleAmbientPreview } from "@/services/audio";
+import { APP_VERSION } from "@/lib/version";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,8 @@ export function SettingsScreen() {
   const [storageInfo, setStorageInfo] = useState<{ usage: number; quota: number } | null>(null);
   const [importOutcome, setImportOutcome] = useState<{ ok: boolean; words: number } | null>(null);
   const [ambientPreview, setAmbientPreview] = useState(false);
+  /** ¿Este aparato vibra? Sin vibración, el switch sería mentir (Área 15.3). */
+  const canVibrate = typeof navigator !== "undefined" && "vibrate" in navigator;
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -131,7 +134,29 @@ export function SettingsScreen() {
       <ScreenHeader title="Ajustes" backTo={{ name: "home" }} />
 
       <main className="mx-auto w-full max-w-2xl space-y-6 px-4 pb-28 pt-4">
-        {/* ===== Cuenta online ===== */}
+        {/* ===== Índice de Ajustes (Área 15.2): saltar a la sección que toca ===== */}
+        <nav aria-label="Secciones de Ajustes" className="mt-3 flex flex-wrap gap-1.5">
+          {[
+            ["apariencia", "Apariencia"],
+            ["sonido", "Sonido"],
+            ["ritmo", "Ritmo"],
+            ["datos", "Tus datos"],
+            ["privacidad", "Privacidad"],
+            ["acerca", "Acerca de"],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => {
+                sfx.tap();
+                document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="tap-target rounded-full border bg-card px-3 py-1 text-[11px] font-bold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
         <section className="card-aurora relative overflow-hidden rounded-3xl border bg-card p-5" aria-labelledby="cuenta-online">
           <h2 id="cuenta-online" className="type-h2 flex items-center gap-2">
             <Cloud className="h-5 w-5 text-primary" aria-hidden /> Cuenta
@@ -437,20 +462,25 @@ export function SettingsScreen() {
                   />
                 </div>
 
-                {/* Vibración / háptics (Etapa 4) */}
+                {/* Vibración / háptics (Etapa 4): el control solo existe donde
+                 * hay vibración — un switch muerto sería mentir (Área 15.3). */}
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <Label htmlFor="haptics" className="text-sm font-bold">Vibración de aciertos</Label>
                     <p className="text-xs text-muted-foreground">
-                      Un toque físico en aciertos, combos y subidas de nivel (si tu aparato lo permite).
+                      {canVibrate
+                        ? "Un toque físico en aciertos, combos y subidas de nivel."
+                        : "Tu aparato no vibra: este control no hace falta aquí."}
                     </p>
                   </div>
-                  <Switch
-                    id="haptics"
-                    checked={settings.haptics}
-                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ haptics: v }); }}
-                    aria-label="Vibración de aciertos"
-                  />
+                  {canVibrate && (
+                    <Switch
+                      id="haptics"
+                      checked={settings.haptics}
+                      onCheckedChange={(v) => { sfx.toggle(); updateSettings({ haptics: v }); }}
+                      aria-label="Vibración de aciertos"
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -683,37 +713,61 @@ export function SettingsScreen() {
           </Button>
         </section>
 
-        {/* ===== Acerca de ===== */}
+        {/* ===== Acerca de (Área 15.1): la página que dice la verdad de la app ===== */}
         <section className="card-aurora rounded-3xl border bg-card p-5" aria-labelledby="acerca">
           <h2 id="acerca" className="type-h2">Acerca de VerbalIA</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Etapa 2 completa · 110 minijuegos, 8 regiones y miles de ejercicios. Videojuego educativo de lenguaje con progresión adaptativa.
-            Los niveles MCER que se muestran son estimaciones orientativas: VerbalIA no certifica el
-            dominio oficial de un idioma.
+            Un juego de español con alma náutica: ocho regiones, un jardín de
+            palabras con repetición espaciada y un salón de minijuegos. Todo el
+            contenido es original o de tradición oral libre, y el juego funciona
+            completo sin conexión — la cuenta es un extra, nunca un requisito.
+            Los niveles MCER que se muestran son estimaciones orientativas:
+            VerbalIA no certifica el dominio oficial de un idioma.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-secondary px-2.5 py-1 font-bold text-secondary-foreground">v5.0.0-etapa2-completa</span>
+          <dl className="mt-3 space-y-1.5 text-xs">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Versión</dt>
+              <dd className="numeric font-bold">{APP_VERSION}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Sonido</dt>
+              <dd className="font-bold">
+                banco CC0 de archivos reales{" "}
+                <a
+                  href="/sfx/CREDITS.md"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  (créditos)
+                </a>
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Datos</dt>
+              <dd className="font-bold">en tu aparato; con cuenta, en tu barco</dd>
+            </div>
+          </dl>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            <button
+              className="font-bold text-primary hover:underline"
+              onClick={() => { sfx.page(); navigate({ name: "legal" }); }}
+            >
+              Privacidad y cookies →
+            </button>
             <button
               className="font-bold text-primary hover:underline"
               onClick={() => { sfx.page(); navigate({ name: "library" }); }}
             >
-              Ver la hoja de ruta completa →
+              Hoja de ruta completa →
             </button>
           </div>
         </section>
 
-        <Button
-          variant="outline"
-          className="w-full font-bold"
-          onClick={() =>
-            toast({
-              title: "Consejo de Léxico",
-              description: "Los ajustes se aplican al momento y se guardan en tu dispositivo, incluso sin conexión.",
-            })
-          }
-        >
-          💾 Todo se guarda automáticamente
-        </Button>
+        <p className="rounded-2xl border border-dashed bg-muted/40 px-4 py-3 text-center text-xs leading-relaxed text-muted-foreground">
+          Todo se aplica al momento y se guarda en tu dispositivo, incluso sin
+          conexión. No hay botón de guardar: no hace falta.
+        </p>
       </main>
     </div>
   );

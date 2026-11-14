@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { countAt, shouldAnimate } from "@/lib/animation";
+import { countAt } from "@/lib/animation";
 import { Flame, Shield, Star } from "lucide-react";
 
 /* ------------------------- Número animado (Área 14) -------------------------
@@ -23,32 +23,34 @@ export function AnimatedNumber({
   duration?: number;
   className?: string;
 }) {
-  const [shown, setShown] = useState(value);
-  const fromRef = useRef(value);
+  /** null = pintar el valor tal cual (sin animación en marcha). */
+  const [shown, setShown] = useState<number | null>(null);
   const rafRef = useRef(0);
+  const fromRef = useRef(value);
 
   useEffect(() => {
     const reduce =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!shouldAnimate(reduce, value - shown)) {
-      setShown(value);
-      fromRef.current = value;
-      return;
-    }
+    // Con movimiento reducido no hay efecto: el render pinta el valor directo.
     const from = fromRef.current;
+    if (reduce || from === value) return;
     const start = performance.now();
     const tick = (now: number) => {
       const v = countAt(from, value, now - start, duration);
-      setShown(v);
-      if (v !== value) rafRef.current = requestAnimationFrame(tick);
-      else fromRef.current = value;
+      if (v !== value) {
+        setShown(v); // desde rAF: no es un setState síncrono del efecto
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = value;
+        setShown(null); // fin: el render pinta el valor definitivo
+      }
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [value, duration]);
 
-  return <span className={cn("numeric", className)}>{shown}</span>;
+  return <span className={cn("numeric", className)}>{shown ?? value}</span>;
 }
 
 /* ------------------------- Anillo de progreso ------------------------- */
