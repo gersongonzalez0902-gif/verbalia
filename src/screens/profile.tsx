@@ -9,6 +9,7 @@
 
 import { createElement, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
+import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { levelProgress, rankForLevel, rankName, cefrFromSkill, skillMasteryLabel } from "@/engine/xp";
@@ -20,6 +21,14 @@ import { LevelBadge, XpBar, ProgressRing } from "@/components/game/widgets";
 import { getIcon } from "@/components/game/icons";
 import { LexicoMascot } from "@/components/game/lexico";
 import { resizeImageFile } from "@/lib/image-tools";
+import {
+  PROFILE_NAME_MAX,
+  PROFILE_BIO_MAX,
+  isProfileNameValid,
+  sessionAverages,
+  syncAgoLabel,
+} from "@/lib/profile-stats";
+import { loadSyncMeta } from "@/services/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +46,7 @@ import {
   Lock,
   Medal,
   PenLine,
+  Ship,
   Star,
   X,
 } from "lucide-react";
@@ -76,12 +86,24 @@ export function ProfileScreen() {
   const { level, into, needed } = levelProgress(core.xp);
   const rank = rankForLevel(level);
   const unlockedCount = Object.keys(core.achievements).length;
+  const onlineUser = useOnlineStore((s) => s.user);
   const wordsLearned = Object.values(srs).filter((c) => c.reps >= 2).length;
   const wordsMastered = Object.values(srs).filter((c) => c.state === "review" && c.intervalDays >= 21).length;
   const totalWords = Object.keys(srs).length || 1;
 
   const saveIdentity = () => {
-    updateProfile({ name: nameDraft.trim() || profile.name, bio: bioDraft.slice(0, 160) });
+    // El nombre nunca queda vacío: si el borrador no vale, se avisa y no
+    // se guarda nada (Área 5.1).
+    if (!isProfileNameValid(nameDraft)) {
+      toast({
+        title: "El nombre no puede quedar vacío",
+        description: "Escribe un nombre de navegante o cancela la edición.",
+        variant: "destructive",
+      });
+      sfx.wrong(true);
+      return;
+    }
+    updateProfile({ name: nameDraft.trim().slice(0, PROFILE_NAME_MAX), bio: bioDraft.slice(0, PROFILE_BIO_MAX) });
     setEditing(false);
     sfx.stamp();
     toast({ title: "Perfil actualizado", description: "La bitácora ya luce tus cambios." });
@@ -131,6 +153,11 @@ export function ProfileScreen() {
     month: "long",
     year: "numeric",
   });
+
+  // Barco (sincronización) y medias de sesión, para la ficha (Área 5.2/5.3).
+  const lastSyncedAt = loadSyncMeta().lastSyncedAt ?? null;
+  const syncLabel = syncAgoLabel(lastSyncedAt);
+  const averages = sessionAverages(core.stats.totalTimeMs ?? 0, core.stats.totalSessions ?? 0);
 
   const allSkills = ["vocabulario", "gramatica", "ortografia", "lectura", "audicion", "expresion", "cultura"] as const;
 
@@ -320,15 +347,22 @@ export function ProfileScreen() {
 
             <div className="min-w-0 flex-1 pb-1">
               {editing ? (
-                <Input
-                  autoFocus
-                  value={nameDraft}
-                  onChange={(e) => setNameDraft(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && saveIdentity()}
-                  maxLength={20}
-                  aria-label="Nuevo nombre"
-                  className="h-10"
-                />
+                <>
+                  <Input
+                    autoFocus
+                    value={nameDraft}
+                    onChange={(e) => setNameDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && saveIdentity()}
+                    maxLength={PROFILE_NAME_MAX}
+                    aria-label="Nuevo nombre"
+                    aria-invalid={!isProfileNameValid(nameDraft)}
+                    className="h-10"
+                  />
+                  <p className="numeric mt-0.5 text-[10px] font-bold text-foreground/80 drop-shadow-sm">
+                    {nameDraft.length}/{PROFILE_NAME_MAX}
+                    {!isProfileNameValid(nameDraft) && " · el nombre no puede quedar vacío"}
+                  </p>
+                </>
               ) : (
                 <h2 className="type-h1 title-sheen truncate drop-shadow-sm">{profile.name}</h2>
               )}
@@ -387,6 +421,29 @@ export function ProfileScreen() {
           <StatCard value={`${core.streak.best}`} label="Mejor racha" />
           <StatCard value={formatPlaytime(core.stats.totalTimeMs ?? 0)} label="Jugado" />
           <StatCard value={`${core.stats.totalSessions}`} label="Sesiones" />
+        </section>
+        <p className="numeric mt-1.5 px-1 text-xs text-muted-foreground">
+          {averages.ok
+            ? `Media por sesión: ${averages.avgMinutes} min · ${Math.round(wordsLearned / Math.max(core.stats.totalSessions ?? 0, 1))} palabras por sesión.`
+            : "Aún no hay sesiones: la primera media llega con tu primer reto."}
+        </p>
+
+        {/* ===== Barco: la copia que viaja (Área 5.2) ===== */}
+        <section className="card-aurora mt-3 flex items-center gap-3 rounded-3xl border bg-card p-4">
+          <span className="gloss flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15" aria-hidden>
+            <Ship className="h-5 w-5 text-primary" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">Tu bitácora y tu barco</p>
+            <p className="text-xs text-muted-foreground">
+              {onlineUser
+                ? `Con cuenta · última sincronización: ${syncLabel}.`
+                : "Sin cuenta: esta copia vive solo en este aparato."}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" className="shrink-0 text-xs font-bold" onClick={() => { sfx.click(); navigate({ name: "account" }); }}>
+            Cuenta
+          </Button>
         </section>
 
         <section className="card-aurora mt-3 rounded-3xl border bg-card p-4">
@@ -447,6 +504,7 @@ export function ProfileScreen() {
           <h3 id="skills-title" className="type-h2">Tus habilidades</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Estimación orientativa. VerbalIA no certifica niveles oficiales.
+            Escala 1–10: 1–3 base, 4–6 competente, 7–9 avanzado, 10 dominio.
           </p>
           <div className="mt-3 space-y-2.5">
             {allSkills.map((skill) => {
@@ -466,7 +524,14 @@ export function ProfileScreen() {
                         {skillMasteryLabel(lvl)} · <span className="text-foreground">{cefr}</span>
                       </p>
                     </div>
-                    <div className="groove mt-1.5 h-2 overflow-hidden rounded-full">
+                    <div
+                      className="groove mt-1.5 h-2 overflow-hidden rounded-full"
+                      role="meter"
+                      aria-valuemin={1}
+                      aria-valuemax={10}
+                      aria-valuenow={lvl}
+                      aria-label={`${SKILL_LABELS[skill]}: nivel ${lvl} de 10`}
+                    >
                       <div
                         className="h-full rounded-full transition-[width] duration-500"
                         style={{ width: `${(lvl / 10) * 100}%`, background: SKILL_COLORS[skill] }}
@@ -544,6 +609,7 @@ export function ProfileScreen() {
                     key={a.id}
                     title={`${a.name}: ${a.description}`}
                     onClick={() => toggleFeatured(a.id)}
+                    aria-pressed={isStarred}
                     aria-label={`${a.name}. Tocar para ${isStarred ? "quitar el" : "fijarlo como"} destacado.`}
                     className={cn(
                       "tap-target relative flex h-10 w-10 items-center justify-center rounded-xl border transition hover:scale-110",
