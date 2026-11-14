@@ -28,6 +28,8 @@ export function GameHud({
   total,
   combo,
   sessionXp,
+  correct,
+  answered,
   onExit,
   mood,
 }: {
@@ -36,11 +38,15 @@ export function GameHud({
   total: number;
   combo: number;
   sessionXp: number;
+  /** Precisión en vivo (Área 7.1): aciertos y respuestas dadas hasta ahora. */
+  correct?: number;
+  answered?: number;
   onExit: () => void;
   /** Estado de ánimo de Léxico en vivo (reacciona al combo y a los fallos). */
   mood?: LexicoMood;
 }) {
   const pct = total > 0 ? (current / total) * 100 : 0;
+  const accuracy = answered && answered > 0 ? Math.round(((correct ?? 0) / answered) * 100) : null;
   return (
     <header className="hero-band safe-top sticky top-0 z-30 overflow-hidden border-b bg-[var(--surface-glass)] backdrop-blur-lg">
       <span className="hero-sheen" aria-hidden />
@@ -78,8 +84,21 @@ export function GameHud({
               }}
             />
           </div>
+          {/* Para lectores de pantalla: la posición se anuncia con calma (Área 7.5). */}
+          <p className="sr-only" aria-live="polite">
+            Pregunta {Math.min(current + 1, total)} de {total}.
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {accuracy !== null && (
+            <span
+              className="gloss numeric rounded-full px-2.5 py-1 text-xs font-black"
+              style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}
+              aria-label={`${accuracy} por ciento de aciertos hasta ahora`}
+            >
+              {accuracy}%
+            </span>
+          )}
           {combo >= 2 && (
             <span
               className="anim-pop gloss flex items-center gap-1 rounded-full px-2 py-1 text-xs font-black"

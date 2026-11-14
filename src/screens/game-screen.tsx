@@ -100,6 +100,9 @@ export function GameScreen() {
   const [liveXp, setLiveXp] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackPayload | null>(null);
   const [exitOpen, setExitOpen] = useState(false);
+  /** Reintentos de la preparación de la sesión (Área 7.2): el error deja
+   *  de ser un callejón sin salida. */
+  const [attempt, setAttempt] = useState(0);
   const stationInGames = useGameStore((s) => s.settings.stationInGames);
   const [lexicoMood, setLexicoMood] = useState<LexicoMood>("idle");
   const [lexicoNudge, setLexicoNudge] = useState<string | null>(null);
@@ -127,6 +130,20 @@ export function GameScreen() {
     Boolean(g && ["metaforas", "registro", "conectores", "ironia", "titulos"].includes(g));
   const isMicGame = (g?: string) => Boolean(g && ["voz", "eco"].includes(g));
 
+  /* Escapa: abre la confirmación de abandono (Área 7.3, paridad PC).
+   * Si el diálogo ya está abierto, el propio Dialog lo cierra. */
+  useEffect(() => {
+    if (!spec) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !feedback) {
+        e.preventDefault();
+        setExitOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [spec, feedback]);
+
   /* Léxico se duerme si el navegante se ausenta 40 s (Etapa 4). */
   useEffect(() => {
     if (!spec) return;
@@ -145,6 +162,8 @@ export function GameScreen() {
     };
   }, [spec, index]);
 
+  /* Léxico se vuelve curioso al entrar en los formatos de la Forja (Etapa 4)
+   * y al asomarse a los micrófonos del Puerto (Etapa 2 completa). */
   useEffect(() => {
     if (isForjaGame(params.gameId)) {
       flashMood("curioso", "¡La Forja! Afina el oído: aquí las palabras suenan al golpe del yunque.");
@@ -254,7 +273,7 @@ export function GameScreen() {
       }
     })();
     return () => { cancelled = true; };
-  }, [params.gameId, params.mode, params.regionId, lockInfo.unlocked, lockedGameSet]);
+  }, [params.gameId, params.mode, params.regionId, lockInfo.unlocked, lockedGameSet, attempt]);
 
   const item = spec?.items[index];
 
@@ -426,6 +445,17 @@ export function GameScreen() {
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">{error}</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            onClick={() => {
+              sfx.tap();
+              setError(null);
+              setAttempt((n) => n + 1); // el efecto de construcción vuelve a correr
+            }}
+            variant="outline"
+            className="font-bold"
+          >
+            Reintentar
+          </Button>
           <Button onClick={() => navigate({ name: "home" })} variant="outline" className="font-bold">
             Volver al inicio
           </Button>
@@ -635,6 +665,8 @@ export function GameScreen() {
         total={total}
         combo={combo}
         sessionXp={liveXp}
+        correct={answers.filter((a) => a.correct === true).length}
+        answered={answers.filter((a) => a.correct !== null).length}
         onExit={() => setExitOpen(true)}
         mood={lexicoMood}
       />
@@ -671,7 +703,13 @@ export function GameScreen() {
             const durationMs = Date.now() - startedAt.current;
             completeSession(spec, answers, durationMs);
           }
-          navigate({ name: "home" });
+          // Se vuelve al lugar que corresponde a la sesión (Área 7.4):
+          // entrenamiento y repaso a la sala, misión y evaluación al mapa.
+          if (spec && (spec.mode === "training" || spec.mode === "review")) {
+            navigate({ name: "training" });
+          } else {
+            navigate({ name: "home" });
+          }
         }}
       />
     </div>
