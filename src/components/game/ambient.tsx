@@ -47,6 +47,7 @@ export function AmbientBackdrop({
   accentVar?: string;
   className?: string;
 }) {
+  const tide = accentVar ? `var(${accentVar})` : "var(--region-puerto)";
   return (
     <div aria-hidden className={cn("pointer-events-none fixed inset-0 z-0 overflow-hidden", className)}>
       {/* ===== Capas solo escritorio: el fondo cobra vida en pantallas grandes ===== */}
@@ -67,12 +68,25 @@ export function AmbientBackdrop({
           </span>
         ))}
         <div className="ambient-rays" />
-        <svg className="ambient-islands" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden>
-          <path d="M0,190 Q120,150 240,175 T480,160 T720,185 T960,155 T1200,180 T1440,165 L1440,220 L0,220 Z" className="ambient-island-fill" />
+        {/* Islas del horizonte en DOS planos: el parallax del puntero (Área 13.1)
+         * las mueve a velocidades distintas y el horizonte gana profundidad. */}
+        <svg className="ambient-islands ambient-islands-far" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden>
+          <path
+            d="M0,190 Q120,150 240,175 T480,160 T720,185 T960,155 T1200,180 T1440,165 L1440,220 L0,220 Z"
+            className="ambient-island-fill"
+            style={accentVar ? { fill: `color-mix(in oklch, var(${accentVar}) 26%, var(--background) 62%)` } : undefined}
+          />
+        </svg>
+        <svg className="ambient-islands ambient-islands-near" viewBox="0 0 1440 220" preserveAspectRatio="none" aria-hidden>
           <path d="M0,205 Q180,178 360,196 T720,188 T1080,198 T1440,190 L1440,220 L0,220 Z" className="ambient-island-fill ambient-island-near" />
         </svg>
+        {/* Área 13.2 · grano de papel: la textura fina que hace del fondo un
+         * material, no una pantalla en blanco (SVG inline, cero bytes de red). */}
+        <div className="ambient-grain" />
       </div>
-      <div className="ambient-vignette hidden lg:block" />
+      {/* Área 13.4 · la viñeta ya no es cosa de escritorio: en móvil también
+       * hay profundidad (un radial-gradient, costo cero). */}
+      <div className="ambient-vignette" />
       {/* Manchas de color que respiran */}
       {BLOBS.map((b, i) => (
         <div
@@ -110,7 +124,7 @@ export function AmbientBackdrop({
         />
       ))}
 
-      {/* Líneas de marea al pie */}
+      {/* Líneas de marea al pie (teñidas por la región activa: Área 13.3) */}
       <svg
         className="ambient-tide"
         viewBox="0 0 1200 120"
@@ -119,14 +133,14 @@ export function AmbientBackdrop({
         <path
           d="M0 44 Q 150 24 300 44 T 600 44 T 900 44 T 1200 44"
           fill="none"
-          stroke="var(--region-puerto)"
+          stroke={tide}
           strokeOpacity="0.16"
           strokeWidth="2.5"
         />
         <path
           d="M0 72 Q 150 54 300 72 T 600 72 T 900 72 T 1200 72"
           fill="none"
-          stroke="var(--region-puerto)"
+          stroke={tide}
           strokeOpacity="0.1"
           strokeWidth="2"
           style={{ animationDelay: "-9s" }}

@@ -63,6 +63,12 @@ export function Vitality() {
     const root = document.documentElement;
     const cleanups: (() => void)[] = [];
 
+    /* Área 13 · parallax de puntero activo solo en escritorio (hover +
+     * puntero fino) y con movimiento completo (nada de reduce-motion). */
+    const pointerParallaxOn =
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     /* ===== 1 · Aura del cursor (interpolación suave) ===== */
     const glow = glowRef.current;
     let gx = window.innerWidth / 2;
@@ -137,6 +143,12 @@ export function Vitality() {
       // Tarjetas
       pending = e;
       if (!fxRaf) fxRaf = requestAnimationFrame(applyPointerFx);
+      // Área 13.1 · parallax de puntero para el fondo (solo escritorio,
+      // sin movimiento reducido): una var reutilizable por todas las capas.
+      if (pointerParallaxOn) {
+        root.style.setProperty("--pointer-fx", ((e.clientX / Math.max(window.innerWidth, 1)) - 0.5).toFixed(3));
+        root.style.setProperty("--pointer-fy", ((e.clientY / Math.max(window.innerHeight, 1)) - 0.5).toFixed(3));
+      }
     };
     const onDocLeave = () => {
       glowOn = false;

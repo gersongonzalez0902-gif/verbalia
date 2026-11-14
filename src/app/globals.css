@@ -2985,3 +2985,30 @@ html.reduce-motion .anim-screen,
 html.reduce-motion .anim-screen-lg {
   animation: none !important;
 }
+
+/* ---------- Fondo con profundidad (Ola D · Área 13) ---------- */
+
+/* 13.2 · Grano de papel: textura fina inline (feTurbulence), cero red. */
+.ambient-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+html.dark .ambient-grain { opacity: 0.07; }
+
+/* 13.1 · Parallax de puntero: dos planos de islas + letras fantasma.
+   Cada plano a su velocidad; el horizonte respira con el ratón. */
+@media (hover: hover) and (pointer: fine) {
+  .ambient-islands-far { translate: calc(var(--pointer-fx, 0) * 14px) calc(var(--pointer-fy, 0) * 8px); }
+  .ambient-islands-near { translate: calc(var(--pointer-fx, 0) * 30px) calc(var(--pointer-fy, 0) * 16px); }
+  .ambient-ghost-letter { translate: calc(var(--pointer-fx, 0) * 10px) calc(var(--pointer-fy, 0) * 6px); }
+  .ambient-rays { translate: calc(var(--pointer-fx, 0) * 6px) 0; }
+}
+html.reduce-motion .ambient-islands-far,
+html.reduce-motion .ambient-islands-near,
+html.reduce-motion .ambient-ghost-letter,
+html.reduce-motion .ambient-rays {
+  translate: 0 0 !important;
+}

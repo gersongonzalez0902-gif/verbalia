@@ -17,6 +17,8 @@ import { OrnamentLayer } from "@/components/game/ornaments";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { effectiveBackTo, originChipLabel } from "@/lib/navigation";
+import { sceneForScreen } from "@/hooks/use-scene";
+import { REGIONS } from "@/data/regions";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import {
@@ -119,6 +121,9 @@ function Logo({ compact = false }: { compact?: boolean }) {
   );
 }
 
+/** Identidades de región que tiñen el fondo (Área 13.3). */
+const REGION_SCENES = new Set<string>(REGIONS.map((r) => r.id));
+
 export function AppShell({
   children,
   showChrome = true,
@@ -136,12 +141,17 @@ export function AppShell({
   /** ¿Está abierta ahora una pantalla del menú «Más»? (píldora activa) */
   const moreActive = MORE_NAV.some((m) => m.screen.name === screen.name);
 
+  /* Área 13.3 · cruce de ambientes: el fondo se tiñe con la región activa
+   * (la escena visual actual si es una región del Archipiélago). */
+  const scene = sceneForScreen(screen, level).scene;
+  const accentVar = REGION_SCENES.has(scene) ? `--region-${scene}` : undefined;
+
   return (
     <div className="relative flex min-h-dvh flex-col bg-background lg:flex-row">
       {/* Área 11.3 · ayuda de atajos de teclado, disponible en toda la app */}
       <ShortcutsHelp />
       {/* ===== Ambientación: mareas, polvo de letras, ornamentos y color ===== */}
-      {showChrome && <AmbientBackdrop />}
+      {showChrome && <AmbientBackdrop accentVar={accentVar} />}
       {showChrome && <OrnamentLayer />}
 
       {/* ===== Barra lateral (escritorio) ===== */}
