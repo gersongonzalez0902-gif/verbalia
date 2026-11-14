@@ -18,6 +18,49 @@ import { useOnlineStore } from "@/store/online-store";
 import { useToast } from "@/hooks/use-toast";
 import { initSync } from "@/services/sync";
 import { WifiOff, RefreshCw } from "lucide-react";
+import { ToastAction } from "@/components/ui/toast";
+
+/** Área 20.1 · instalación propia: el navegador ofrece su evento y la
+ *  app un botón honesto («Instalar Verbalia»), visible solo mientras la
+ *  instalación nativa está disponible y no estás ya instalado. */
+interface InstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+export function useInstallPrompt() {
+  const [event, setEvent] = useState<InstallPromptEvent | null>(null);
+  const [installed, setInstalled] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches,
+  );
+
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      setEvent(e as InstallPromptEvent);
+    };
+    const onInstalled = () => {
+      setInstalled(true);
+      setEvent(null);
+    };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+
+  const install = async (): Promise<"accepted" | "dismissed" | "no"> => {
+    if (!event) return "no";
+    await event.prompt();
+    const choice = await event.userChoice;
+    setEvent(null);
+    return choice.outcome;
+  };
+
+  return { canInstall: !!event && !installed, installed, install };
+}
 
 export function PwaRegistration() {
   const offlineMode = useGameStore((s) => s.settings.offlineMode);
@@ -72,7 +115,12 @@ export function PwaRegistration() {
               navigator.serviceWorker.addEventListener("controllerchange", onControllerChange, { once: true });
               toast({
                 title: "Nueva versión de VerbalIA",
-                description: "Ya está descargada. Recarga para estrenarla.",
+                description: "Ya está descargada y lista.",
+                action: (
+                  <ToastAction altText="Recargar ahora" onClick={() => window.location.reload()}>
+                    Recargar ahora
+                  </ToastAction>
+                ),
               });
             }
           });

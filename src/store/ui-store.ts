@@ -31,11 +31,9 @@ function sameScreen(a: Screen, b: Screen): boolean {
   return true;
 }
 
-function hashToScreen(hash: string): Screen {
-  const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
-  const [headRaw, a, b, c] = parts;
-  // Alias en español: el juego habla español, sus URLs también.
-  const ES_ALIASES: Record<string, string> = {
+/** Áreas de la URL en español (exportado: el manifest y sus
+ *  pruebas validan sus atajos contra esta misma tabla). */
+export const ROUTE_ALIASES: Record<string, string> = {
     inicio: "home",
     mapa: "map",
     perfil: "profile",
@@ -67,7 +65,13 @@ function hashToScreen(hash: string): Screen {
     bienvenida: "welcome",
     evaluacion: "placement",
   };
-  const head = ES_ALIASES[headRaw ?? ""] ?? headRaw;
+
+function hashToScreen(hash: string): Screen {
+  const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  const [headRaw, a, b, c] = parts;
+  // Alias en español: el juego habla español, sus URLs también.
+
+  const head = ROUTE_ALIASES[headRaw ?? ""] ?? headRaw;
   if (head === "juego" && a) {
     // Validación: un gameId o modo desconocido en la URL (enlaces viejos,
     // typos) lleva a inicio en vez de dejar la pantalla en blanco.

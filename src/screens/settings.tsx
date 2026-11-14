@@ -18,6 +18,7 @@ import { sfx, sfxShowcase, playSfxByName, toggleAmbientPreview } from "@/service
 import { APP_VERSION } from "@/lib/version";
 import { localDataLines } from "@/lib/local-data";
 import { loadSyncMeta } from "@/services/storage";
+import { useInstallPrompt } from "@/components/game/pwa";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -75,6 +76,8 @@ export function SettingsScreen() {
   const [ambientPreview, setAmbientPreview] = useState(false);
   /** ¿Este aparato vibra? Sin vibración, el switch sería mentir (Área 15.3). */
   const canVibrate = typeof navigator !== "undefined" && "vibrate" in navigator;
+  /** Instalación nativa cuando el navegador la ofrece (Área 20.1). */
+  const { canInstall, install } = useInstallPrompt();
   /** Última sincronización con el barco, para la ficha de datos (Área 16.2). */
   const [lastSyncMeta] = useState(() => loadSyncMeta());
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -781,6 +784,22 @@ export function SettingsScreen() {
             </div>
           </dl>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            {canInstall && (
+              <Button
+                size="sm"
+                className="font-bold"
+                onClick={() => {
+                  sfx.go();
+                  void install().then((outcome) => {
+                    if (outcome === "accepted") {
+                      toast({ title: "¡Verbalia instalada!", description: "La encontrarás en tu pantalla de inicio, lista sin conexión." });
+                    }
+                  });
+                }}
+              >
+                Instalar Verbalia en este aparato
+              </Button>
+            )}
             <button
               className="font-bold text-primary hover:underline"
               onClick={() => { sfx.page(); navigate({ name: "legal" }); }}
