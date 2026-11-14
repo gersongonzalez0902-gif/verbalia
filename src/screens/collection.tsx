@@ -10,13 +10,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
-import { ScreenHeader } from "@/components/game/app-shell";
+import { ScreenHeader, } from "@/components/game/app-shell";
 import { EmptyState, StatusChip, ProgressRing } from "@/components/game/widgets";
 import { SRS_WORDS_FULL } from "@/data/content";
 import { cardStatus } from "@/engine/srs";
+import { dateKey } from "@/engine/missions";
+import { lexiconCardText, sortWords, wordOfDay, type WordSort } from "@/lib/lexico";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BookMarked, Search, Sprout } from "lucide-react";
+import { BookMarked, CalendarHeart, Copy, Search, Sprout } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import type { Cefr } from "@/types";
@@ -34,8 +36,14 @@ export function CollectionScreen() {
   const [filter, setFilter] = useState<Filter>("todas");
   const [cefr, setCefr] = useState<(typeof CEFR_LEVELS)[number]>("todas");
   const [query, setQuery] = useState("");
+  const [sortMode, setSortMode] = useState<WordSort>("dificultad");
   const [visible, setVisible] = useState(CHUNK);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  /** Aviso fugaz de «ficha copiada» (Área 10.4). */
+  const [copied, setCopied] = useState(false);
+
+  /** Palabra del día: determinista por fecha, preferando lo aprendido (10.1). */
+  const daily = useMemo(() => wordOfDay(SRS_WORDS_FULL, srs, dateKey(new Date())), [srs]);
 
   const stats = useMemo(() => {
     const counts = { nueva: 0, aprendiendo: 0, aprendida: 0, dominada: 0 };
@@ -45,17 +53,18 @@ export function CollectionScreen() {
 
   const words = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return SRS_WORDS_FULL.filter((w) => {
+    const base = SRS_WORDS_FULL.filter((w) => {
       const status = cardStatus(srs[w.id]);
       if (filter !== "todas" && status !== filter) return false;
       if (cefr !== "todas" && w.cefr !== cefr) return false;
       if (q && !w.word.toLowerCase().includes(q) && !w.definition.toLowerCase().includes(q)) return false;
       return true;
-    }).sort((a, b) => a.difficulty - b.difficulty || a.word.localeCompare(b.word, "es"));
-  }, [srs, filter, cefr, query]);
+    });
+    return sortWords(base, srs, sortMode);
+  }, [srs, filter, cefr, query, sortMode]);
 
   // Al cambiar búsqueda o filtros, la ventana visible se reinicia.
-  useEffect(() => setVisible(CHUNK), [filter, cefr, query]);
+  useEffect(() => setVisible(CHUNK), [filter, cefr, query, sortMode]);
 
   // Bloques infinitos: al acercarse al final se pinta el siguiente bloque.
   useEffect(() => {
@@ -100,6 +109,50 @@ export function CollectionScreen() {
             </Button>
           </div>
         </section>
+
+        {/* Palabra del día (Área 10.1): determinista por fecha, siempre la misma */}
+        {daily && (
+          <section className="card-aurora relative mt-4 overflow-hidden rounded-3xl border border-primary/40 bg-card p-4" aria-labelledby="daily-word">
+            <span aria-hidden className="anim-twinkle absolute right-4 top-3 text-lg opacity-60">✦</span>
+            <p id="daily-word" className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+              <CalendarHeart className="h-3.5 w-3.5" aria-hidden /> Palabra del día
+            </p>
+            <p className="font-display type-h1 mt-1 leading-tight">{daily.word}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {daily.pos} · {daily.cefr}
+            </p>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{daily.definition}</p>
+            <p className="mt-1 rounded-xl bg-secondary px-3 py-2 text-xs italic leading-relaxed text-secondary-foreground">
+              «{daily.example}»
+            </p>
+            <div className="mt-3 flex gap-2">
+              <Button
+                size="sm"
+                className="font-bold"
+                onClick={() => {
+                  sfx.whoosh();
+                  useUiStore.getState().setSrsFocusWordId(daily.id);
+                  navigate({ name: "game", gameId: "srs", mode: "training" });
+                }}
+              >
+                <Sprout className="mr-1.5 h-4 w-4" aria-hidden /> Practicarla hoy
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="font-bold"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(lexiconCardText(daily));
+                  sfx.stamp();
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 1500);
+                }}
+              >
+                <Copy className="mr-1.5 h-4 w-4" aria-hidden /> {copied ? "¡Copiada!" : "Copiar ficha"}
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* Búsqueda y filtros */}
         <div className="mt-4 space-y-2.5">
@@ -148,15 +201,44 @@ export function CollectionScreen() {
               </button>
             ))}
           </div>
+          <div className="scroll-soft flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Orden de la colección">
+            {(["dificultad", "alfabetico", "revision"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => { sfx.tap(); setSortMode(m); }}
+                aria-pressed={sortMode === m}
+                className={cn(
+                  "tap-target shrink-0 rounded-full border px-3 py-1 text-[11px] font-bold transition active:translate-y-0.5",
+                  sortMode === m
+                    ? "gloss border-primary bg-primary text-primary-foreground"
+                    : "tap-3d border-border bg-card text-muted-foreground",
+                )}
+              >
+                {m === "dificultad" ? "Por dificultad" : m === "alfabetico" ? "A → Z" : "Próxima revisión"}
+              </button>
+            ))}
+          </div>
         </div>
-
-        {/* Tarjetas de palabras (carga incremental) */}
+        <p className="numeric mt-2 px-1 text-[11px] text-muted-foreground" aria-live="polite">
+          {words.length} palabra{words.length === 1 ? "" : "s"} en esta vista
+          {query.trim() && ` · buscando «${query.trim()}»`}
+        </p>
         {words.length === 0 ? (
           <div className="mt-6">
             <EmptyState
               icon={<BookMarked />}
               title="Nada por aquí"
-              description="Ninguna palabra coincide con la búsqueda. Prueba con otro término o filtro."
+              description="Ninguna palabra coincide con la búsqueda o el filtro."
+              action={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="font-bold"
+                  onClick={() => { sfx.tap(); setQuery(""); setFilter("todas"); setCefr("todas"); }}
+                >
+                  Quitar la búsqueda y los filtros
+                </Button>
+              }
             />
           </div>
         ) : (
@@ -188,10 +270,22 @@ export function CollectionScreen() {
                       «{w.example}»
                     </p>
                   </details>
-                  <p className="mt-2 text-[11px] text-muted-foreground">
-                    {nextReview}
-                    {card && ` · vista ${card.reps + card.lapses} veces`}
-                  </p>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <p className="min-w-0 text-[11px] text-muted-foreground">
+                      {nextReview}
+                      {card && ` · vista ${card.reps + card.lapses} veces`}
+                    </p>
+                    <button
+                      onClick={() => {
+                        void navigator.clipboard?.writeText(lexiconCardText(w));
+                        sfx.stamp();
+                      }}
+                      className="tap-target shrink-0 rounded-full border px-2 py-1 text-[10px] font-bold text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                      aria-label={`Copiar la ficha de ${w.word}`}
+                    >
+                      <Copy className="mr-1 inline h-3 w-3" aria-hidden /> Copiar
+                    </button>
+                  </div>
                 </li>
               );
             })}
