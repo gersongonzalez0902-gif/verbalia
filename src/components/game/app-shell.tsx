@@ -16,6 +16,7 @@ import { AmbientBackdrop } from "@/components/game/ambient";
 import { OrnamentLayer } from "@/components/game/ornaments";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { effectiveBackTo, originChipLabel } from "@/lib/navigation";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import {
@@ -344,10 +345,15 @@ export function ScreenHeader({
 }) {
   const navigate = useUiStore((s) => s.navigate);
   const lastScreen = useUiStore((s) => s.lastScreen);
+  const current = useUiStore((s) => s.screen);
   // Nunca reentra en una partida con la flecha: reiniciaría la sesión
   // (el juego se entra por decisión del jugador, no por un «Volver»).
-  const destination =
-    useLastScreen && lastScreen && lastScreen.name !== "game" ? lastScreen : backTo;
+  const destination = useLastScreen
+    ? effectiveBackTo(lastScreen, backTo, current)
+    : backTo;
+  const chip = useLastScreen
+    ? originChipLabel(lastScreen, backTo, current, screenAriaLabel)
+    : null;
   return (
     <header className="hero-band safe-top sticky top-0 z-30 overflow-hidden border-b bg-[var(--surface-glass)] backdrop-blur-lg">
       <span className="hero-sheen" aria-hidden />
@@ -368,6 +374,7 @@ export function ScreenHeader({
         <div className="min-w-0 flex-1">
           <h1 className="truncate type-h1">{title}</h1>
           {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+          {chip && <p className="truncate text-[11px] font-semibold text-primary/80">{chip}</p>}
         </div>
         {right}
       </div>

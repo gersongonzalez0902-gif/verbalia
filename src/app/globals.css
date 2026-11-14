@@ -2977,3 +2977,11 @@ html.reduce-motion .lift:hover {
   transition: none;
   transform: none;
 }
+
+/* ---------- Navegación (Ola D · Área 12): la transición entre pantallas
+   también promete quietud con reduce-motion (garantía explícita, aunque
+   la regla global de animaciones ya la cubra). ---------- */
+html.reduce-motion .anim-screen,
+html.reduce-motion .anim-screen-lg {
+  animation: none !important;
+}
