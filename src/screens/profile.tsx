@@ -268,7 +268,13 @@ export function ProfileScreen() {
                   <ImageIcon className="mr-1.5 h-3.5 w-3.5" aria-hidden />
                   Subir imagen
                 </Button>
-                <Button size="sm" variant="ghost" className="text-xs" onClick={() => setBannerPicker(false)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs"
+                  onClick={() => setBannerPicker(false)}
+                  aria-label="Cerrar el selector de banner"
+                >
                   <X className="h-4 w-4" aria-hidden />
                 </Button>
               </div>

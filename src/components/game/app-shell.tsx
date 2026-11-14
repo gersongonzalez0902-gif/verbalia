@@ -148,6 +148,13 @@ export function AppShell({
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-background lg:flex-row">
+      {/* Área 18.2 · skip-link: primera parada del Tab, invisible hasta el foco */}
+      <a
+        href="#contenido-principal"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-xl focus:border focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-foreground focus:shadow-lg"
+      >
+        Saltar al contenido
+      </a>
       {/* Área 11.3 · ayuda de atajos de teclado, disponible en toda la app */}
       <ShortcutsHelp />
       {/* ===== Ambientación: mareas, polvo de letras, ornamentos y color ===== */}
@@ -224,7 +231,7 @@ export function AppShell({
       )}
 
       {/* ===== Contenido ===== */}
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
+      <div id="contenido-principal" className="relative z-10 flex min-w-0 flex-1 flex-col">
       {children}
       </div>
 
