@@ -22,7 +22,6 @@ import { HomeScreen } from "@/screens/home";
 import { MapScreen } from "@/screens/map";
 import { GameScreen } from "@/screens/game-screen";
 import { ResultsScreen } from "@/screens/results";
-import { ProfileScreen } from "@/screens/profile";
 import { PwaRegistration } from "@/components/game/pwa";
 import { Vitality } from "@/components/game/vitality";
 import { useSceneSystem } from "@/hooks/use-scene";
@@ -70,6 +69,7 @@ const ShopScreen = Lazy(() => import("@/screens/shop").then((m) => ({ default: m
 const ArcadeScreen = Lazy(() => import("@/screens/arcade").then((m) => ({ default: m.ArcadeScreen })));
 const FrasesScreen = Lazy(() => import("@/screens/frases").then((m) => ({ default: m.FrasesScreen })));
 const TrainingScreen = Lazy(() => import("@/screens/training").then((m) => ({ default: m.TrainingScreen })));
+const ProfileScreen = Lazy(() => import("@/screens/profile").then((m) => ({ default: m.ProfileScreen })));
 const WritingScreen = Lazy(() => import("@/screens/writing").then((m) => ({ default: m.WritingScreen })));
 const LegalScreen = Lazy(() => import("@/screens/legal").then((m) => ({ default: m.LegalScreen })));
 
