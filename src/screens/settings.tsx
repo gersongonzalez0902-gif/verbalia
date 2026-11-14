@@ -4,13 +4,15 @@
  * Ajustes 2.0 · Tema (claro/oscuro/sistema), paleta de color,
  * tamaño de texto, lectura nocturna, movimiento reducido, sonido
  * (incluida la música dentro de partidas y la estación del jugador),
- * ritmo de juego y gestión de datos: borrados finos y espacio usado.
- * La migración de dispositivo la hace la cuenta (sync automático), sin
- * copias manuales.
+ * ritmo de juego y gestión de datos: copia sin cuenta (Ola 1.2),
+ * borrados finos y espacio usado. La migración de dispositivo la hace
+ * la cuenta (sync automático); sin cuenta, la copia manual es la única
+ * vía para mudar el progreso a otro aparato.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
+import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
 import { sfx, sfxShowcase, playSfxByName } from "@/services/audio";
 import { ScreenHeader } from "@/components/game/app-shell";
@@ -34,7 +36,7 @@ import { useTheme } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { ThemeColorId } from "@/types";
-import { Check, Cloud, Database, HardDrive, Lock, Moon, Palette, Sun, Trash2 } from "lucide-react";
+import { Check, Cloud, Database, Download, HardDrive, Lock, Moon, Palette, Sun, Trash2, Upload } from "lucide-react";
 
 const TEXT_SIZES = [
   { id: "md", label: "Normal" },
@@ -60,11 +62,14 @@ const PALETAS: { id: ThemeColorId; label: string; swatch: string[]; premium?: bo
 ];
 
 export function SettingsScreen() {
-  const { settings, updateSettings, profile, core, srs, resetAll, resetProgress, resetSrs } = useGameStore();
+  const { settings, updateSettings, profile, core, srs, resetAll, resetProgress, resetSrs, exportJson, importJson } = useGameStore();
   const navigate = useUiStore((s) => s.navigate);
+  const user = useOnlineStore((s) => s.user);
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [storageInfo, setStorageInfo] = useState<{ usage: number; quota: number } | null>(null);
+  const [importOutcome, setImportOutcome] = useState<{ ok: boolean; words: number } | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (typeof navigator !== "undefined" && navigator.storage?.estimate) {
@@ -76,6 +81,49 @@ export function SettingsScreen() {
   }, [core, srs]);
 
   const fmtMB = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} MB`;
+
+  /* ===== Ola 1.2 · copia de la bitácora sin cuenta =====
+   * El bloque solo aparece sin sesión: con cuenta el servidor guarda
+   * todo (syncOnLogin) y la copia manual sería una fuente de confusión. */
+  const handleExportCopy = () => {
+    sfx.click();
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const name = `verbalia-bitacora-${stamp}.json`;
+      const url = URL.createObjectURL(new Blob([exportJson()], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 3_000);
+      toast({
+        title: "Copia exportada",
+        description: `${name} está en tus descargas. Pásala al otro aparato para importarla ahí.`,
+      });
+    } catch {
+      toast({
+        title: "No se pudo exportar",
+        description: "El navegador bloqueó la descarga. Revisa los permisos e inténtalo de nuevo.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImportCopy = async (file: File) => {
+    sfx.page();
+    try {
+      const text = await file.text();
+      const ok = await importJson(text);
+      setImportOutcome({ ok, words: ok ? Object.keys(useGameStore.getState().srs).length : 0 });
+    } catch {
+      setImportOutcome({ ok: false, words: 0 });
+    } finally {
+      // Se limpia el input para que el mismo archivo pueda reimportarse.
+      if (importInputRef.current) importInputRef.current.value = "";
+    }
+  };
 
   return (
     <div>
@@ -482,6 +530,41 @@ export function SettingsScreen() {
             </Button>
           </div>
 
+          {/* Copia sin cuenta (Ola 1.2): solo visible cuando NO hay sesión.
+           * Con cuenta el servidor guarda la bitácora y la copia manual
+           * sobra; el bloque desaparece para no crear dos verdades. */}
+          {!user && (
+            <div className="mt-4 rounded-2xl border border-dashed bg-muted/40 p-4" data-testid="copia-sin-cuenta">
+              <p className="flex items-center gap-1.5 text-sm font-bold">
+                <Download className="h-4 w-4 text-primary" aria-hidden />
+                Copia de la bitácora
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Sin cuenta, esta copia es la forma de pasar tu progreso a otro aparato. Con cuenta no lo necesitas: el servidor lo guarda.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2.5">
+                <Button variant="outline" onClick={handleExportCopy}>
+                  <Download className="mr-2 h-4 w-4" aria-hidden /> Exportar copia
+                </Button>
+                <Button variant="outline" onClick={() => { sfx.click(); importInputRef.current?.click(); }}>
+                  <Upload className="mr-2 h-4 w-4" aria-hidden /> Importar copia
+                </Button>
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  aria-hidden
+                  tabIndex={-1}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void handleImportCopy(f);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Borrados parciales */}
           <div className="mt-4 space-y-2.5">
             <p className="text-sm font-bold">Borrados finos (nada de sustos)</p>
@@ -532,6 +615,37 @@ export function SettingsScreen() {
                   }}
                 >
                   Borrar todo
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          {/* Resultado de la importación (Ola 1.2): confirmación humana
+           * de lo que pasó, con la consecuencia contada sin tecnicismos. */}
+          <AlertDialog
+            open={importOutcome !== null}
+            onOpenChange={(open) => {
+              if (!open) setImportOutcome(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {importOutcome?.ok ? "Bitácora restaurada" : "Esa copia no se pudo abrir"}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {importOutcome?.ok
+                    ? `Tu progreso volvió tal como estaba en la copia: ${importOutcome.words} ${importOutcome.words === 1 ? "palabra" : "palabras"} en el jardín, XP y perfil incluidos. Esta pantalla ya muestra el estado restaurado.`
+                    : "El archivo no es una copia válida de VerbalIA (o está incompleta). No se ha cambiado nada: tu partida sigue exactamente como estaba."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction
+                  onClick={() => {
+                    if (importOutcome?.ok) sfx.chime(); else sfx.error();
+                    setImportOutcome(null);
+                  }}
+                >
+                  Entendido
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
