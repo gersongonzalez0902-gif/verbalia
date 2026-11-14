@@ -144,7 +144,7 @@ export function MissionsScreen() {
       {celebrate && <Confetti pieces={32} />}
       <ScreenHeader title="Misiones y logros" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28 xl:max-w-4xl">
         {/* Aviso de recompensas esperando: el centro de recogida */}
         {totalReady > 0 && (
           <section
@@ -280,7 +280,7 @@ export function MissionsScreen() {
                 Nada en esta lista todavía: los «en curso» aparecen en cuanto la primera barra avanza.
               </p>
             )}
-            <ul className="stagger grid gap-2.5 sm:grid-cols-2" aria-label="Lista de logros">
+            <ul className="stagger grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Lista de logros">
               {shownAchievements.map((a) => {
                 const got = Boolean(core.achievements[a.id]);
                 const claimed = got && (core.achievementsClaimed ?? []).includes(a.id);
@@ -291,7 +291,7 @@ export function MissionsScreen() {
                   <li
                     key={a.id}
                     className={cn(
-                      "card-aurora flex items-start gap-3 rounded-2xl border p-3.5",
+                      "card-aurora lift flex items-start gap-3 rounded-2xl border p-3.5",
                       got ? "border-[var(--xp)]/50 bg-[var(--xp)]/5" : "border-border bg-card",
                     )}
                   >

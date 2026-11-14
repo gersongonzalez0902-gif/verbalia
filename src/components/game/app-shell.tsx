@@ -7,7 +7,7 @@
  * El HUD superior muestra nivel, XP, racha y ajustes en pantallas clave.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { levelProgress } from "@/engine/xp";
@@ -15,6 +15,7 @@ import { LevelBadge, StreakBadge, XpBar } from "@/components/game/widgets";
 import { AmbientBackdrop } from "@/components/game/ambient";
 import { OrnamentLayer } from "@/components/game/ornaments";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import {
@@ -136,6 +137,8 @@ export function AppShell({
 
   return (
     <div className="relative flex min-h-dvh flex-col bg-background lg:flex-row">
+      {/* Área 11.3 · ayuda de atajos de teclado, disponible en toda la app */}
+      <ShortcutsHelp />
       {/* ===== Ambientación: mareas, polvo de letras, ornamentos y color ===== */}
       {showChrome && <AmbientBackdrop />}
       {showChrome && <OrnamentLayer />}
@@ -408,5 +411,58 @@ export function MobileHud() {
       <LevelBadge level={level} size="sm" />
       <span className="numeric sr-only">{`${into} de ${needed} XP`}</span>
     </div>
+  );
+}
+
+/** Área 11.3 · Atajos de teclado y su cheat-sheet («?» la abre).
+ *  PC primero: los atajos existen de verdad (buscar, salir de partida,
+ *  continuar el feedback) y este diálogo dice cuáles son. */
+const SHORTCUTS: { keys: string; what: string }[] = [
+  { keys: "/", what: "Buscar en Entrenamientos o en la Colección" },
+  { keys: "Esc", what: "Abandonar la partida (con confirmación)" },
+  { keys: "Enter / Espacio", what: "Continuar tras la explicación de un ítem" },
+  { keys: "Tab", what: "Moverse por botones, chips y formularios" },
+  { keys: "?", what: "Esta ayuda" },
+];
+
+export function ShortcutsHelp() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing =
+        target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      if (typing) return;
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-sm rounded-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Keyboard className="h-4.5 w-4.5 text-primary" aria-hidden /> Atajos de teclado
+          </DialogTitle>
+          <DialogDescription>
+            Para navegar sin soltar el teclado. Nada de esto es obligatorio: con el dedo también se llega a todas partes.
+          </DialogDescription>
+        </DialogHeader>
+        <ul className="mt-1 space-y-2">
+          {SHORTCUTS.map((s) => (
+            <li key={s.keys} className="flex items-center justify-between gap-3 rounded-xl border bg-card px-3 py-2">
+              <kbd className="numeric rounded-lg border bg-muted px-2 py-0.5 text-xs font-black">{s.keys}</kbd>
+              <span className="min-w-0 flex-1 text-right text-xs text-muted-foreground">{s.what}</span>
+            </li>
+          ))}
+        </ul>
+      </DialogContent>
+    </Dialog>
   );
 }

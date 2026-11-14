@@ -177,7 +177,7 @@ export function StatsScreen() {
     <div>
       <ScreenHeader title="Estadísticas y evolución" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28 xl:max-w-3xl">
         {!hasData ? (
           <div className="mt-6">
             <EmptyState

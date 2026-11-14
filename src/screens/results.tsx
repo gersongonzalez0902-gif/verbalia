@@ -248,12 +248,12 @@ export function ResultsScreen() {
       {/* Acciones */}
       <div className="mt-6 flex flex-col gap-2.5 pb-4">
         {isNewPlayer ? (
-          <Button size="xl" onClick={() => { sfx.whoosh(); navigate({ name: "home" }); }}>
+          <Button size="xl" autoFocus onClick={() => { sfx.whoosh(); navigate({ name: "home" }); }}>
             Explorar mi archipiélago
           </Button>
         ) : (
           <>
-            <Button size="xl" onClick={() => { sfx.whoosh(); navigate({ name: "home" }); }}>
+            <Button size="xl" autoFocus onClick={() => { sfx.whoosh(); navigate({ name: "home" }); }}>
               Volver al inicio
             </Button>
             <Button variant="outline" size="lg" onClick={() => { sfx.click(); navigate({ name: "map" }); }}>

@@ -48,7 +48,7 @@ export function LibraryScreen() {
     <div>
       <ScreenHeader title="Biblioteca de contenidos" subtitle="Qué hay hoy y qué está de camino" backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-3xl px-4 pb-28">
+      <main className="mx-auto w-full max-w-3xl px-4 pb-28 xl:max-w-4xl">
         <Tabs defaultValue="contenido" onValueChange={() => sfx.tap()} className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="contenido" className="font-bold">
@@ -66,11 +66,11 @@ export function LibraryScreen() {
               originales de VerbalIA y están clasificados por dificultad (A1 a C2).
             </p>
 
-            <ul className="grid gap-3 sm:grid-cols-2" aria-label="Paquetes de contenido">
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Paquetes de contenido">
               {packs.map(({ gid, g, stats, played }) => {
                 const Icon = getIcon(g.icon);
                 return (
-                  <li key={gid} className="card-aurora flex flex-col rounded-3xl border bg-card p-5">
+                  <li key={gid} className="card-aurora lift flex flex-col rounded-3xl border bg-card p-5">
                     <div className="flex items-center gap-3">
                       <span className="chip-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl">
                         <Icon className="h-5 w-5" aria-hidden />

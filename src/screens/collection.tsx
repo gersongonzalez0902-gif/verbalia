@@ -39,6 +39,20 @@ export function CollectionScreen() {
   const [sortMode, setSortMode] = useState<WordSort>("dificultad");
   const [visible, setVisible] = useState(CHUNK);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  /** Atajo «/» para buscar sin soltar el teclado (Área 11.3). */
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   /** Aviso fugaz de «ficha copiada» (Área 10.4). */
   const [copied, setCopied] = useState(false);
 
@@ -86,7 +100,7 @@ export function CollectionScreen() {
     <div>
       <ScreenHeader title="Colección de palabras" subtitle={`${learned} de ${SRS_WORDS_FULL.length} aprendidas`} backTo={{ name: "home" }} />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28 xl:max-w-4xl">
         {/* Progreso global */}
         <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4">
           <span aria-hidden className="anim-float absolute -right-2 -top-3 text-5xl opacity-25 select-none">🌿</span>
@@ -159,9 +173,10 @@ export function CollectionScreen() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <Input
+              ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar palabra o significado…"
+              placeholder="Buscar palabra o significado… (pulsa /)"
               aria-label="Buscar en la colección"
               className="h-11 rounded-2xl pl-9"
             />
@@ -243,7 +258,7 @@ export function CollectionScreen() {
           </div>
         ) : (
           <>
-            <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2" aria-label="Palabras de la colección">
+            <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Palabras de la colección">
               {words.slice(0, visible).map((w) => {
               const card = srs[w.id];
               const status = cardStatus(card);
@@ -253,7 +268,7 @@ export function CollectionScreen() {
                   : `próxima revisión: ${formatDue(card.dueAt)}`
                 : "sin descubrir";
               return (
-                <li key={w.id} className="card-aurora rounded-2xl border bg-card p-4 transition hover:border-primary/40">
+                <li key={w.id} className="card-aurora lift rounded-2xl border bg-card p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="type-h2 leading-tight">{w.word}</p>

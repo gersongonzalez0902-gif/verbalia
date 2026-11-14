@@ -189,7 +189,7 @@ export function ProfileScreen() {
         }
       />
 
-      <main className="mx-auto w-full max-w-2xl px-4 pb-28">
+      <main className="mx-auto w-full max-w-2xl px-4 pb-28 xl:max-w-3xl">
         {/* ===== Banner estilo ficha ===== */}
         <section className="card-aurora relative mt-4 overflow-hidden rounded-3xl border">
           <div

@@ -2955,3 +2955,25 @@ html.reduce-motion .key-flash { animation: none; }
 }
 .confetti-bit { animation: confetti-fall 1.5s ease-in both; }
 html.reduce-motion .confetti-bit { animation: none; }
+
+/* ---------- Paridad PC (Ola D · Área 11): hover real de tarjetas ----------
+   En escritorio las tarjetas de listas responden con una elevación corta:
+   se sienten tocables antes de tocarlas. Con hover:none (táctil) no existe
+   y con reduce-motion no se mueve nada. */
+.lift {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+    box-shadow:
+      0 14px 30px -18px color-mix(in oklch, var(--primary) 50%, transparent),
+      0 4px 12px -8px color-mix(in oklch, #000 30%, transparent);
+  }
+}
+html.reduce-motion .lift,
+html.reduce-motion .lift:hover {
+  transition: none;
+  transform: none;
+}
