@@ -26,7 +26,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { DAILY_GIFT_TINTA, dailyGiftPending, featuredShopItem, msUntilNextGift, PREMIUM_PALETTES } from "@/engine/shop";
 import { isAdminName, ADMIN_TINTA_LABEL } from "@/engine/admin";
-import { Gift, Star } from "lucide-react";
+import { summarizeVault } from "@/lib/vault";
+import { Gift, Star, Crown } from "lucide-react";
 import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -135,6 +136,8 @@ export function ShopScreen() {
 
   const isEquipped = (id: string) => wallet.frame === id || wallet.title === id || profile.banner === `premium:${id}`;
   const priceOf = (id: string) => SHOP_ITEMS.find((s) => s.id === id)?.price ?? 0;
+  /** Área 9 · resumen de la bóveda (inventario poseído). */
+  const vault = useMemo(() => summarizeVault(wallet.owned), [wallet.owned]);
 
   const renderCard = (
     id: string,
@@ -340,6 +343,42 @@ export function ShopScreen() {
             </span>
             <span className="shrink-0 text-xs font-black text-primary">Ver →</span>
           </button>
+        )}
+
+        {/* Área 9 · Tu bóveda: el inventario de coleccionables poseídos */}
+        {vault.entries.length > 0 && (
+          <section className="card-aurora mt-4 rounded-3xl border bg-card p-4" aria-labelledby="vault-title">
+            <div className="flex items-baseline justify-between gap-2">
+              <h2 id="vault-title" className="type-h2 flex items-center gap-2">
+                <Crown className="h-4.5 w-4.5 text-primary" aria-hidden /> Tu bóveda
+              </h2>
+              <span className="numeric text-xs font-bold text-muted-foreground">
+                {vault.entries.length}/{vault.totalCatalog} · {vault.completionPct}% de la colección
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {vault.byKind.frame} marcos · {vault.byKind.banner} banners · {vault.byKind.title} títulos
+              {vault.legendarias.length > 0 && ` · ${vault.legendarias.length} legendaria(s)`}. Toca una pieza para verla en su estantería.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {vault.entries.map((e) => (
+                <button
+                  key={e.id}
+                  onClick={() => {
+                    sfx.tap();
+                    document.getElementById(`shop-item-${e.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }}
+                  className={cn(
+                    "tap-target rounded-full border px-2.5 py-1 text-[11px] font-bold transition hover:border-primary/60",
+                    isEquipped(e.id) ? "border-primary bg-primary/10 text-primary" : "border-border bg-background text-muted-foreground",
+                  )}
+                  title={`${e.name} · ${RARITY_META[e.rarity].label}${isEquipped(e.id) ? " · en tu ficha" : ""}`}
+                >
+                  {isEquipped(e.id) && <span aria-hidden>✦ </span>}{e.name}
+                </button>
+              ))}
+            </div>
+          </section>
         )}
 
         <section className="card-aurora relative mt-4 flex items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4">
