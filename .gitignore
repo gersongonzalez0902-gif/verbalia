@@ -59,6 +59,8 @@ server.log
 # entregables y subidas del entorno (no son código del juego)
 /download/
 /upload/
+# desván local: trabajo retirado del repo que permanece en el disco
+/.attic/
 .neon
 
 # clave de la CLI de Neon (sesión de configuración; revocar después)
