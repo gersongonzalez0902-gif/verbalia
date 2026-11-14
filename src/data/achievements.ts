@@ -1,10 +1,19 @@
 import type { AchievementDef } from "@/types";
 import { SRS_WORDS } from "./words-srs";
+import { levelFromXp, cumulativeXpForLevel } from "@/engine/xp";
 
 /**
  * Catálogo de logros. Cada definición evalúa el núcleo de progreso puro,
  * por lo que pueden probarse con datos sintéticos en los tests.
  */
+
+/** Logro por nivel (Área 8 · evaluación real): el nivel sale del XP con
+ *  la MISMA curva del motor, y el progreso es el XP acumulado frente al
+ *  que pide el nivel destino. Nada de checks falsos. */
+const levelCheck = (lvl: number) => (c: { xp: number }) => levelFromXp(c.xp) >= lvl;
+const levelProgress = (lvl: number) => (c: { xp: number }) =>
+  Math.min(1, c.xp / cumulativeXpForLevel(lvl));
+
 export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: "ac-primer-paso",
@@ -25,8 +34,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 40,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 2,
-    check: () => false, // se evalúa con el nivel; ver note en engine/achievements
-    progress: () => 0,
+    check: levelCheck(3),
+    progress: levelProgress(3),
   },
   {
     id: "ac-nivel-5",
@@ -36,8 +45,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 60,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 3,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(5),
+    progress: levelProgress(5),
   },
   {
     id: "ac-nivel-10",
@@ -47,8 +56,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 120,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 6,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(10),
+    progress: levelProgress(10),
   },
   {
     id: "ac-nivel-15",
@@ -58,8 +67,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 200,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 10,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(15),
+    progress: levelProgress(15),
   },
   {
     id: "ac-xp-500",
@@ -510,8 +519,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 150,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 8,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(20),
+    progress: levelProgress(20),
   },
   {
     id: "ac-nivel-25",
@@ -521,8 +530,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 200,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 10,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(25),
+    progress: levelProgress(25),
   },
   {
     id: "ac-nivel-35",
@@ -532,8 +541,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 300,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 15,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(35),
+    progress: levelProgress(35),
   },
   {
     id: "ac-nivel-50",
@@ -543,8 +552,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     xpReward: 500,
     /** Gotas de tinta al recoger el logro. */
     tintaReward: 25,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(50),
+    progress: levelProgress(50),
   },
   {
     id: "ac-centenas",
@@ -682,8 +691,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     icon: "Sparkles",
     xpReward: 300,
     tintaReward: 15,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(30),
+    progress: levelProgress(30),
   },
   {
     id: "ac-nivel-42",
@@ -692,8 +701,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     icon: "Sparkles",
     xpReward: 400,
     tintaReward: 20,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(42),
+    progress: levelProgress(42),
   },
   {
     id: "ac-nivel-60",
@@ -702,8 +711,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     icon: "Crown",
     xpReward: 600,
     tintaReward: 30,
-    check: () => false,
-    progress: () => 0,
+    check: levelCheck(60),
+    progress: levelProgress(60),
   },
   {
     id: "ac-typing-first",

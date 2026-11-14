@@ -14,6 +14,7 @@ import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { dailyProgress, weeklyProgress, daysOfWeek, weekKey, dateKey, type MissionProgress } from "@/engine/missions";
 import { ACHIEVEMENTS, ACHIEVEMENTS_BY_ID, LEVEL_ACHIEVEMENTS } from "@/data/achievements";
+import { isLearned, isMastered } from "@/engine/srs";
 import { ICONS } from "@/components/game/icons";
 import { Sparkles } from "lucide-react";
 import { useSoundEffects } from "@/components/game/game-shell";
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 
 export function MissionsScreen() {
   const core = useGameStore((s) => s.core);
+  const srs = useGameStore((s) => s.srs);
   const claimMission = useGameStore((s) => s.claimMission);
   const claimAchievement = useGameStore((s) => s.claimAchievement);
   const [tab, setTab] = useState("misiones");
@@ -74,6 +76,29 @@ export function MissionsScreen() {
 
   const unlockedAchievements = Object.keys(core.achievements);
   const totalReady = readyDaily.length + readyWeekly.length + unclaimedAchievements.length;
+
+  /** Filtro del catálogo de logros (Área 8.4): todos · en curso · por recoger. */
+  const [achFilter, setAchFilter] = useState<"todos" | "curso" | "recoger">("todos");
+  const srsCards = useMemo(() => Object.values(srs), [srs]);
+  const achCtx = useMemo(
+    () => ({
+      masteredWords: srsCards.filter(isMastered).length,
+      learnedWords: srsCards.filter(isLearned).length,
+      now: Date.now(),
+    }),
+    [srsCards],
+  );
+  const shownAchievements = useMemo(() => {
+    if (achFilter === "recoger") return ACHIEVEMENTS.filter((a) => core.achievements[a.id] && !(core.achievementsClaimed ?? []).includes(a.id));
+    if (achFilter === "curso") {
+      return ACHIEVEMENTS.filter((a) => {
+        if (core.achievements[a.id]) return false;
+        const prog = a.progress ? a.progress(core, achCtx) : 0;
+        return prog > 0;
+      });
+    }
+    return ACHIEVEMENTS;
+  }, [achFilter, core, achCtx]);
 
   const doClaimMission = (scope: "daily" | "weekly", id: string) => {
     const res = claimMission(scope, id);
@@ -233,13 +258,35 @@ export function MissionsScreen() {
                 <span className="font-bold text-primary"> · {unclaimedAchievements.length} sin recoger</span>
               )}
             </p>
+            <div className="mb-3 flex gap-1.5" role="group" aria-label="Filtrar logros">
+              {(["todos", "curso", "recoger"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => { sfx.tap(); setAchFilter(f); }}
+                  aria-pressed={achFilter === f}
+                  className={cn(
+                    "tap-target rounded-full border px-3 py-1 text-xs font-bold transition",
+                    achFilter === f
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                  )}
+                >
+                  {f === "todos" ? "Todos" : f === "curso" ? "En curso" : "Por recoger"}
+                </button>
+              ))}
+            </div>
+            {shownAchievements.length === 0 && (
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Nada en esta lista todavía: los «en curso» aparecen en cuanto la primera barra avanza.
+              </p>
+            )}
             <ul className="stagger grid gap-2.5 sm:grid-cols-2" aria-label="Lista de logros">
-              {ACHIEVEMENTS.map((a) => {
+              {shownAchievements.map((a) => {
                 const got = Boolean(core.achievements[a.id]);
                 const claimed = got && (core.achievementsClaimed ?? []).includes(a.id);
                 const canClaim = got && !claimed;
                 const Icon = ICONS[a.icon] ?? Sparkles;
-                const prog = Math.min(1, a.progress ? a.progress(core, { masteredWords: 0, learnedWords: 0, now: Date.now() }) : got ? 1 : 0);
+                const prog = Math.min(1, a.progress ? a.progress(core, achCtx) : got ? 1 : 0);
                 return (
                   <li
                     key={a.id}
@@ -269,8 +316,13 @@ export function MissionsScreen() {
                       </p>
                       <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{a.description}</p>
                       {!got && prog > 0 && (
-                        <div className="groove mt-2 h-1.5 overflow-hidden rounded-full">
-                          <div className="h-full rounded-full bg-primary/70" style={{ width: `${prog * 100}%` }} />
+                        <div className="mt-2">
+                          <div className="groove h-1.5 overflow-hidden rounded-full">
+                            <div className="h-full rounded-full bg-primary/70" style={{ width: `${prog * 100}%` }} />
+                          </div>
+                          <p className="numeric mt-0.5 text-[10px] font-bold text-muted-foreground">
+                            {Math.round(prog * 100)}% del camino
+                          </p>
                         </div>
                       )}
                       {got && canClaim && (
