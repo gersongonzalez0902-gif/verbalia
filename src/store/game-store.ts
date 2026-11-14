@@ -30,7 +30,7 @@ import { ACHIEVEMENTS_BY_ID } from "@/data/achievements";
 import { applyArcadeUnlock, applyArcadeScore, applyTypingTest, type TypingResult } from "@/engine/arcade";
 import { storage, CURRENT_SCHEMA_VERSION, enqueueSessionEvent, markSyncDirty, type PersistedState } from "@/services/storage";
 import { useMusicStore } from "@/services/music-station";
-import { setSoundEnabled, setMusicVolume, setSfxVolume, setTtsRate, setHaptics } from "@/services/audio";
+import { setSoundEnabled, setMusicVolume, setSfxVolume, setTtsRate, setHaptics, AMBIENT_VOLUME_DEFAULT } from "@/services/audio";
 
 const SAVE_DEBOUNCE_MS = 700;
 
@@ -38,14 +38,13 @@ export const DEFAULT_SETTINGS: GameSettings = {
   reduceMotion: false,
   textSize: "md",
   sound: true,
-  musicVolume: 0.55,
+  musicVolume: AMBIENT_VOLUME_DEFAULT,
   sfxVolume: 0.9,
   dailyGoalXp: 120,
   newCardsPerDay: 8,
   offlineMode: true,
   nightMode: false,
   themeColor: "aurora",
-  musicInGames: false,
   stationVolume: 0.75,
   stationInGames: false,
   ttsRate: 1,
@@ -173,7 +172,14 @@ export const useGameStore = create<GameStore>((set, get) => {
     async hydrate() {
       const saved = await storage.load();
       if (saved && saved.profile) {
-        const settings = { ...DEFAULT_SETTINGS, ...saved.settings };
+        const merged = { ...DEFAULT_SETTINGS, ...saved.settings } as GameSettings & Record<string, unknown>;
+        // Ola E · 5: el banco sonó siempre de otra manera (15 loops por
+        // región → ambiente único). El volumen antiguo por defecto (0,55)
+        // era para aquel paisaje: una sola vez se recalibra al nuevo
+        // medio-bajo (0,35); quien eligió otro valor, conserva su elección.
+        if (merged.musicVolume === 0.55) merged.musicVolume = AMBIENT_VOLUME_DEFAULT;
+        delete merged.musicInGames; // ajuste retirado con el ambiente único
+        const settings = merged as GameSettings;
         const profile = migrateProfile(saved.profile);
         set({
           hydrated: true,

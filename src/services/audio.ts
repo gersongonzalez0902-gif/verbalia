@@ -1,20 +1,27 @@
 /**
- * Motor de audio de VERBALIA · v3 (Ola D · archivos reales).
+ * Motor de audio de VERBALIA · v4 (Ola E · 5 · ambiente único de estudio).
  * ---------------------------------------------------------------
  * Todo el sonido del juego son ARCHIVOS de audio reales con licencia
- * libre (CC0 / CC-BY), servidos desde public/sfx/ y public/music/.
+ * libre (CC0), servidos desde public/sfx/ y public/music/.
  * Fuentes, autores y licencias: public/sfx/CREDITS.md. Nada se
  * sintetiza en vivo salvo como respaldo de emergencia.
  *
- * 1) SFX: ~45 efectos con 2-3 variantes por efecto que se alternan
- *    al azar (nunca suena igual dos veces seguidas). Cada efecto
- *    vive en .ogg (preferido) + .mp3 de respaldo (Safari/iOS).
- * 2) MÚSICA AMBIENTE: un loop real por escena/región con fundido
- *    cruzado al cambiar de región (el mismo fundido de siempre).
- * 3) EL GRAN RELOJ EN CONTRATIEMPO: capa de tic-tac con archivos
- *    reales (tic-tac CC0). En reposo es una presencia mínima; en
- *    los juegos cronometrados `setTension()` la acelera, le sube
- *    el tono y el volumen hasta el clímax de los últimos segundos.
+ * 1) AMBIENTE ÚNICO: una sola capa de ambiente natural calmo (olas
+ *    suaves + brisa con algún pájaro lejano), en dos loops largos sin
+ *    costura que suenan IGUAL en portada, mapa, regiones y juegos —
+ *    sin cambios de ambiente al moverse entre regiones y sin fundidos
+ *    cruzados entre escenas: solo el fundido suave de entrada al abrir
+ *    la app. Al silenciar (volumen 0), silencio total.
+ * 2) SFX: un banco de la misma familia (Kenney + celebraciones),
+ *    normalizado por pico. La navegación es UN solo pop de burbuja
+ *    (tap/click/back/toggle/navigate comparten archivo); el acierto,
+ *    el fallo y el reloj tienen UNA sola variante fija cada uno —
+ *    nunca alternan al azar. Las variantes al azar quedan solo en
+ *    celebraciones poco frecuentes (logro, subir de nivel).
+ * 3) EL GRAN RELOJ EN CONTRATIEMPO: un único «latido lejano» de
+ *    archivo (clockSoft: tic real bajado de tono y filtrado). En
+ *    reposo es una presencia mínima; en los juegos cronometrados
+ *    setTension() lo acelera y le sube un poco el volumen.
  *
  * El AudioContext se desbloquea con el primer gesto del usuario
  * (política de navegadores) y, justo entonces, se calienta el banco:
@@ -37,8 +44,13 @@ let clockBus: GainNode | null = null;
 let noiseBus: GainNode | null = null;
 
 let enabled = true;
-let musicVolume = 0.55;
 let sfxVolume = 0.9;
+
+/** Volumen del ambiente por defecto: medio-bajo, se nota sin estorbar
+ *  (Ola E · 5). El jugador lo ajusta con el slider «Ambiente». */
+export const AMBIENT_VOLUME_DEFAULT = 0.35;
+
+let musicVolume = AMBIENT_VOLUME_DEFAULT;
 
 let unlocked = false;
 let unlockListeners: (() => void) | null = null;
@@ -94,7 +106,7 @@ export function initAudioUnlock(): void {
     ensureCtx();
     unlocked = true;
     warmupSfxFiles(); // el banco se calienta ANTES de cualquier sfx probable (Ola E · 4)
-    if (currentScene) startScene(currentScene); // la música arranca al desbloquear
+    if (currentScene) startAmbient(); // el ambiente arranca al desbloquear
     detach();
   };
   const detach = () => {
@@ -140,9 +152,9 @@ export function registerVisibilityGuard(): void {
     pausedByVisibility = false;
     if (!enabled) return; // el jugador silenció el juego mientras no miraba
     if (ctx && ctx.state === "suspended") void ctx.resume();
-    // La escena que sonaba antes del ocultado vuelve con fundido.
+    // El ambiente que sonaba antes del ocultado vuelve con fundido suave.
     if (currentScene && unlocked) {
-      void startScene(currentScene);
+      void startAmbient();
       if (clockOn) ensureClockScheduler();
     }
   };
@@ -173,6 +185,12 @@ export function setSoundEnabled(value: boolean) {
 export function setMusicVolume(v: number) {
   musicVolume = Math.min(1, Math.max(0, v));
   if (ctx && musicBus) musicBus.gain.setTargetAtTime(musicVolume, ctx.currentTime, 0.08);
+  // Silencio pedido: el ambiente se detiene del todo (ni voces ni CPU).
+  if (musicVolume <= 0) {
+    fadeOutAmbient(0.4);
+  } else if (currentScene && unlocked) {
+    void startAmbient();
+  }
 }
 
 export function setSfxVolume(v: number) {
@@ -250,41 +268,20 @@ function noiseBurst(
   src.stop(t + duration + 0.08);
 }
 
-/* ===================== escenas musicales (loops reales) =====================
- * Cada escena tiene su loop de archivo real (public/music/, licencias en
- * public/sfx/CREDITS.md). Al cambiar de región el loop anterior se funde
- * hacia el silencio mientras el nuevo entra: el mismo fundido cruzado de
- * siempre, ahora con música grabada. */
+/* ===================== ambiente único de estudio (Ola E · 5) =====================
+ * Una sola capa de ambiente natural calmo —olas suaves + brisa con algún
+ * pájaro lejano— en DOS loops largos sin costura (public/music/, CC0,
+ * licencias en CREDITS.md). Suenan IGUAL en portada, mapa, regiones y
+ * juegos: ni cambios de ambiente al moverse entre regiones ni fundidos
+ * cruzados entre escenas. El único fundido es el de entrada, al abrir la
+ * app (o al volver del silencio). Al poner el volumen a 0: silencio total
+ * y las voces se detienen para no gastar batería.
+ * Las dos capas tienen longitudes distintas (124 s y 75,8 s), así que la
+ * combinación tarda más de un cuarto de hora en repetirse exacta: el
+ * oído nunca encuentra un patrón que memorizar. */
 
-/** Escena -> loop (nombre base del archivo en /music). Las pantallas
- *  sin loop propio heredan el de una escena cercana. */
-const SCENE_LOOPS: Record<string, string> = {
-  // Regiones del Archipiélago: un loop propio cada una.
-  bosque: "bosque",
-  ciudad: "ciudad",
-  fortaleza: "fortaleza",
-  biblioteca: "biblioteca",
-  puerto: "puerto",
-  torre: "torre",
-  observatorio: "observatorio",
-  forja: "forja",
-  // Escenas globales.
-  welcome: "welcome",
-  map: "map",
-  missions: "missions",
-  results: "results",
-  arcade: "arcade",
-  errors: "errors",
-  stats: "stats",
-  // Escenas que heredan: sin archivo extra (mismo espíritu, menos peso).
-  home: "welcome",
-  placement: "welcome",
-  collection: "biblioteca",
-  library: "biblioteca",
-  profile: "map",
-  settings: "puerto",
-  station: "welcome",
-};
+/** Capas del ambiente (nombre base del archivo en /music). */
+const AMBIENT_LOOPS = ["estudio-olas", "estudio-brisa"] as const;
 
 let currentScene: string | null = null;
 let tension = 0; // 0 reposo · 1 clímax cronometrado
@@ -315,111 +312,105 @@ async function loadMusicLoop(name: string): Promise<AudioBuffer | null> {
       /* probamos el siguiente formato */
     }
   }
-  musicFailed.add(name); // hoy no llega: esta escena quedará en silencio
+  musicFailed.add(name); // hoy no llega: esta capa quedará en silencio
   return null;
 }
 
 /* ------------------------ voz de loop con fundidos ------------------------ */
 
 interface LoopVoice {
-  scene: string;
   src: AudioBufferSourceNode;
   gain: GainNode;
-  stopAt: number;
 }
 
-let currentLoop: LoopVoice | null = null;
-let loopSeq = 0; // desecha arranques de escenas ya abandonadas
+let ambientVoices: LoopVoice[] = [];
+let ambientSeq = 0; // desecha arranques ya abandonados (silencio pedido)
 
-/** Funde y detiene una voz de loop (cambio de escena o silencio). */
-function fadeOutLoop(voice: LoopVoice, seconds = 1.2) {
+/** Funde y detiene las voces del ambiente (silencio o estación propia). */
+function fadeOutAmbient(seconds = 1.0) {
   const ac = ctx;
+  const voices = ambientVoices;
+  ambientVoices = [];
   if (!ac) return;
-  try {
-    voice.gain.gain.cancelScheduledValues(ac.currentTime);
-    voice.gain.gain.setTargetAtTime(0.0001, ac.currentTime, seconds / 3);
-  } catch {
-    /* ya liberada */
-  }
-  const src = voice.src;
-  setTimeout(() => {
+  for (const v of voices) {
     try {
-      src.stop();
+      v.gain.gain.cancelScheduledValues(ac.currentTime);
+      v.gain.gain.setTargetAtTime(0.0001, ac.currentTime, seconds / 3);
     } catch {
-      /* ya parada */
+      /* ya liberada */
     }
-  }, seconds * 1000 + 300);
+    const src = v.src;
+    setTimeout(() => {
+      try {
+        src.stop();
+      } catch {
+        /* ya parada */
+      }
+    }, seconds * 1000 + 300);
+  }
 }
 
-/** Arranca el loop de una escena con fundido de entrada (si no suena ya). */
-async function startScene(sceneId: string) {
+/** Arranca el ambiente con el fundido suave de entrada (si no suena ya).
+ *  Es el ÚNICO fundido: ni entre escenas ni entre regiones. */
+async function startAmbient() {
   const ac = ensureCtx();
-  if (!ac || !enabled) return;
-  const name = SCENE_LOOPS[sceneId] ?? SCENE_LOOPS.home;
-  currentScene = sceneId;
-  const seq = ++loopSeq;
+  if (!ac || !enabled || musicVolume <= 0) return;
+  if (ambientVoices.length > 0) return; // ya suena: nada que cambiar
+  const seq = ++ambientSeq;
 
-  // Si la escena anterior se silenció (stopSceneMusic), recupera el volumen.
-  if (musicBus) musicBus.gain.setTargetAtTime(musicVolume, ac.currentTime, 0.5);
+  const bufs = await Promise.all(AMBIENT_LOOPS.map((n) => loadMusicLoop(n)));
+  // Mientras cargaba: el jugador silenció o pidió su estación. Fuera.
+  if (seq !== ambientSeq || !enabled || musicVolume <= 0 || !ctx) return;
 
-  // ¿Ya suena este mismo loop? Nada que hacer (ni cortar ni reiniciar).
-  if (currentLoop && SCENE_LOOPS[currentLoop.scene] === name) return;
-
-  // Funde el loop anterior mientras carga el nuevo (crossfade real).
-  if (currentLoop) {
-    fadeOutLoop(currentLoop, 1.2);
-    currentLoop = null;
-  }
-
-  const buf = await loadMusicLoop(name);
-  // Mientras cargaba: otra escena mandó, o el jugador silenció. Fuera.
-  if (!buf || seq !== loopSeq || !enabled || !ctx) return;
-
-  try {
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.setTargetAtTime(1, ctx.currentTime, 0.5); // entrada suave ~1,5 s
-    src.connect(gain).connect(musicBus ?? ctx.destination);
-    src.start();
-    currentLoop = { scene: sceneId, src, gain, stopAt: 0 };
-  } catch {
-    /* navegador caprichoso: esta escena quedará en silencio */
+  for (const buf of bufs) {
+    if (!buf) continue;
+    try {
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.setTargetAtTime(1, ctx.currentTime, 0.8); // entrada suave ~2,4 s
+      src.connect(gain).connect(musicBus ?? ctx.destination);
+      src.start();
+      ambientVoices.push({ src, gain });
+    } catch {
+      /* navegador caprichoso: esta capa quedará en silencio */
+    }
   }
 }
 
-/** Cambia la música de escena con fundido. La escena ya activa no se re-inicia. */
-export function setSceneMusic(sceneId: string | null) {
-  if (!sceneId || sceneId === currentScene) return;
-  if (!ctx || !unlocked) {
-    currentScene = sceneId; // se aplicará al desbloquear
+/** La API de escenas se conserva para no mover a todos los que llaman:
+ *  con el ambiente único el identificador ya no decide nada — el mismo
+ *  ambiente suena en cualquier pantalla. */
+export function setSceneMusic(_sceneId: string | null) {
+  if (!_sceneId || currentScene !== null) {
+    currentScene = _sceneId;
     return;
   }
-  void startScene(sceneId);
+  currentScene = _sceneId;
+  if (ctx && unlocked) void startAmbient();
 }
 
-/** Silencia la escena actual con fundido (partidas sin música de menú). */
+/** Silencia el ambiente con fundido (estación propia del jugador o
+ *  pantalla de música). No hay música de menú que callar: es la misma
+ *  capa en todas partes. */
 export function stopSceneMusic() {
   currentScene = null;
-  if (currentLoop) {
-    fadeOutLoop(currentLoop, 0.9);
-    currentLoop = null;
-  }
+  fadeOutAmbient(0.9);
 }
 
 /* ============== EL GRAN RELOJ EN CONTRATIEMPO (archivos reales) ==============
- * Tic-tac de archivo (public/sfx/clockTick*.ogg, CC0) que vive en los
- * contratiempos: en reposo muy sutil; con tensión se vuelve insistente,
- * acelera y sube de tono (playbackRate) hasta el clímax final. Como los
- * loops de música ya vienen grabados, el reloj marca su propio pulso
- * constante (2 tics/s en reposo) en lugar de anclarse al tempo de la
- * escena: misma presencia, menos piezas. */
+ * Un único «latido lejano» de archivo (clockSoft: tic real CC0 bajado 6
+ * semitonos y filtrado bajo 600 Hz — presencia de latido, no de reloj).
+ * Una sola variante fija: nunca alterna ni al azar ni tic-tac. En reposo
+ * es una presencia mínima y más baja que antes; con tensión acelera y
+ * sube un poco de volumen hasta el clímax final. Como el ambiente ya
+ * viene grabado, el reloj marca su propio pulso constante (2 latidos/s
+ * en reposo) en lugar de anclarse al tempo: misma presencia, menos piezas. */
 
 let clockOn = false;
 let clockNextTime = 0;
-let clockHigh = false;
 let clockTimer: ReturnType<typeof setInterval> | null = null;
 
 /** Reproduce un archivo corto en un momento exacto y bus concreto. */
@@ -456,19 +447,10 @@ function scheduleClockAhead() {
   const interval = 0.5 / (1 + tension * 1.4);
   if (clockNextTime < ac.currentTime) clockNextTime = ac.currentTime + 0.05;
   while (clockNextTime < ac.currentTime + 0.6) {
-    const vol = (clockOn ? 0.05 : 0.016) * (0.4 + tension * 1.6);
-    const rate = 1 + tension * 0.35; // sube de tono con la tensión
-    const variant = clockHigh ? "clockTick" : "tock";
-    playFileAt(variant, clockNextTime, { rate, gain: vol, bus: clockBus });
-    clockHigh = !clockHigh; // tic ... tac ...
-    if (tension > 0.55) {
-      // doble tic nervioso entre contratiempos
-      playFileAt("clockTick2", clockNextTime + interval * 0.3, {
-        rate: rate * 1.06,
-        gain: vol * 0.5,
-        bus: clockBus,
-      });
-    }
+    // Volumen menor que antes: el latido acompaña, no manda.
+    const vol = (clockOn ? 0.035 : 0.012) * (0.4 + tension * 1.6);
+    const rate = 1 + tension * 0.25; // sube apenas de tono con la tensión
+    playFileAt("clockSoft", clockNextTime, { rate, gain: vol, bus: clockBus });
     clockNextTime += interval;
   }
 }
@@ -493,9 +475,9 @@ export function setTension(level: number) {
   }
 }
 
-/** ¿Hay música sonando? (para el indicador de ajustes) */
+/** ¿Hay ambiente sonando? (para el indicador de ajustes) */
 export function isMusicPlaying(): boolean {
-  return !!currentLoop && !!currentScene;
+  return ambientVoices.length > 0;
 }
 
 export function getAudioState() {
@@ -772,54 +754,67 @@ const synthSfx = {
 
 type SfxFileSpec = { base: string; rate?: number; gain?: number };
 
-/** Efecto -> variantes de archivo (se alternan al azar). Los métodos
- *  sin grabación propia reutilizan un archivo cercano con
- *  velocidad/volumen ajustados, como haría un diseñador sonoro. */
+/** Efecto -> variante(s) de archivo. Ola E · 5:
+ *  - La navegación es UN solo pop de burbuja (Kenney drop_002): tap,
+ *    click, back, toggle, navigate y pop comparten archivo y suena
+ *    siempre el mismo.
+ *  - El reloj es un único latido (clockSoft); correct y wrong tienen
+ *    UNA sola variante fija cada uno — nunca alternan al azar.
+ *  - Solo logro y subir de nivel conservan variantes que se alternan
+ *    (celebraciones poco frecuentes).
+ *  - Todos los archivos vienen normalizados por pico a −2 dBFS; el
+ *    gain de aquí es el balance fino del diseñador dentro del banco
+ *    (ganancia float de WebAudio, sin recorte). */
 const SFX_FILES: Record<string, SfxFileSpec[]> = {
-  tap: [{ base: "tap", gain: 1 }, { base: "tap2", gain: 1 }, { base: "tap3", gain: 1 }],
-  click: [{ base: "click" }, { base: "click2" }, { base: "click3" }],
-  toggle: [{ base: "toggle" }, { base: "toggle2" }, { base: "toggle3" }],
-  pop: [{ base: "pop" }, { base: "pop2" }, { base: "pop3" }],
-  correct: [{ base: "correct", gain: 1 }, { base: "correct2", gain: 1 }, { base: "correct3", gain: 1 }],
-  wrong: [{ base: "wrong" }, { base: "wrong2" }, { base: "wrong3" }],
-  error: [{ base: "error" }, { base: "error2" }],
-  whoosh: [{ base: "whoosh" }, { base: "whoosh2" }, { base: "whoosh3" }],
-  slide: [{ base: "slide" }, { base: "slide2" }],
-  page: [{ base: "page" }, { base: "page2" }],
-  flip: [{ base: "flip" }, { base: "flip2" }],
-  deal: [{ base: "deal" }, { base: "deal2" }],
-  place: [{ base: "place" }, { base: "place2" }],
-  snap: [{ base: "snap" }, { base: "snap2" }],
-  open: [{ base: "open" }, { base: "open2" }],
-  close: [{ base: "close" }, { base: "close2" }],
-  back: [{ base: "back" }, { base: "back2" }],
-  navigate: [{ base: "navigate" }, { base: "navigate2" }],
-  coin: [{ base: "coin", gain: 1 }, { base: "coin2", gain: 1 }],
-  coins: [{ base: "coins" }, { base: "coins2" }, { base: "coins3" }],
-  tinta: [{ base: "tinta" }, { base: "tinta2" }],
-  buy: [{ base: "buy" }, { base: "buy2" }],
+  // Navegación: un único pop de burbuja, siempre el mismo.
+  tap: [{ base: "pop" }],
+  click: [{ base: "pop" }],
+  back: [{ base: "pop" }],
+  toggle: [{ base: "pop" }],
+  navigate: [{ base: "pop" }],
+  pop: [{ base: "pop" }],
+  // Acierto, fallo y reloj: una sola variante fija cada uno.
+  correct: [{ base: "correct", gain: 1.5 }],
+  wrong: [{ base: "wrong", gain: 1.3 }],
+  clockTick: [{ base: "clockSoft", gain: 0.9 }],
+  tick: [{ base: "clockSoft", gain: 0.9 }],
+  tock: [{ base: "clockSoft", gain: 0.9 }],
+  // El resto del banco: una variante, balance ajustado al nivel común.
+  error: [{ base: "error", gain: 1.1 }],
+  whoosh: [{ base: "whoosh", gain: 1.15 }],
+  slide: [{ base: "slide" }],
+  page: [{ base: "page", gain: 1.1 }],
+  flip: [{ base: "flip", gain: 1.15 }],
+  deal: [{ base: "deal", gain: 1.05 }],
+  place: [{ base: "place", gain: 1.1 }],
+  snap: [{ base: "snap", gain: 1.15 }],
+  open: [{ base: "open" }],
+  close: [{ base: "close" }],
+  coin: [{ base: "coin" }],
+  coins: [{ base: "coins", gain: 1.15 }],
+  tinta: [{ base: "tinta" }],
+  buy: [{ base: "buy", gain: 1.4 }],
   unlock: [{ base: "unlock" }],
+  gift: [{ base: "gift" }],
+  claim: [{ base: "claim", gain: 1.1 }],
+  stepUp: [{ base: "stepUp" }],
+  sparkle: [{ base: "sparkle" }],
+  confetti: [{ base: "confetti" }],
+  chime: [{ base: "chime" }],
+  sessionEnd: [{ base: "sessionEnd" }],
+  go: [{ base: "go", gain: 1.5 }],
+  combo: [{ base: "combo" }],
+  countdown: [{ base: "countdown", gain: 1.1 }],
+  stamp: [{ base: "stamp", gain: 1.15 }],
+  buoy: [{ base: "buoy" }],
+  typeKey: [{ base: "typeKey", rate: 1.15, gain: 0.7 }],
+  typeWord: [{ base: "typeWord", gain: 1.2 }],
+  // Victoria y celebraciones poco frecuentes: aquí sí hay variantes.
+  sessionWin: [{ base: "sessionWin" }],
+  sessionLose: [{ base: "sessionLose" }],
+  streak: [{ base: "streak" }],
   levelUp: [{ base: "levelUp" }, { base: "levelUp2" }],
   achievement: [{ base: "achievement" }, { base: "achievement2" }],
-  gift: [{ base: "gift" }],
-  claim: [{ base: "claim" }, { base: "claim2" }],
-  streak: [{ base: "streak" }],
-  stepUp: [{ base: "stepUp" }],
-  sparkle: [{ base: "sparkle" }, { base: "sparkle2" }],
-  confetti: [{ base: "confetti" }, { base: "confetti2" }],
-  chime: [{ base: "chime" }, { base: "chime2" }],
-  sessionWin: [{ base: "sessionWin" }],
-  sessionEnd: [{ base: "sessionEnd" }, { base: "sessionEnd2" }],
-  sessionLose: [{ base: "sessionLose" }],
-  go: [{ base: "go" }, { base: "go2" }],
-  combo: [{ base: "combo" }, { base: "combo2" }],
-  countdown: [{ base: "countdown" }, { base: "countdown2" }],
-  tick: [{ base: "tick", gain: 0.9 }, { base: "tick2", gain: 0.9 }],
-  tock: [{ base: "tock", gain: 0.9 }, { base: "tock2", gain: 0.9 }],
-  stamp: [{ base: "stamp" }],
-  buoy: [{ base: "buoy" }],
-  typeKey: [{ base: "typeKey", rate: 1.15, gain: 0.5 }],
-  typeWord: [{ base: "typeWord", gain: 0.9 }],
 };
 
 const sfxBufferCache = new Map<string, AudioBuffer>();
@@ -951,8 +946,8 @@ function drainGraceQueue(base: string, ok: boolean): void {
  *  precacheó: solo cuesta decodificar). */
 export function warmupSfxFiles(): void {
   graceWindowEnd = Date.now() + SFX_GRACE_WINDOW_MS;
-  for (const key of ["tap", "click", "correct", "wrong", "whoosh", "flip", "page", "coin", "clockTick", "tock"]) {
-    const spec = SFX_FILES[key]?.[0] ?? (key === "clockTick" ? { base: "clockTick" } : key === "tock" ? { base: "tock" } : undefined);
+  for (const key of ["tap", "click", "correct", "wrong", "whoosh", "flip", "page", "coin", "clockTick"]) {
+    const spec = SFX_FILES[key]?.[0];
     if (spec) void loadSfxFile(spec.base);
   }
   const whenIdle = (cb: () => void): void => {
@@ -964,9 +959,6 @@ export function warmupSfxFiles(): void {
       const spec = SFX_FILES[key]?.[0];
       if (spec) void loadSfxFile(spec.base);
     }
-    // El tic-tac del Gran Reloj no vive en SFX_FILES: se calienta aparte.
-    void loadSfxFile("clockTick");
-    void loadSfxFile("clockTick2");
   });
 }
 
@@ -996,10 +988,10 @@ function playSfxFile(name: string): boolean {
   return playSfxSmart(name) === "file";
 }
 
-/** Lista de efectos con archivo, con sus variantes, para «Probar sonidos». */
+/** Lista de efectos con archivo, para «Probar sonidos». */
 export function sfxShowcase(): { key: string; label: string }[] {
   return [
-    { key: "tap", label: "Toque (botones)" },
+    { key: "pop", label: "Pop de burbuja (botones)" },
     { key: "correct", label: "Acierto" },
     { key: "wrong", label: "Fallo" },
     { key: "coin", label: "Moneda de XP" },
@@ -1012,8 +1004,32 @@ export function sfxShowcase(): { key: string; label: string }[] {
     { key: "chime", label: "Campanita" },
     { key: "sessionWin", label: "¡Victoria!" },
     { key: "sessionLose", label: "Derrota" },
-    { key: "clockTick", label: "Reloj (tic-tac)" },
+    { key: "clockTick", label: "Reloj (latido lejano)" },
   ];
+}
+
+/** Prueba del ambiente desde Ajustes: lo arranca si está parado y lo
+ *  detiene si ya suena. Devuelve si quedó sonando. */
+export function toggleAmbientPreview(): boolean {
+  if (ambientVoices.length > 0) {
+    fadeOutAmbient(0.6);
+    return false;
+  }
+  const ac = ensureCtx();
+  if (!ac || !enabled || musicVolume <= 0) return false;
+  unlocked = true;
+  void startAmbient();
+  return true;
+}
+
+/** Instantánea del banco para pruebas: base(s) de archivo por efecto y
+ *  capas del ambiente. No expone nodos de audio. */
+export function sfxBankSnapshot(): { sfx: Record<string, string[]>; ambient: string[] } {
+  const sfx: Record<string, string[]> = {};
+  for (const [key, variants] of Object.entries(SFX_FILES)) {
+    sfx[key] = variants.map((v) => v.base);
+  }
+  return { sfx, ambient: [...AMBIENT_LOOPS] };
 }
 
 /** Reproduce un efecto concreto para probarlo desde Ajustes. */

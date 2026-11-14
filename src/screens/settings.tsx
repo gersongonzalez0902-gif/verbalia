@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
-import { sfx, sfxShowcase, playSfxByName } from "@/services/audio";
+import { sfx, sfxShowcase, playSfxByName, toggleAmbientPreview } from "@/services/audio";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -69,6 +69,7 @@ export function SettingsScreen() {
   const { toast } = useToast();
   const [storageInfo, setStorageInfo] = useState<{ usage: number; quota: number } | null>(null);
   const [importOutcome, setImportOutcome] = useState<{ ok: boolean; words: number } | null>(null);
+  const [ambientPreview, setAmbientPreview] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -280,7 +281,7 @@ export function SettingsScreen() {
               <div>
                 <Label htmlFor="sound" className="text-sm font-bold">Sonido maestro</Label>
                 <p className="text-xs text-muted-foreground">
-                  Todo el audio del juego: música ambiental, efectos y reloj.
+                  Todo el audio del juego: ambiente, efectos y reloj.
                 </p>
               </div>
               <Switch
@@ -298,11 +299,11 @@ export function SettingsScreen() {
               <>
                 <div>
                   <div className="flex items-baseline justify-between">
-                    <Label className="text-sm font-bold">Música ambiental</Label>
+                    <Label className="text-sm font-bold">Ambiente</Label>
                     <span className="numeric text-sm font-bold text-primary">{Math.round(settings.musicVolume * 100)}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Banda sonora real: cada región tiene su propio loop grabado, con fundido al cambiar de aguas.
+                    Olas suaves, brisa y algún pájaro lejano: el mismo ambiente en portada, mapa, regiones y juegos.
                   </p>
                   <Slider
                     className="mt-3"
@@ -311,22 +312,7 @@ export function SettingsScreen() {
                     max={1}
                     step={0.05}
                     onValueChange={([v]) => updateSettings({ musicVolume: v })}
-                    aria-label="Volumen de la música ambiental"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <Label htmlFor="music-in-games" className="text-sm font-bold">Música dentro de partidas</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Desactívalo para jugar solo con efectos (recomendado: el menú calla, el juego suena).
-                    </p>
-                  </div>
-                  <Switch
-                    id="music-in-games"
-                    checked={settings.musicInGames}
-                    onCheckedChange={(v) => { sfx.toggle(); updateSettings({ musicInGames: v }); }}
-                    aria-label="Música dentro de partidas"
+                    aria-label="Volumen del ambiente"
                   />
                 </div>
 
@@ -370,7 +356,7 @@ export function SettingsScreen() {
                     <span className="numeric text-sm font-bold text-primary">{Math.round(settings.sfxVolume * 100)}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Aciertos, fallos, combos, naipes… y el tic-tac de los retos cronometrados.
+                    Aciertos, fallos, monedas, naipes… y el latido lejano de los retos cronometrados.
                   </p>
                   <Slider
                     className="mt-3"
@@ -387,9 +373,18 @@ export function SettingsScreen() {
                 <div>
                   <Label className="text-sm font-bold">Probar sonidos</Label>
                   <p className="text-xs text-muted-foreground">
-                    Escucha los efectos principales sin jugar, para comprobar que todo suena en tu aparato.
+                    Escucha el ambiente y los efectos principales sin jugar, para comprobar que todo suena en tu aparato.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant={ambientPreview ? "default" : "secondary"}
+                      size="sm"
+                      className="h-8 rounded-full px-3 text-xs"
+                      onClick={() => setAmbientPreview(toggleAmbientPreview())}
+                    >
+                      {ambientPreview ? "Parar ambiente" : "Ambiente (olas y brisa)"}
+                    </Button>
                     {sfxShowcase().map(({ key, label }) => (
                       <Button
                         key={key}

@@ -16,7 +16,7 @@ import { useMemo, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { ScreenHeader } from "@/components/game/app-shell";
 import { getIcon } from "@/components/game/icons";
-import { setSceneMusic, sfx, stopSceneMusic } from "@/services/audio";
+import { sfx } from "@/services/audio";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -133,7 +133,8 @@ export function ArcadeScreen() {
 
   const openGame = (id: string) => {
     sfx.whoosh();
-    stopSceneMusic(); // dentro del juego, sin música (como los minijuegos)
+    // El ambiente de estudio sigue sonando también dentro del juego:
+    // es una sola capa en todo el juego (Ola E · 5).
     setOpenId(id);
     setRunKey((k) => k + 1);
     setFinish(null);
@@ -142,7 +143,6 @@ export function ArcadeScreen() {
   const closeGame = () => {
     setOpenId(null);
     setFinish(null);
-    setSceneMusic("arcade");
   };
 
   const handleFinish = (score: number, extra?: { subtitle?: string }) => {

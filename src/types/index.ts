@@ -1004,7 +1004,7 @@ export interface GameSettings {
   reduceMotion: boolean;
   textSize: "md" | "lg" | "xl";
   sound: boolean;
-  /** Volumen de la música ambiental generativa (0-1). */
+  /** Volumen del ambiente único de estudio (0-1; Ola E · 5). */
   musicVolume: number;
   /** Volumen de los efectos de interacción (0-1). */
   sfxVolume: number;
@@ -1015,8 +1015,6 @@ export interface GameSettings {
   nightMode: boolean;
   /** Paleta de color de la interfaz (Etapa 3). */
   themeColor: ThemeColorId;
-  /** ¿Suena la música ambiental dentro de las partidas? */
-  musicInGames: boolean;
   /** Volumen de la estación de música del jugador (0-1). */
   stationVolume: number;
   /** ¿La estación sigue sonando durante las partidas? */
