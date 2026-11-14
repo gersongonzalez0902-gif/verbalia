@@ -64,3 +64,6 @@ server.log
 # clave de la CLI de Neon (sesión de configuración; revocar después)
 .neon-key
 src/generated/
+
+# base de datos local generada por el build (.zscripts/build.sh)
+/db/

@@ -74,3 +74,6 @@ export const prisma: Db = new Proxy({} as Db, {
     return typeof value === "function" ? value.bind(instance) : value;
   },
 });
+
+/** Alias de cortesía: las rutas sociales/de la bóveda/tutor lo llaman `db`. */
+export const db: Db = prisma;
