@@ -24,6 +24,7 @@ import { useOnlineStore } from "@/store/online-store";
 import { useUiStore } from "@/store/ui-store";
 import { useToast } from "@/hooks/use-toast";
 import { api, ApiError, type SessionItemDto } from "@/lib/api-client";
+import { createOnlineStatus, offlineNotice } from "@/lib/online-status";
 import { afterLogin, syncNow } from "@/services/sync";
 import { loadSyncMeta } from "@/services/storage";
 import { ScreenHeader } from "@/components/game/app-shell";
@@ -52,6 +53,7 @@ import {
   RefreshCw,
   ShieldAlert,
   UserRound,
+  WifiOff,
 } from "lucide-react";
 
 /* ============================== Ayudantes ============================== */
@@ -79,6 +81,16 @@ export function AccountScreen() {
 
   const [tab, setTab] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
+
+  // Estado de red honesto (Área 4.4): sin conexión, el formulario de
+  // cuenta se avisa antes de intentarlo; el juego no depende de esto.
+  const [netOnline, setNetOnline] = useState(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const status = createOnlineStatus(window);
+    setNetOnline(status.online);
+    return status.subscribe(setNetOnline);
+  }, []);
 
   // Formularios
   const [displayName, setDisplayName] = useState("");
@@ -370,9 +382,21 @@ export function AccountScreen() {
               <UserRound className="h-5 w-5 text-primary" aria-hidden /> Entrar al barco
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Con una cuenta, tu bitácora viaja entre dispositivos. Sin cuenta,
-              el juego funciona exactamente igual que siempre.
+              Con una cuenta, tu bitácora viaja sola entre dispositivos: al
+              entrar, la del barco y la de este aparato se unen sin perder
+              nada. Sin cuenta, el juego funciona exactamente igual que
+              siempre.
             </p>
+
+            {!netOnline && (
+              <p
+                className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm font-semibold text-amber-500"
+                role="status"
+              >
+                <WifiOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                {offlineNotice()}
+              </p>
+            )}
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "register")} className="mt-4">
               <TabsList className="grid w-full grid-cols-2">
@@ -430,17 +454,46 @@ export function AccountScreen() {
 
               <Button
                 className="w-full"
-                disabled={busy || !email.trim() || !password || (tab === "register" && !displayName.trim())}
+                disabled={busy || !netOnline || !email.trim() || !password || (tab === "register" && !displayName.trim())}
                 onClick={() => void (tab === "login" ? doLogin() : doRegister())}
               >
                 {tab === "login" ? "Iniciar sesión" : "Crear cuenta"}
               </Button>
+
+              {!netOnline && (
+                <p className="text-center text-xs text-muted-foreground">
+                  Los botones de cuenta se activan al volver la red.
+                </p>
+              )}
 
               {tab === "login" && (
                 <Button variant="ghost" className="w-full text-sm" disabled={busy} onClick={() => void doForgot()}>
                   Recordar contraseña (por correo)
                 </Button>
               )}
+
+              {/* Entrada con Google: llega en una ola posterior (Área 4.5).
+                  El botón ya ocupa su lugar, pero nunca se hace pasar por
+                  activo: está deshabilitado y lo dice. */}
+              <div className="flex items-center gap-3 pt-1" aria-hidden="true">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs font-semibold text-muted-foreground">o</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button variant="outline" className="w-full" disabled aria-disabled="true">
+                Continuar con Google
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                  Pronto
+                </span>
+              </Button>
+              <p className="sr-only">
+                La entrada con Google llegará en una ola posterior; de momento, usa el correo.
+              </p>
+              <p className="pt-1 text-center text-xs text-muted-foreground">
+                Solo pedimos lo imprescindible: correo, un nombre visible y tu
+                progreso. Sin rastreadores ni publicidad; exportar y borrar
+                siempre a mano.
+              </p>
             </div>
           </section>
         )}
