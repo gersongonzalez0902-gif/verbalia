@@ -8,7 +8,7 @@
  * desbloqueo por nivel de jugador (como las islas del mapa).
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useUiStore } from "@/store/ui-store";
 import { ScreenHeader } from "@/components/game/app-shell";
@@ -20,6 +20,7 @@ import { levelFromXp } from "@/engine/xp";
 import { gameLock, lockChipText, unlockContext } from "@/engine/unlocks";
 import { SRS_WORDS_FULL } from "@/data/content";
 import { totalPoolOf } from "@/data/pool-loader";
+import { lastPlayedTraining, recommendTraining } from "@/lib/training-picks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -95,6 +96,35 @@ export function TrainingScreen() {
 
   const unlockedCount = useMemo(() => enriched.filter((e) => e.unlocked).length, [enriched]);
 
+  /** Reto de hoy (habilidad más débil abierta) y último formato jugado
+   *  (Área 6.1 y 6.2): solo estado ya existente, sin esquema nuevo. */
+  const isOpen = useMemo(
+    () => (id: GameId) => enriched.find((e) => e.g.id === id)?.unlocked ?? false,
+    [enriched],
+  );
+  const recommended = useMemo(
+    () => recommendTraining(core.skills, isOpen),
+    [core.skills, isOpen],
+  );
+  const lastPlayed = useMemo(
+    () => lastPlayedTraining(useGameStore.getState().lastResult?.record.gameId),
+    [],
+  );
+  const lastPlayedOpen = lastPlayed ? isOpen(lastPlayed.id) : false;
+
+  /** Atajo «/»: enfoca el buscador desde el teclado (Área 6.5). */
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   /** Buscador (nombre, mecánica o región) + filtro de habilidad. */
   const filtered = useMemo(() => {
     const q = norm(query.trim());
@@ -105,6 +135,14 @@ export function TrainingScreen() {
       return haystack.includes(q);
     });
   }, [enriched, query, skillFilter]);
+
+  /** Nº de formatos por habilidad, para que cada chip diga la verdad (6.3). */
+  const countBySkill = useMemo(() => {
+    const map = new Map<SkillId | "todos", number>();
+    for (const { g } of enriched) map.set(g.skill, (map.get(g.skill) ?? 0) + 1);
+    map.set("todos", enriched.length);
+    return map;
+  }, [enriched]);
 
   const play = (gameId: GameId) => {
     sfx.whoosh();
@@ -148,6 +186,42 @@ export function TrainingScreen() {
           </div>
         </section>
 
+        {/* ===== Retomar y reto de hoy (Área 6.1 / 6.2) ===== */}
+        {(lastPlayedOpen || recommended) && (
+          <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+            {lastPlayedOpen && lastPlayed && (
+              <button
+                onClick={() => play(lastPlayed.id)}
+                className="card-aurora tap-3d flex items-center gap-3 rounded-2xl border bg-card p-3 text-left transition hover:border-primary/50"
+              >
+                <span className="gloss flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15" aria-hidden>
+                  <Play className="h-5 w-5 text-primary" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Retomar</span>
+                  <span className="block truncate text-sm font-bold">{lastPlayed.name}</span>
+                </span>
+                <span className="shrink-0 text-xs font-black text-primary">Seguir →</span>
+              </button>
+            )}
+            {recommended && (
+              <button
+                onClick={() => play(recommended.id)}
+                className="card-aurora tap-3d flex items-center gap-3 rounded-2xl border border-primary/30 bg-card p-3 text-left transition hover:border-primary/60"
+              >
+                <span className="gloss flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground" aria-hidden>
+                  <Zap className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Reto de hoy · tu habilidad más débil</span>
+                  <span className="block truncate text-sm font-bold">{recommended.name}</span>
+                </span>
+                <span className="shrink-0 text-xs font-black text-primary">Entrenar →</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* ===== Buscador + filtros ===== */}
         <section aria-label="Buscador de formatos" className="mt-4">
           <div className="relative">
@@ -156,13 +230,15 @@ export function TrainingScreen() {
               aria-hidden
             />
             <Input
+              ref={searchRef}
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
               }}
-              placeholder="Buscar por nombre, mecánica o región…"
+              placeholder="Buscar por nombre, mecánica o región… (pulsa /)"
               className="h-11 rounded-2xl pl-9 text-sm"
               aria-label="Buscar formato por nombre, mecánica o región"
+              aria-describedby="catalog-count"
             />
           </div>
           <div className="scroll-soft -mx-4 mt-2.5 flex gap-1.5 overflow-x-auto px-4 pb-1" role="group" aria-label="Filtrar por habilidad">
@@ -184,17 +260,31 @@ export function TrainingScreen() {
                   )}
                 >
                   {f.label}
+                  <span className="numeric ml-1 opacity-70">{countBySkill.get(f.id) ?? 0}</span>
                 </button>
               );
             })}
           </div>
+          <p id="catalog-count" className="numeric mt-1.5 px-1 text-[11px] text-muted-foreground" aria-live="polite">
+            {filtered.length} de {GAME_IDS.length} formatos{skillFilter !== "todos" ? " con el filtro activo" : ""}.
+          </p>
         </section>
 
         {/* ===== Catálogo ===== */}
         {filtered.length === 0 ? (
-          <p className="mt-10 text-center text-sm text-muted-foreground">
-            Ningún formato coincide con la búsqueda. Prueba con otra palabra o cambia el filtro.
-          </p>
+          <div className="mt-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              Ningún formato coincide con la búsqueda.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 font-bold"
+              onClick={() => { sfx.tap(); setQuery(""); setSkillFilter("todos"); }}
+            >
+              Quitar la búsqueda y el filtro
+            </Button>
+          </div>
         ) : (
           <ul className="stagger mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map(({ g, region, unlocked, lock, stat, pool }) => {
